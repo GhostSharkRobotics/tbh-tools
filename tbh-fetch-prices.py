@@ -53,25 +53,10 @@ def main():
     json.dump(out, open(pj, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("wrote", pj, "items:", len(prices))
 
-    # rebuild equipment roster (武器/防具/アクセ/オフハンド) from market data, keep tbh-data.json in sync
-    GEAR2CAT = {**dict.fromkeys(["Sword","Bow","Staff","Scepter","Crossbow","Axe","Hatchet"], "weapon"),
-                **dict.fromkeys(["Shield","Arrow","Orb","Tome","Bolt"], "offhand"),
-                **dict.fromkeys(["Helmet","Armor","Gloves","Boots"], "armor"),
-                **dict.fromkeys(["Amulet","Earing","Ring","Bracer"], "accessory")}
-    GEAR_JA = {"Sword":"剣","Bow":"弓","Staff":"杖","Scepter":"セプター","Crossbow":"クロスボウ","Axe":"斧","Hatchet":"手斧",
-               "Shield":"盾","Arrow":"矢","Orb":"オーブ","Tome":"本","Bolt":"ボルト","Helmet":"頭","Armor":"胴","Gloves":"手",
-               "Boots":"足","Amulet":"首飾り","Earing":"イヤリング","Ring":"指輪","Bracer":"腕輪"}
-    equip = []
-    for it in items:
-        g = it.get("gear")
-        if g not in GEAR2CAT: continue
-        m = re.search(r"\(([^)]+)\)", it.get("name") or "")
-        equip.append({"name": it.get("name_ja") or it["hash_name"], "nameEn": it["hash_name"],
-                      "gear": g, "gearJa": GEAR_JA.get(g, g), "cat": GEAR2CAT[g],
-                      "lvl": it.get("level"), "rarity": m.group(1).strip() if m else None})
+    # NOTE: 装備ロスター(equipment)とその stats は probonk由来（tbh-fetch-gear.py で生成）。
+    # ここでは上書きしない。価格はツールが PRICES から base|grade で都度計算する。
     dj = os.path.join(HERE, "tbh-data.json")
     d = json.load(open(dj, encoding="utf-8"))
-    d["equipment"] = equip
 
     # アイテム画像: Steam公式アイコン(icon_url)を「アイコンID(sha)→url」表に集約し、各itemにiconID付与（ダウンロード不要・CDN参照）
     import hashlib
@@ -86,18 +71,18 @@ def main():
     def _attach(x, url):
         if not url: return
         s = _sid(url); x["icon"] = s; icons[s] = url
+    def _bg(x): return icon_by_bg.get((x.get("nameEn") or "")+"|"+GT2.get(x.get("gradeEn"), x.get("rarity") or x.get("grade")))
     for g in d["gems"]: _attach(g, icon_by_hash.get(g.get("nameEn")))
     for e in d["engravings"]: _attach(e, icon_by_hash.get(e.get("nameEn")))
     for s in d["inscriptions"]["scrolls"]: _attach(s, icon_by_hash.get(s.get("nameEn")))
-    for e in equip: _attach(e, icon_by_hash.get(e.get("nameEn")))
+    for e in d.get("equipment", []): _attach(e, _bg(e))            # 装備は base|grade でアイコン解決
     if d.get("uniqueMods"):
-        for it2 in d["uniqueMods"]["items"]:
-            _attach(it2, icon_by_bg.get(it2.get("nameEn")+"|"+GT2.get(it2.get("gradeEn"), it2.get("grade"))))
+        for it2 in d["uniqueMods"]["items"]: _attach(it2, _bg(it2))
     d["icons"] = icons
     d.setdefault("_meta", {})["iconCdn"] = "https://community.akamai.steamstatic.com/economy/image/"
 
     json.dump(d, open(dj, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-    print("rebuilt equipment:", len(equip), "| icons:", len(icons))
+    print("equipment(kept):", len(d.get("equipment", [])), "| icons:", len(icons))
 
     # inject DATA + PRICES into HTML tools
     dcompact = json.dumps(d, ensure_ascii=False, separators=(",", ":"))

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TBH 宝石比較 DPS計算機</title>
+<style>
+  :root{--bg:#14110d;--surface:#1f1b15;--surface2:#2a251d;--accent:#d8a657;--win:#3b6d4a;--a:#4a7bd8;--b:#a06bd8;--text:#ece3d2;--muted:#9a8f7a;--border:#3a342a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.55;padding:22px;max-width:760px;margin:0 auto;}
+  h1{font-size:21px;font-weight:600;margin-bottom:4px;color:var(--accent);}
+  .sub{font-size:13px;color:var(--muted);margin-bottom:18px;}
+  h2{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.04em;margin:18px 0 8px;text-transform:uppercase;}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .field{background:var(--surface);border-radius:7px;padding:7px 9px;}
+  .field .name{font-size:11px;color:var(--muted);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  input,select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:8px;font-size:14px;}
+  input:focus,select:focus{outline:none;border-color:var(--accent);}
+  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+  .gems{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .gem{border:1px solid var(--border);border-radius:9px;padding:12px;}
+  .gem.A{border-top:3px solid var(--a);} .gem.B{border-top:3px solid var(--b);}
+  .gem .title{display:flex;align-items:center;gap:7px;margin-bottom:10px;}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none;}
+  .dot.A{background:var(--a);} .dot.B{background:var(--b);}
+  .gem .title input{font-size:14px;font-weight:600;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;padding:3px 2px;}
+  .row{display:grid;grid-template-columns:1.6fr 1fr;gap:8px;align-items:end;}
+  .row .name{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .buff{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:9px 11px;margin-top:12px;}
+  .buff input[type=checkbox]{width:17px;height:17px;flex:none;}
+  .buff input[type=number]{width:64px;}
+  .buff span{flex:1;font-size:13px;}
+  .results{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0 8px;}
+  .rbox{background:var(--surface);border-radius:9px;padding:14px;border:1px solid var(--border);position:relative;}
+  .rbox.A{border-color:var(--a);} .rbox.B{border-color:var(--b);}
+  .rbox.winner{background:var(--win);border-color:#5a9b6e;}
+  .rbox .t{font-size:11px;color:var(--muted);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rbox.winner .t{color:#cfe8d4;}
+  .rbox .v{font-size:26px;font-weight:600;line-height:1.1;}
+  .rbox .d{font-size:12px;color:var(--muted);margin-top:3px;}
+  .rbox.winner .d{color:#d4ead9;}
+  .crown{position:absolute;top:9px;right:11px;font-size:14px;}
+  .verdict{font-size:15px;font-weight:600;text-align:center;padding:12px;border-radius:9px;background:var(--surface);margin-bottom:10px;}
+  .eff{font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:14px;}
+  button{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:8px 14px;font-size:13px;cursor:pointer;}
+  button:hover{border-color:var(--accent);}
+  .hint{font-size:11px;color:var(--muted);margin-top:10px;}
+  @media(max-width:640px){.grid4{grid-template-columns:repeat(2,1fr);}.gems{grid-template-columns:1fr;}.results{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<h1>TBH 宝石比較 DPS計算機</h1>
+<div class="sub">現状ステータスを入れ、宝石A・宝石Bがそれぞれ上げるステータスを1つ選んで比較。どっちの宝石がDPS高いか分かる。入力は自動保存。</div>
+
+<h2>現状ステータス</h2>
+<div class="grid4">
+  <div class="field"><div class="name">攻撃力（基礎）</div><input type="number" id="ad" value="636" step="10"></div>
+  <div class="field"><div class="name">攻撃力 係数 %</div><input type="number" id="adc" value="0" step="1"></div>
+  <div class="field"><div class="name">攻撃速度（基礎）</div><input type="number" id="as" value="5.35" step="0.01"></div>
+  <div class="field"><div class="name">攻撃速度 係数 %</div><input type="number" id="asc" value="0" step="1"></div>
+  <div class="field"><div class="name">クリ率（基礎）%</div><input type="number" id="cc" value="11.5" step="0.1"></div>
+  <div class="field"><div class="name">クリ率 係数 %</div><input type="number" id="ccc" value="0" step="1"></div>
+  <div class="field"><div class="name">クリダメ（基礎・+%）</div><input type="number" id="cd" value="264" step="1"></div>
+  <div class="field"><div class="name">クリダメ 係数 %</div><input type="number" id="cdc" value="0" step="1"></div>
+</div>
+
+<h2>宝石を比較</h2>
+<div class="gems">
+  <div class="gem A">
+    <div class="title"><span class="dot A"></span><input type="text" id="a_name" value="宝石A"></div>
+    <div class="row">
+      <div><div class="name">上げるステータス</div><select id="a_stat"></select></div>
+      <div><div class="name">効果値（+）</div><input type="number" id="a_val" value="8" step="0.5"></div>
+    </div>
+  </div>
+  <div class="gem B">
+    <div class="title"><span class="dot B"></span><input type="text" id="b_name" value="宝石B"></div>
+    <div class="row">
+      <div><div class="name">上げるステータス</div><select id="b_stat"></select></div>
+      <div><div class="name">効果値（+）</div><input type="number" id="b_val" value="25" step="0.5"></div>
+    </div>
+  </div>
+</div>
+
+<label class="buff">
+  <input type="checkbox" id="buff">
+  <span>プリーストの力の祝福（全体に乗算）</span>
+  <input type="number" id="buffPct" value="90" step="1">
+  <span style="flex:none;color:var(--muted);">%</span>
+</label>
+
+<div class="verdict" id="verdict"></div>
+<div class="results">
+  <div class="rbox" id="r0"><div class="t">現状（宝石なし）</div><div class="v" id="dps0"></div></div>
+  <div class="rbox A" id="rA"><div class="t" id="tA">宝石A</div><div class="v" id="dpsA"></div><div class="d" id="dA"></div></div>
+  <div class="rbox B" id="rB"><div class="t" id="tB">宝石B</div><div class="v" id="dpsB"></div><div class="d" id="dB"></div></div>
+</div>
+<div class="eff" id="eff"></div>
+
+<button id="reset">初期値に戻す</button>
+<div class="hint">式: DPS = 攻撃力 × 攻撃速度 × (1 + クリ率 × クリダメ) × (1+ダメージ乗算) × バフ。クリダメは「+ボーナス」（264%=クリで3.64倍）。クリ率は100%上限。宝石は1個1ステータス（色×装備部位で決定）。</div>
+
+<script>
+var STATS=[
+  {k:'spd',label:'攻撃速度 +%'},
+  {k:'atk',label:'攻撃力 +（実数）'},
+  {k:'adc',label:'攻撃力係数 +%'},
+  {k:'crc',label:'クリ率係数 +%'},
+  {k:'crf',label:'クリ率 +%（加算）'},
+  {k:'cdb',label:'クリダメ +%（加算）'},
+  {k:'dmg',label:'ダメージ乗算 +%'}
+];
+['a_stat','b_stat'].forEach(function(id){
+  var sel=document.getElementById(id);
+  STATS.forEach(function(s){var o=document.createElement('option');o.value=s.k;o.textContent=s.label;sel.appendChild(o);});
+});
+document.getElementById('a_stat').value='spd';
+document.getElementById('b_stat').value='crc';
+
+function v(id){return parseFloat(document.getElementById(id).value)||0;}
+function fmt(x){return Math.round(x).toLocaleString();}
+function pct(x){return (x>=0?'+':'')+x.toFixed(1)+'%';}
+function statLabel(k){for(var i=0;i<STATS.length;i++)if(STATS[i].k===k)return STATS[i].label;return '';}
+
+function dps(stat,val){
+  var ad=v('ad'),adc=v('adc'),as=v('as'),asc=v('asc'),cc=v('cc'),ccc=v('ccc'),cd=v('cd'),cdc=v('cdc'),other=0;
+  if(stat==='atk')ad+=val;
+  else if(stat==='adc')adc+=val;
+  else if(stat==='spd')asc+=val;
+  else if(stat==='crc')ccc+=val;
+  else if(stat==='crf')cc+=val;
+  else if(stat==='cdb')cd+=val;
+  else if(stat==='dmg')other+=val;
+  var atk=ad*(1+adc/100);
+  var spd=as*(1+asc/100);
+  var cr=Math.min(cc*(1+ccc/100),100)/100;
+  var cdmg=cd*(1+cdc/100)/100;
+  var bm=document.getElementById('buff').checked?(1+v('buffPct')/100):1;
+  return atk*spd*(1+cr*cdmg)*(1+other/100)*bm;
+}
+
+function save(){
+  var o={};['ad','adc','as','asc','cc','ccc','cd','cdc','buffPct','a_name','a_stat','a_val','b_name','b_stat','b_val'].forEach(function(id){o[id]=document.getElementById(id).value;});
+  o.buff=document.getElementById('buff').checked;
+  try{localStorage.setItem('tbh_cmp2',JSON.stringify(o));}catch(e){}
+}
+function load(){
+  try{var o=JSON.parse(localStorage.getItem('tbh_cmp2'));if(!o)return;
+    Object.keys(o).forEach(function(id){var el=document.getElementById(id);if(!el)return;if(el.type==='checkbox')el.checked=o[id];else el.value=o[id];});
+  }catch(e){}
+}
+
+function calc(){
+  var d0=dps('none',0),dA=dps(v('a_stat')?document.getElementById('a_stat').value:'none',v('a_val')),dB=dps(document.getElementById('b_stat').value,v('b_val'));
+  document.getElementById('dps0').textContent=fmt(d0);
+  document.getElementById('dpsA').textContent=fmt(dA);
+  document.getElementById('dpsB').textContent=fmt(dB);
+  var nameA=document.getElementById('a_name').value||'宝石A',nameB=document.getElementById('b_name').value||'宝石B';
+  document.getElementById('tA').textContent=nameA+'（'+statLabel(document.getElementById('a_stat').value)+' '+v('a_val')+'）';
+  document.getElementById('tB').textContent=nameB+'（'+statLabel(document.getElementById('b_stat').value)+' '+v('b_val')+'）';
+  document.getElementById('dA').textContent='現状比 '+pct((dA/d0-1)*100);
+  document.getElementById('dB').textContent='現状比 '+pct((dB/d0-1)*100);
+
+  var rA=document.getElementById('rA'),rB=document.getElementById('rB');
+  rA.classList.remove('winner');rB.classList.remove('winner');
+  var oc=document.querySelector('.crown');if(oc)oc.remove();
+  var vEl=document.getElementById('verdict');
+  if(Math.abs(dA-dB)<0.5){vEl.textContent='引き分け（ほぼ同じ）';vEl.style.color='var(--muted)';}
+  else{
+    var aWin=dA>dB,win=aWin?rA:rB,winName=aWin?nameA:nameB,loseName=aWin?nameB:nameA;
+    var diff=Math.abs((aWin?dA/dB:dB/dA)-1)*100;
+    win.classList.add('winner');
+    var cr=document.createElement('div');cr.className='crown';cr.textContent='👑';win.appendChild(cr);
+    vEl.innerHTML='勝ち: <b>'+winName+'</b> が '+loseName+' より <b>'+diff.toFixed(1)+'%</b> 高い';
+    vEl.style.color=aWin?'var(--a)':'var(--b)';
+  }
+  document.getElementById('eff').textContent='現状実効: クリ率 '+v('cc').toFixed(1)+'%　クリダメ +'+v('cd').toFixed(0)+'%　攻撃速度 '+v('as').toFixed(2)+'　攻撃力 '+fmt(v('ad'))+(document.getElementById('buff').checked?'　／ バフ ON':'');
+  save();
+}
+
+Array.prototype.slice.call(document.querySelectorAll('input,select')).forEach(function(el){
+  el.addEventListener('input',calc);el.addEventListener('change',calc);
+});
+document.getElementById('reset').addEventListener('click',function(){
+  try{localStorage.removeItem('tbh_cmp2');}catch(e){}
+  location.reload();
+});
+load();calc();
+</script>
+</body>
+</html>

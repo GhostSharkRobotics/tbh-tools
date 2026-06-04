@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TBH ツール / Task Bar Hero Tools</title>
+<style>
+  :root{--bg:#14110d;--surface:#1f1b15;--accent:#d8a657;--text:#ece3d2;--muted:#9a8f7a;--border:#3a342a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.6;padding:24px;max-width:720px;margin:0 auto;}
+  h1{font-size:24px;color:var(--accent);margin-bottom:4px;}
+  .sub{font-size:13px;color:var(--muted);margin-bottom:22px;}
+  a.card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:12px;text-decoration:none;color:var(--text);}
+  a.card:hover{border-color:var(--accent);}
+  a.card .t{font-size:18px;font-weight:600;color:var(--accent);}
+  a.card .d{font-size:13px;color:var(--muted);margin-top:3px;}
+  .note{font-size:12px;color:var(--muted);margin-top:20px;border-top:1px solid var(--border);padding-top:12px;}
+</style>
+</head>
+<body>
+<h1>TBH ツール</h1>
+<div class="sub">Task Bar Hero（タスクバーヒーロー）の非公式ユーティリティ。ブックマークすればどの端末でも使えます。</div>
+
+<a class="card" href="tbh-gem-search.html">
+  <div class="t">🔍 アイテム検索 / Item Search</div>
+  <div class="d">装備・装飾(宝石)・彫刻・碑文(刻印)・特殊ステータスを効果や名前で検索。価格付き・日英対応。</div>
+</a>
+<a class="card" href="tbh-build-simulator.html">
+  <div class="t">🛠 ビルドシミュレーター</div>
+  <div class="d">装備・宝石・バフからDPSを計算。</div>
+</a>
+<a class="card" href="tbh-dps.html">
+  <div class="t">📊 DPS計算機</div>
+  <div class="d">シンプルなDPS計算。</div>
+</a>
+
+<div class="note">
+  データはコミュニティwiki由来でやや不確実、実機の値が優先。価格は tbh-market.com 経由（Steam相場）のスナップショット。<br>
+  数値はリポジトリの <code>tbh-data.json</code> / <code>tbh-prices.json</code> を更新して再デプロイで反映。
+</div>
+</body>
+</html>

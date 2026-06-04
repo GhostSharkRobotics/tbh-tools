@@ -33,14 +33,18 @@
   select{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 9px;font-size:13px;cursor:pointer;}
   select:focus{outline:none;border-color:var(--accent);}
   .count{font-size:12px;color:var(--muted);margin-left:auto;}
-  table{width:100%;border-collapse:collapse;}
+  #results{overflow-x:auto;}
+  table{border-collapse:collapse;table-layout:fixed;}
   thead th{position:sticky;top:0;background:var(--surface);color:var(--muted);font-size:11px;font-weight:600;text-align:left;
-    padding:9px 8px;border-bottom:2px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap;}
+    padding:9px 8px;border-bottom:2px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   thead th:hover{color:var(--accent);}
   thead th.active{color:var(--accent);}
   thead th .ar{font-size:9px;margin-left:3px;opacity:.9;}
   thead th.num,td.num{text-align:right;}
-  tbody td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .rsz{position:absolute;top:0;right:0;width:7px;height:100%;cursor:col-resize;}
+  .rsz:hover{background:var(--accent);opacity:.5;}
+  tbody td{padding:8px;border-bottom:1px solid var(--border);vertical-align:middle;overflow:hidden;}
+  tbody td.nm,tbody td.rar,tbody td.slot,tbody td.eff,tbody td.val,tbody td.price{text-overflow:ellipsis;}
   tbody tr:hover td{background:rgba(255,255,255,.025);}
   tr.best td{background:rgba(216,166,87,.09);}
   tr.best:hover td{background:rgba(216,166,87,.14);}
@@ -87,6 +91,7 @@
 <div class="toolrow">
   <select id="rarity"></select>
   <select id="level"></select>
+  <button class="chip" id="resetw" title="列幅を初期化">列幅リセット</button>
   <span class="count" id="count"></span>
 </div>
 
@@ -211,6 +216,7 @@ el("lang").onclick=()=>{state.lang=state.lang==="ja"?"en":"ja";buildChips();appl
 el("rarity").onchange=e=>{state.rarity=e.target.value;render();};
 el("level").onchange=e=>{state.level=e.target.value;render();};
 el("q").oninput=e=>{state.q=e.target.value.trim();if(state.q)state.stat=null;render();};
+el("resetw").onclick=()=>{COLW={};try{localStorage.removeItem("tbhColW");}catch(e){}render();};
 
 // ---- filtering ----
 function matchText(name,nameEn,stat){if(!state.q)return true;const q=state.q.toLowerCase();
@@ -304,11 +310,28 @@ function sortRows(rows){
   return rows;
 }
 function clickHeader(k){
+  if(_resized){_resized=false;return;}              // ドラッグ直後はソートしない
   if(state.sortCol===k)state.sortDir=state.sortDir==="asc"?"desc":"asc";
   else{state.sortCol=k;state.sortDir=(k==="value"||k==="rarity")?"desc":"asc";}
   render();
 }
 window._ch=clickHeader;
+// ---- 列幅: ドラッグで調整＋localStorageに記憶 ----
+const COLW_DEFAULT={name:220,type:88,rarity:92,slot:70,lv:56,effect:250,value:86,price:78,set:150};
+function loadColW(){try{return JSON.parse(localStorage.getItem("tbhColW"))||{};}catch(e){return {};}}
+function saveColW(){try{localStorage.setItem("tbhColW",JSON.stringify(COLW));}catch(e){}}
+let COLW=loadColW();
+const colW=k=>COLW[k]||COLW_DEFAULT[k]||100;
+let _resizing=null,_resized=false;
+window._rs=function(ev,k){
+  ev.stopPropagation();ev.preventDefault();
+  const th=ev.target.closest("th");
+  _resizing={k:k,th:th,x:ev.clientX,w:th.offsetWidth};_resized=false;
+  document.body.style.cursor="col-resize";
+  const mv=function(e){if(!_resizing)return;const w=Math.max(44,_resizing.w+(e.clientX-_resizing.x));_resizing.th.style.width=w+"px";COLW[_resizing.k]=w;_resized=true;};
+  const up=function(){if(_resizing&&_resized)saveColW();_resizing=null;document.body.style.cursor="";document.removeEventListener("mousemove",mv);document.removeEventListener("mouseup",up);};
+  document.addEventListener("mousemove",mv);document.addEventListener("mouseup",up);
+};
 window._cp=function(en,ev){if(navigator.clipboard)navigator.clipboard.writeText(en);
   const t=ev&&ev.currentTarget;if(t){const o=t.getAttribute("data-en");t.querySelector(".cpok")?.remove();
     const s=document.createElement("span");s.className="cpok";s.textContent=" ✓copied";t.appendChild(s);setTimeout(()=>s.remove(),1100);}};
@@ -327,7 +350,7 @@ function render(){
   const order=["name","type","rarity","slot","lv","effect","value","price","set"];
   const arrow=k=>state.sortCol===k?`<span class="ar">${state.sortDir==="asc"?"▲":"▼"}</span>`:"";
   let head=order.map(k=>{const num=(k==="value"||k==="price"||k==="lv")?" num":"";const act=state.sortCol===k?" active":"";
-    return `<th class="${num.trim()}${act}" onclick="_ch('${k}')">${C[k]}${arrow(k)}</th>`;}).join("");
+    return `<th class="${num.trim()}${act}" style="width:${colW(k)}px" onclick="_ch('${k}')">${C[k]}${arrow(k)}<span class="rsz" onmousedown="_rs(event,'${k}')" onclick="event.stopPropagation()"></span></th>`;}).join("");
   let body="";
   for(const r of rows){
     const dot=r.color?`<span class="dot" style="background:var(--c-${r.color})"></span>`:(r.type==="inscription"?"":`<span class="dot none"></span>`);

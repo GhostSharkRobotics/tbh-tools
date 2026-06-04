@@ -42620,10 +42620,10 @@
         "numericKeys": [
           "1000001"
         ],
-        "descJa": "ウェーブ間移動が「自分以外で最も遅いメンバー」基準",
-        "descEn": "Inter-wave move based on slowest party member excluding self",
-        "descConfirmed": false,
-        "descNote": "キー名由来の推定訳（効果倍率・正確な文言は要実機確認）",
+        "descJa": "ウェーブ間移動を「最速メンバーの移動速度」で行う（自分が最遅でも全体のボトルネックを解消）",
+        "descEn": "Move between waves at the speed of the fastest party member",
+        "descConfirmed": true,
+        "descNote": "実機/wiki(taskbarherowiki 535041, gamesignal)で確認。内部キー名は SlowestPartyExcludeSelf だが表示効果は最速メンバー速度。ナイトは最遅なので全体速度を引き上げる用途。",
         "grades": [
           "ARCANA"
         ],

@@ -6,6 +6,7 @@
       "gamerch task-bar-hero",
       "hamatti-games",
       "kengomon",
+      "probonk.com /skills",
       "taskbarhero.org/en",
       "taskbarhero.org/en/cube",
       "taskbarhero.org/en/items",
@@ -25,7 +26,8 @@
     },
     "iconCdn": "https://community.akamai.steamstatic.com/economy/image/",
     "equipStatNote": "装備ステータスはprobonk(ゲーム内部)由来を実機表示にスケール: %系(攻撃速度/クリ等)とADDITIVE/MULT=÷10して整数%、毎秒HP回復=÷100、実数系(防御/HP/移動/攻撃)はそのまま。",
-    "enemyStageNote": "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。"
+    "enemyStageNote": "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。",
+    "skillNote": "skills(アクティブ106)/passiveSkills(108) は probonk(実機データマイン)由来。skillKeyの第1桁=クラス(1ナイト/2レンジャー/3ソーサラー/4プリースト/5ハンター/6スレイヤー)。levels[]はLv1〜10の生値(説明文{0}に対応)。value/paramsはprobonk内部生値で実機表示とスケールが異なる場合あり(%系は概ね÷10で整数%)。"
   },
   "classes": [
     {
@@ -76068,6 +76070,4448 @@
       "enemies": [],
       "expectedGold": 198300,
       "expectedExp": 7826
+    }
+  ],
+  "skills": [
+    {
+      "skillKey": 10001,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Melee",
+      "range": 140,
+      "value": 1000,
+      "params": [
+        600,
+        200,
+        200
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": 100111,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 200,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 100211,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 130,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 100221,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 170,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 100231,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": null,
+      "range": 800,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 100311,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 200,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 100411,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 100421,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 170,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 100431,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 250,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 100511,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 100521,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 900,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 100531,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 300,
+      "value": 1000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 10101,
+      "class": "ナイト",
+      "nameJa": "貫通突き",
+      "nameEn": "Piercing Thrust",
+      "descJa": "剣を前方に深く突き刺し、範囲内の敵に{0}%の物理ダメージを与える。",
+      "descEn": "Thrust your sword deeply forward, dealing {0}% physical damage to enemies in range.",
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 6,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Melee, AOE",
+      "range": 200,
+      "value": null,
+      "params": [
+        700
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 2500
+        },
+        {
+          "level": 2,
+          "value": 2700
+        },
+        {
+          "level": 3,
+          "value": 2900
+        },
+        {
+          "level": 4,
+          "value": 3100
+        },
+        {
+          "level": 5,
+          "value": 3300
+        },
+        {
+          "level": 6,
+          "value": 3500
+        },
+        {
+          "level": 7,
+          "value": 3700
+        },
+        {
+          "level": 8,
+          "value": 3900
+        },
+        {
+          "level": 9,
+          "value": 4100
+        },
+        {
+          "level": 10,
+          "value": 4300
+        }
+      ]
+    },
+    {
+      "skillKey": 10201,
+      "class": "ナイト",
+      "nameJa": "シールドチャージ",
+      "nameEn": "Shield Charge",
+      "descJa": "盾を構えて前方に突進する。衝突した敵に{0}%の物理ダメージを与える。",
+      "descEn": "Raise your shield and charge forward. Deal {0}% physical damage to enemies you collide with.",
+      "activationType": "COOLDOWN",
+      "activationValue": 4,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Melee",
+      "range": 900,
+      "value": null,
+      "params": [
+        3500,
+        150
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 3000
+        },
+        {
+          "level": 2,
+          "value": 3300
+        },
+        {
+          "level": 3,
+          "value": 3600
+        },
+        {
+          "level": 4,
+          "value": 3900
+        },
+        {
+          "level": 5,
+          "value": 4200
+        },
+        {
+          "level": 6,
+          "value": 4500
+        },
+        {
+          "level": 7,
+          "value": 4800
+        },
+        {
+          "level": 8,
+          "value": 5100
+        },
+        {
+          "level": 9,
+          "value": 5400
+        },
+        {
+          "level": 10,
+          "value": 5700
+        }
+      ]
+    },
+    {
+      "skillKey": 10301,
+      "class": "ナイト",
+      "nameJa": "応報の打撃",
+      "nameEn": "Retribution Strike",
+      "descJa": "敵を複数回攻撃し、1打撃ごとに{0}%の物理ダメージを与える。ヒーローのHPが低いほど打撃回数が増える。",
+      "descEn": "Strike enemies multiple times, dealing {0}% physical damage per hit. The lower the hero's HP, the more strikes.",
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 5,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Melee",
+      "range": 150,
+      "value": null,
+      "params": [
+        2,
+        500,
+        3,
+        8,
+        235
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 1500
+        },
+        {
+          "level": 2,
+          "value": 1700
+        },
+        {
+          "level": 3,
+          "value": 1900
+        },
+        {
+          "level": 4,
+          "value": 2100
+        },
+        {
+          "level": 5,
+          "value": 2300
+        },
+        {
+          "level": 6,
+          "value": 2500
+        },
+        {
+          "level": 7,
+          "value": 2700
+        },
+        {
+          "level": 8,
+          "value": 2900
+        },
+        {
+          "level": 9,
+          "value": 3100
+        },
+        {
+          "level": 10,
+          "value": 3300
+        }
+      ]
+    },
+    {
+      "skillKey": 10401,
+      "class": "ナイト",
+      "nameJa": "イージスフィールド",
+      "nameEn": "Aegis Field",
+      "descJa": "守護の領域を展開し、領域内の味方が受けるダメージを{0}分阻止します。",
+      "descEn": "Deploy a protective aura that blocks {0} damage for allies within the area.",
+      "activationType": "COOLDOWN",
+      "activationValue": 20,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "AOE",
+      "range": 150,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 500
+        },
+        {
+          "level": 2,
+          "value": 650
+        },
+        {
+          "level": 3,
+          "value": 800
+        },
+        {
+          "level": 4,
+          "value": 950
+        },
+        {
+          "level": 5,
+          "value": 1100
+        },
+        {
+          "level": 6,
+          "value": 1250
+        },
+        {
+          "level": 7,
+          "value": 1400
+        },
+        {
+          "level": 8,
+          "value": 1550
+        },
+        {
+          "level": 9,
+          "value": 1700
+        },
+        {
+          "level": 10,
+          "value": 1850
+        }
+      ]
+    },
+    {
+      "skillKey": 10501,
+      "class": "ナイト",
+      "nameJa": "セイクリッドブレード",
+      "nameEn": "Sacred Blade",
+      "descJa": "剣に聖なる力を宿す。バフ中は攻撃力+50%、攻撃時に{0}のHPを回復する。",
+      "descEn": "Imbue your sword with holy power. While buffed, attack damage increases by 50% and attacks restore {0} HP.",
+      "activationType": "COOLDOWN",
+      "activationValue": 17,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": null,
+      "params": [
+        800
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 20
+        },
+        {
+          "level": 2,
+          "value": 40
+        },
+        {
+          "level": 3,
+          "value": 60
+        },
+        {
+          "level": 4,
+          "value": 80
+        },
+        {
+          "level": 5,
+          "value": 100
+        },
+        {
+          "level": 6,
+          "value": 120
+        },
+        {
+          "level": 7,
+          "value": 140
+        },
+        {
+          "level": 8,
+          "value": 160
+        },
+        {
+          "level": 9,
+          "value": 180
+        },
+        {
+          "level": 10,
+          "value": 200
+        }
+      ]
+    },
+    {
+      "skillKey": 10601,
+      "class": "ナイト",
+      "nameJa": "不屈の意志",
+      "nameEn": "Unyielding Will",
+      "descJa": "ステージにつき1回、瀕死時に精神を集中し{0}%のHPで再び起き上がります。",
+      "descEn": "Once per stage, when near-death, focus your mind to rise again with {0}% HP.",
+      "activationType": "COOLDOWN",
+      "activationValue": 50,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 300
+        },
+        {
+          "level": 2,
+          "value": 400
+        },
+        {
+          "level": 3,
+          "value": 500
+        },
+        {
+          "level": 4,
+          "value": 600
+        },
+        {
+          "level": 5,
+          "value": 700
+        },
+        {
+          "level": 6,
+          "value": 800
+        },
+        {
+          "level": 7,
+          "value": 900
+        },
+        {
+          "level": 8,
+          "value": 1000
+        },
+        {
+          "level": 9,
+          "value": 1100
+        },
+        {
+          "level": 10,
+          "value": 1200
+        }
+      ]
+    },
+    {
+      "skillKey": 109011,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 300,
+      "value": 1000,
+      "params": [
+        750,
+        250
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": 109021,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 4,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 450,
+      "value": 1500,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 109031,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "COOLDOWN",
+      "activationValue": 10,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 700,
+      "value": 1500,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 109041,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "COOLDOWN",
+      "activationValue": 12,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 300,
+      "value": 1500,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 109051,
+      "class": "ナイト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "COOLDOWN",
+      "activationValue": 8,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 700,
+      "value": 1500,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 20001,
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Projectile",
+      "range": 1100,
+      "value": 1000,
+      "params": [
+        650,
+        150,
+        200
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": "200111 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200211 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 130,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200221 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 900,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200231 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200241 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 170,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200311 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 200,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200411 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "chaos",
+      "deliveryType": null,
+      "range": 150,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200421 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "chaos",
+      "deliveryType": null,
+      "range": 800,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200511 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 200,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200611 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 170,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200621 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 900,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200711 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200811 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "200911 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": null,
+      "range": 800,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 20101,
+      "class": "レンジャー",
+      "nameJa": "連射",
+      "nameEn": "Rapid Fire",
+      "descJa": "矢を連続して複数発射し、1本ごとに{0}%の物理ダメージを与える。",
+      "descEn": "Fire multiple arrows in succession, dealing {0}% physical damage per arrow.",
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 5,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Projectile",
+      "range": 1150,
+      "value": null,
+      "params": [
+        3
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 1320
+        },
+        {
+          "level": 2,
+          "value": 1440
+        },
+        {
+          "level": 3,
+          "value": 1560
+        },
+        {
+          "level": 4,
+          "value": 1680
+        },
+        {
+          "level": 5,
+          "value": 1800
+        },
+        {
+          "level": 6,
+          "value": 1920
+        },
+        {
+          "level": 7,
+          "value": 2040
+        },
+        {
+          "level": 8,
+          "value": 2160
+        },
+        {
+          "level": 9,
+          "value": 2280
+        },
+        {
+          "level": 10,
+          "value": 2400
+        }
+      ]
+    },
+    {
+      "skillKey": "201111 ",
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 170,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 201211,
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 130,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 20201,
+      "class": "レンジャー",
+      "nameJa": "散弾射撃",
+      "nameEn": "Scatter Shot",
+      "descJa": "敵を追尾する矢を複数発射する。1本ごとに{0}%の物理ダメージを与える。",
+      "descEn": "Fire multiple homing arrows. Deal {0}% physical damage per arrow.",
+      "activationType": "COOLDOWN",
+      "activationValue": 7,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Projectile",
+      "range": 1650,
+      "value": null,
+      "params": [
+        3,
+        40
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 1620
+        },
+        {
+          "level": 2,
+          "value": 1780
+        },
+        {
+          "level": 3,
+          "value": 1940
+        },
+        {
+          "level": 4,
+          "value": 2100
+        },
+        {
+          "level": 5,
+          "value": 2260
+        },
+        {
+          "level": 6,
+          "value": 2420
+        },
+        {
+          "level": 7,
+          "value": 2580
+        },
+        {
+          "level": 8,
+          "value": 2740
+        },
+        {
+          "level": 9,
+          "value": 2900
+        },
+        {
+          "level": 10,
+          "value": 3060
+        }
+      ]
+    },
+    {
+      "skillKey": 20301,
+      "class": "レンジャー",
+      "nameJa": "矢の雨",
+      "nameEn": "Arrow Rain",
+      "descJa": "空に向けて複数の矢を放ち、広範囲の敵に{0}%の物理ダメージを与える。",
+      "descEn": "Fire multiple arrows into the sky, dealing {0}% physical damage to enemies in a wide area.",
+      "activationType": "COOLDOWN",
+      "activationValue": 10,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "AOE",
+      "range": 1300,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 2150
+        },
+        {
+          "level": 2,
+          "value": 2410
+        },
+        {
+          "level": 3,
+          "value": 2670
+        },
+        {
+          "level": 4,
+          "value": 2930
+        },
+        {
+          "level": 5,
+          "value": 3190
+        },
+        {
+          "level": 6,
+          "value": 3450
+        },
+        {
+          "level": 7,
+          "value": 3710
+        },
+        {
+          "level": 8,
+          "value": 3970
+        },
+        {
+          "level": 9,
+          "value": 4230
+        },
+        {
+          "level": 10,
+          "value": 4490
+        }
+      ]
+    },
+    {
+      "skillKey": 20401,
+      "class": "レンジャー",
+      "nameJa": "スウィフトサージ",
+      "nameEn": "Swift Surge",
+      "descJa": "身体の代謝を一時的に加速。持続時間中、攻撃速度が+{0}%増加する。",
+      "descEn": "Temporarily accelerate your metabolism. Attack speed increases by {0}% for the duration.",
+      "activationType": "COOLDOWN",
+      "activationValue": 21,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 1200,
+      "value": null,
+      "params": [
+        700
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 500
+        },
+        {
+          "level": 2,
+          "value": 600
+        },
+        {
+          "level": 3,
+          "value": 700
+        },
+        {
+          "level": 4,
+          "value": 800
+        },
+        {
+          "level": 5,
+          "value": 900
+        },
+        {
+          "level": 6,
+          "value": 1000
+        },
+        {
+          "level": 7,
+          "value": 1100
+        },
+        {
+          "level": 8,
+          "value": 1200
+        },
+        {
+          "level": 9,
+          "value": 1300
+        },
+        {
+          "level": 10,
+          "value": 1400
+        }
+      ]
+    },
+    {
+      "skillKey": 20501,
+      "class": "レンジャー",
+      "nameJa": "ピアシングアロー",
+      "nameEn": "Piercing Arrow",
+      "descJa": "貫通する矢を放ち、命中した敵に{0}%の物理ダメージを与える。",
+      "descEn": "Fire a piercing arrow that deals {0}% physical damage to enemies hit.",
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 13,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Projectile",
+      "range": 1200,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 2440
+        },
+        {
+          "level": 2,
+          "value": 2600
+        },
+        {
+          "level": 3,
+          "value": 2760
+        },
+        {
+          "level": 4,
+          "value": 2920
+        },
+        {
+          "level": 5,
+          "value": 3080
+        },
+        {
+          "level": 6,
+          "value": 3240
+        },
+        {
+          "level": 7,
+          "value": 3400
+        },
+        {
+          "level": 8,
+          "value": 3560
+        },
+        {
+          "level": 9,
+          "value": 3720
+        },
+        {
+          "level": 10,
+          "value": 3880
+        }
+      ]
+    },
+    {
+      "skillKey": 20601,
+      "class": "レンジャー",
+      "nameJa": "スキュワーショット",
+      "nameEn": "Skewer Shot",
+      "descJa": "深く刺さる矢を放つ。刺さった矢ごとにダメージ+{0}%、3本以上で出血を発生させる。",
+      "descEn": "Fire a deep-wounding arrow. Damage increases by {0}% per lodged arrow; 3+ arrows cause bleeding.",
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 8,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "physical",
+      "deliveryType": "Projectile",
+      "range": 1200,
+      "value": null,
+      "params": [
+        3000,
+        4
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 1000
+        },
+        {
+          "level": 2,
+          "value": 1300
+        },
+        {
+          "level": 3,
+          "value": 1600
+        },
+        {
+          "level": 4,
+          "value": 1900
+        },
+        {
+          "level": 5,
+          "value": 2200
+        },
+        {
+          "level": 6,
+          "value": 2500
+        },
+        {
+          "level": 7,
+          "value": 2800
+        },
+        {
+          "level": 8,
+          "value": 3100
+        },
+        {
+          "level": 9,
+          "value": 3400
+        },
+        {
+          "level": 10,
+          "value": 3700
+        }
+      ]
+    },
+    {
+      "skillKey": 209011,
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 230,
+      "value": 1000,
+      "params": [
+        750,
+        250
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": 209021,
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "COOLDOWN",
+      "activationValue": 8,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 250,
+      "value": 1800,
+      "params": [
+        500
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": 209031,
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 6,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 600,
+      "value": 1350,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 209041,
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "COOLDOWN",
+      "activationValue": 16,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 270,
+      "value": 2300,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 209051,
+      "class": "レンジャー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "COOLDOWN",
+      "activationValue": 10,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 600,
+      "value": 2000,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 30001,
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": "Projectile",
+      "range": 900,
+      "value": 1000,
+      "params": [
+        700,
+        300
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": "300111 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 130,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300121 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300131 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 170,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300211 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 250,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300311 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": null,
+      "range": 800,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300411 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 170,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300421 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 900,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300431 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 200,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300441 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "cold",
+      "deliveryType": null,
+      "range": 800,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300511 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 200,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300611 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": null,
+      "range": 170,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300711 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "chaos",
+      "deliveryType": null,
+      "range": 800,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300811 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300821 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": null,
+      "range": 800,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300831 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 250,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300841 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 130,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "300911 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": null,
+      "range": 300,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 30101,
+      "class": "ソーサラー",
+      "nameJa": "ファイアボール",
+      "nameEn": "Fireball",
+      "descJa": "敵に触れると爆発し、{0}%の範囲火炎ダメージを与える火球。",
+      "descEn": "A fireball that explodes on impact, dealing {0}% AoE fire damage.",
+      "activationType": "COOLDOWN",
+      "activationValue": 6,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": "Projectile, AOE",
+      "range": 950,
+      "value": null,
+      "params": [
+        600
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 2700
+        },
+        {
+          "level": 2,
+          "value": 2950
+        },
+        {
+          "level": 3,
+          "value": 3200
+        },
+        {
+          "level": 4,
+          "value": 3450
+        },
+        {
+          "level": 5,
+          "value": 3700
+        },
+        {
+          "level": 6,
+          "value": 3950
+        },
+        {
+          "level": 7,
+          "value": 4200
+        },
+        {
+          "level": 8,
+          "value": 4450
+        },
+        {
+          "level": 9,
+          "value": 4700
+        },
+        {
+          "level": 10,
+          "value": 4950
+        }
+      ]
+    },
+    {
+      "skillKey": 301015,
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": null,
+      "range": 800,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 301025,
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "cold",
+      "deliveryType": null,
+      "range": 800,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 301035,
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "lightning",
+      "deliveryType": null,
+      "range": 800,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 301045,
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "chaos",
+      "deliveryType": null,
+      "range": 800,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": "301111 ",
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 150,
+      "value": "1000 ",
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 30201,
+      "class": "ソーサラー",
+      "nameJa": "アイスオーブ",
+      "nameEn": "Ice Orb",
+      "descJa": "氷の球体を召喚して敵に投げつける。衝突した敵の速度を低下させ、{0}%の多段冷気ダメージを与える。",
+      "descEn": "Summon an ice orb and hurl it at enemies. Slows enemies hit and deals {0}% multi-hit cold damage.",
+      "activationType": "COOLDOWN",
+      "activationValue": 8,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "cold",
+      "deliveryType": "Projectile, AOE",
+      "range": 950,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 1500
+        },
+        {
+          "level": 2,
+          "value": 1620
+        },
+        {
+          "level": 3,
+          "value": 1740
+        },
+        {
+          "level": 4,
+          "value": 1860
+        },
+        {
+          "level": 5,
+          "value": 1980
+        },
+        {
+          "level": 6,
+          "value": 2100
+        },
+        {
+          "level": 7,
+          "value": 2220
+        },
+        {
+          "level": 8,
+          "value": 2340
+        },
+        {
+          "level": 9,
+          "value": 2460
+        },
+        {
+          "level": 10,
+          "value": 2580
+        }
+      ]
+    },
+    {
+      "skillKey": 30301,
+      "class": "ソーサラー",
+      "nameJa": "ライトニング",
+      "nameEn": "Lightning",
+      "descJa": "前方に電撃を放ち、敵に{0}%の雷ダメージを与える。",
+      "descEn": "Unleash electricity forward, dealing {0}% lightning damage to enemies.",
+      "activationType": "COOLDOWN",
+      "activationValue": 15,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "lightning",
+      "deliveryType": "AOE",
+      "range": 1050,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 2550
+        },
+        {
+          "level": 2,
+          "value": 2820
+        },
+        {
+          "level": 3,
+          "value": 3090
+        },
+        {
+          "level": 4,
+          "value": 3360
+        },
+        {
+          "level": 5,
+          "value": 3630
+        },
+        {
+          "level": 6,
+          "value": 3900
+        },
+        {
+          "level": 7,
+          "value": 4170
+        },
+        {
+          "level": 8,
+          "value": 4440
+        },
+        {
+          "level": 9,
+          "value": 4710
+        },
+        {
+          "level": 10,
+          "value": 4980
+        }
+      ]
+    },
+    {
+      "skillKey": 30401,
+      "class": "ソーサラー",
+      "nameJa": "フレイムヒュドラ",
+      "nameEn": "Flame Hydra",
+      "descJa": "ヒドラを召喚する。ヒドラは{0}%のダメージの火球を発射する。",
+      "descEn": "Summon a hydra that fires fireballs dealing {0}% damage.",
+      "activationType": "COOLDOWN",
+      "activationValue": 13,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": "Projectile, Summon",
+      "range": 1100,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 2300
+        },
+        {
+          "level": 2,
+          "value": 2450
+        },
+        {
+          "level": 3,
+          "value": 2600
+        },
+        {
+          "level": 4,
+          "value": 2750
+        },
+        {
+          "level": 5,
+          "value": 2900
+        },
+        {
+          "level": 6,
+          "value": 3050
+        },
+        {
+          "level": 7,
+          "value": 3200
+        },
+        {
+          "level": 8,
+          "value": 3350
+        },
+        {
+          "level": 9,
+          "value": 3500
+        },
+        {
+          "level": 10,
+          "value": 3650
+        }
+      ]
+    },
+    {
+      "skillKey": 30501,
+      "class": "ソーサラー",
+      "nameJa": "スノーストーム",
+      "nameEn": "Snowstorm",
+      "descJa": "大量の氷塊を召喚して敵に降り注ぐ。範囲内の敵に毎秒{0}%の冷気ダメージを与え、冷却状態にする。",
+      "descEn": "Summon a mass of ice shards raining on enemies. Deals {0}% cold damage per second and chills enemies in the area.",
+      "activationType": "COOLDOWN",
+      "activationValue": 22,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "cold",
+      "deliveryType": "AOE",
+      "range": 1100,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 500
+        },
+        {
+          "level": 2,
+          "value": 660
+        },
+        {
+          "level": 3,
+          "value": 820
+        },
+        {
+          "level": 4,
+          "value": 980
+        },
+        {
+          "level": 5,
+          "value": 1140
+        },
+        {
+          "level": 6,
+          "value": 1300
+        },
+        {
+          "level": 7,
+          "value": 1460
+        },
+        {
+          "level": 8,
+          "value": 1620
+        },
+        {
+          "level": 9,
+          "value": 1780
+        },
+        {
+          "level": 10,
+          "value": 1940
+        }
+      ]
+    },
+    {
+      "skillKey": 30601,
+      "class": "ソーサラー",
+      "nameJa": "メテオストライク",
+      "nameEn": "Meteor Strike",
+      "descJa": "隕石を召喚し、広範囲の敵に{0}%のダメージを与える。",
+      "descEn": "Summon a meteor, dealing {0}% damage to enemies in a wide area.",
+      "activationType": "COOLDOWN",
+      "activationValue": 18,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": "AOE",
+      "range": 1100,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 5500
+        },
+        {
+          "level": 2,
+          "value": 5950
+        },
+        {
+          "level": 3,
+          "value": 6400
+        },
+        {
+          "level": 4,
+          "value": 6850
+        },
+        {
+          "level": 5,
+          "value": 7300
+        },
+        {
+          "level": 6,
+          "value": 7750
+        },
+        {
+          "level": 7,
+          "value": 8200
+        },
+        {
+          "level": 8,
+          "value": 8650
+        },
+        {
+          "level": 9,
+          "value": 9100
+        },
+        {
+          "level": 10,
+          "value": 9550
+        }
+      ]
+    },
+    {
+      "skillKey": 309011,
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "chaos",
+      "deliveryType": null,
+      "range": 700,
+      "value": 1000,
+      "params": [
+        750,
+        250
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": 309021,
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "COOLDOWN",
+      "activationValue": 5,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "chaos",
+      "deliveryType": null,
+      "range": 700,
+      "value": 800,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 309031,
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "COOLDOWN",
+      "activationValue": 11,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 800,
+      "value": 1500,
+      "params": [
+        500,
+        300
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": 309041,
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "COOLDOWN",
+      "activationValue": 9,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "chaos",
+      "deliveryType": null,
+      "range": 700,
+      "value": 1700,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 309051,
+      "class": "ソーサラー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "COOLDOWN",
+      "activationValue": 18,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "chaos",
+      "deliveryType": null,
+      "range": 600,
+      "value": 2300,
+      "params": [],
+      "levels": []
+    },
+    {
+      "skillKey": 40001,
+      "class": "プリースト",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Melee",
+      "range": 170,
+      "value": 1000,
+      "params": [
+        600,
+        200,
+        200
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": 40101,
+      "class": "プリースト",
+      "nameJa": "ヒール",
+      "nameEn": "Heal",
+      "descJa": "味方1人の体力を最大HPの{0}%分回復する。",
+      "descEn": "Restore one ally's HP by an amount equal to {0}% of their maximum HP.",
+      "activationType": "COOLDOWN",
+      "activationValue": 8,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 950,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 100
+        },
+        {
+          "level": 2,
+          "value": 120
+        },
+        {
+          "level": 3,
+          "value": 140
+        },
+        {
+          "level": 4,
+          "value": 160
+        },
+        {
+          "level": 5,
+          "value": 180
+        },
+        {
+          "level": 6,
+          "value": 200
+        },
+        {
+          "level": 7,
+          "value": 220
+        },
+        {
+          "level": 8,
+          "value": 240
+        },
+        {
+          "level": 9,
+          "value": 260
+        },
+        {
+          "level": 10,
+          "value": 280
+        }
+      ]
+    },
+    {
+      "skillKey": 40201,
+      "class": "プリースト",
+      "nameJa": "力の祝福",
+      "nameEn": "Blessing Of Might",
+      "descJa": "装着時に発動する祝福。自身と周囲の味方の攻撃力+{0}%。",
+      "descEn": "A blessing active while equipped. Increases attack damage of self and nearby party members by {0}%.",
+      "activationType": "CONTINUOUS",
+      "activationValue": null,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "physical",
+      "deliveryType": "AOE",
+      "range": 950,
+      "value": null,
+      "params": [
+        1200
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 500
+        },
+        {
+          "level": 2,
+          "value": 600
+        },
+        {
+          "level": 3,
+          "value": 700
+        },
+        {
+          "level": 4,
+          "value": 800
+        },
+        {
+          "level": 5,
+          "value": 900
+        },
+        {
+          "level": 6,
+          "value": 1000
+        },
+        {
+          "level": 7,
+          "value": 1100
+        },
+        {
+          "level": 8,
+          "value": 1200
+        },
+        {
+          "level": 9,
+          "value": 1300
+        },
+        {
+          "level": 10,
+          "value": 1400
+        }
+      ]
+    },
+    {
+      "skillKey": 40301,
+      "class": "プリースト",
+      "nameJa": "天上の怒り",
+      "nameEn": "Wrath of Heaven",
+      "descJa": "セプターに聖なる雷の力を宿す。持続時間中、攻撃時に{0}%の雷広域ダメージを与える。",
+      "descEn": "Imbue your scepter with divine lightning. For the duration, attacks deal {0}% lightning area damage.",
+      "activationType": "COOLDOWN",
+      "activationValue": 20,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "lightning",
+      "deliveryType": "AOE",
+      "range": 1050,
+      "value": null,
+      "params": [
+        650
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 4300
+        },
+        {
+          "level": 2,
+          "value": 4700
+        },
+        {
+          "level": 3,
+          "value": 5100
+        },
+        {
+          "level": 4,
+          "value": 5500
+        },
+        {
+          "level": 5,
+          "value": 5900
+        },
+        {
+          "level": 6,
+          "value": 6300
+        },
+        {
+          "level": 7,
+          "value": 6700
+        },
+        {
+          "level": 8,
+          "value": 7100
+        },
+        {
+          "level": 9,
+          "value": 7500
+        },
+        {
+          "level": 10,
+          "value": 7900
+        }
+      ]
+    },
+    {
+      "skillKey": 40401,
+      "class": "プリースト",
+      "nameJa": "サンクチュアリ",
+      "nameEn": "Sanctuary",
+      "descJa": "戦場を覆う神聖な領域を展開する。持続時間中、領域内の全味方は毎秒{0}のHPを回復する。",
+      "descEn": "Deploy a holy sanctuary across the battlefield. For the duration, all allies inside regenerate {0} HP per second.",
+      "activationType": "COOLDOWN",
+      "activationValue": 17,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "AOE",
+      "range": 1100,
+      "value": null,
+      "params": [
+        750
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 300
+        },
+        {
+          "level": 2,
+          "value": 400
+        },
+        {
+          "level": 3,
+          "value": 520
+        },
+        {
+          "level": 4,
+          "value": 660
+        },
+        {
+          "level": 5,
+          "value": 820
+        },
+        {
+          "level": 6,
+          "value": 1000
+        },
+        {
+          "level": 7,
+          "value": 1200
+        },
+        {
+          "level": 8,
+          "value": 1420
+        },
+        {
+          "level": 9,
+          "value": 1660
+        },
+        {
+          "level": 10,
+          "value": 1920
+        }
+      ]
+    },
+    {
+      "skillKey": 40501,
+      "class": "プリースト",
+      "nameJa": "守護の祝福",
+      "nameEn": "Blessing of Warding",
+      "descJa": "装着時に発動する祝福。自身と周囲の味方の属性耐性+{0}。",
+      "descEn": "A blessing active while equipped. Increases elemental resistance of self and nearby party members by {0}.",
+      "activationType": "CONTINUOUS",
+      "activationValue": null,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "physical",
+      "deliveryType": "AOE",
+      "range": 1100,
+      "value": null,
+      "params": [
+        1200
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 10
+        },
+        {
+          "level": 2,
+          "value": 15
+        },
+        {
+          "level": 3,
+          "value": 20
+        },
+        {
+          "level": 4,
+          "value": 25
+        },
+        {
+          "level": 5,
+          "value": 30
+        },
+        {
+          "level": 6,
+          "value": 35
+        },
+        {
+          "level": 7,
+          "value": 40
+        },
+        {
+          "level": 8,
+          "value": 45
+        },
+        {
+          "level": 9,
+          "value": 50
+        },
+        {
+          "level": 10,
+          "value": 55
+        }
+      ]
+    },
+    {
+      "skillKey": 40601,
+      "class": "プリースト",
+      "nameJa": "リザレクション",
+      "nameEn": "Resurrection",
+      "descJa": "倒れた味方1人を最大HPの{0}%で復活させる。",
+      "descEn": "Revive a fallen party member with {0}% of their max HP.",
+      "activationType": "COOLDOWN",
+      "activationValue": 45,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 1100,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 300
+        },
+        {
+          "level": 2,
+          "value": 350
+        },
+        {
+          "level": 3,
+          "value": 400
+        },
+        {
+          "level": 4,
+          "value": 450
+        },
+        {
+          "level": 5,
+          "value": 500
+        },
+        {
+          "level": 6,
+          "value": 550
+        },
+        {
+          "level": 7,
+          "value": 600
+        },
+        {
+          "level": 8,
+          "value": 650
+        },
+        {
+          "level": 9,
+          "value": 700
+        },
+        {
+          "level": 10,
+          "value": 750
+        }
+      ]
+    },
+    {
+      "skillKey": 50001,
+      "class": "ハンター",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Projectile",
+      "range": 1000,
+      "value": 1000,
+      "params": [
+        600,
+        200,
+        200
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": 50101,
+      "class": "ハンター",
+      "nameJa": "エクスプロージョンボルト",
+      "nameEn": "Explosive Bolt",
+      "descJa": "命中時に爆発し、{0}%の範囲火炎ダメージを与えるクロスボウボルトを発射する。",
+      "descEn": "Fire a crossbow bolt that explodes on impact, dealing {0}% area fire damage.",
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 6,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "fire",
+      "deliveryType": "Projectile",
+      "range": 1100,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 4840
+        },
+        {
+          "level": 2,
+          "value": 5350
+        },
+        {
+          "level": 3,
+          "value": 5860
+        },
+        {
+          "level": 4,
+          "value": 6370
+        },
+        {
+          "level": 5,
+          "value": 6880
+        },
+        {
+          "level": 6,
+          "value": 7390
+        },
+        {
+          "level": 7,
+          "value": 7900
+        },
+        {
+          "level": 8,
+          "value": 8410
+        },
+        {
+          "level": 9,
+          "value": 8920
+        },
+        {
+          "level": 10,
+          "value": 9430
+        }
+      ]
+    },
+    {
+      "skillKey": 50201,
+      "class": "ハンター",
+      "nameJa": "フロストボルト",
+      "nameEn": "Frost Bolt",
+      "descJa": "命中時に爆発し{0}%の範囲冷気ダメージを与え、当たった敵を凍結させるクロスボウボルト。",
+      "descEn": "Fire a crossbow bolt that explodes on impact, dealing {0}% area cold damage and freezing enemies hit.",
+      "activationType": "COOLDOWN",
+      "activationValue": 8,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "cold",
+      "deliveryType": "Projectile",
+      "range": 1100,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 2100
+        },
+        {
+          "level": 2,
+          "value": 2250
+        },
+        {
+          "level": 3,
+          "value": 2400
+        },
+        {
+          "level": 4,
+          "value": 2550
+        },
+        {
+          "level": 5,
+          "value": 2700
+        },
+        {
+          "level": 6,
+          "value": 2850
+        },
+        {
+          "level": 7,
+          "value": 3000
+        },
+        {
+          "level": 8,
+          "value": 3150
+        },
+        {
+          "level": 9,
+          "value": 3300
+        },
+        {
+          "level": 10,
+          "value": 3450
+        }
+      ]
+    },
+    {
+      "skillKey": 50301,
+      "class": "ハンター",
+      "nameJa": "クイックローダー",
+      "nameEn": "Quick Loader",
+      "descJa": "クロスボウボルトを素早く装填。{0}回の攻撃の間、攻撃速度+50%。",
+      "descEn": "Rapidly reload crossbow bolts. Attack speed increases by 50% for {0} attacks.",
+      "activationType": "COOLDOWN",
+      "activationValue": 14,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 1050,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 3
+        },
+        {
+          "level": 2,
+          "value": 4
+        },
+        {
+          "level": 3,
+          "value": 5
+        },
+        {
+          "level": 4,
+          "value": 6
+        },
+        {
+          "level": 5,
+          "value": 7
+        },
+        {
+          "level": 6,
+          "value": 8
+        },
+        {
+          "level": 7,
+          "value": 9
+        },
+        {
+          "level": 8,
+          "value": 10
+        },
+        {
+          "level": 9,
+          "value": 11
+        },
+        {
+          "level": 10,
+          "value": 12
+        }
+      ]
+    },
+    {
+      "skillKey": 50401,
+      "class": "ハンター",
+      "nameJa": "チャージトラップ",
+      "nameEn": "Charge Trap",
+      "descJa": "属性ダメージを受けると爆発する罠を{0}個発射します。",
+      "descEn": "Launch {0} traps that explode when struck by elemental damage.",
+      "activationType": "COOLDOWN",
+      "activationValue": 5,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Trap",
+      "range": 1150,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 1000
+        },
+        {
+          "level": 2,
+          "value": 1500
+        },
+        {
+          "level": 3,
+          "value": 2000
+        },
+        {
+          "level": 4,
+          "value": 2500
+        },
+        {
+          "level": 5,
+          "value": 3000
+        },
+        {
+          "level": 6,
+          "value": 3500
+        },
+        {
+          "level": 7,
+          "value": 4000
+        },
+        {
+          "level": 8,
+          "value": 4500
+        },
+        {
+          "level": 9,
+          "value": 5000
+        },
+        {
+          "level": 10,
+          "value": 5500
+        }
+      ]
+    },
+    {
+      "skillKey": 50501,
+      "class": "ハンター",
+      "nameJa": "クロスボウタレット",
+      "nameEn": "Crossbow Turret",
+      "descJa": "自動クロスボウを設置し、{0}%の物理ダメージを与えるボルトを発射する。",
+      "descEn": "Deploy an automated crossbow that fires bolts dealing {0}% physical damage.",
+      "activationType": "COOLDOWN",
+      "activationValue": 12,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Projectile, Summon",
+      "range": 1100,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 1750
+        },
+        {
+          "level": 2,
+          "value": 1910
+        },
+        {
+          "level": 3,
+          "value": 2070
+        },
+        {
+          "level": 4,
+          "value": 2230
+        },
+        {
+          "level": 5,
+          "value": 2390
+        },
+        {
+          "level": 6,
+          "value": 2550
+        },
+        {
+          "level": 7,
+          "value": 2710
+        },
+        {
+          "level": 8,
+          "value": 2870
+        },
+        {
+          "level": 9,
+          "value": 3030
+        },
+        {
+          "level": 10,
+          "value": 3190
+        }
+      ]
+    },
+    {
+      "skillKey": 50601,
+      "class": "ハンター",
+      "nameJa": "ショックボルト",
+      "nameEn": "Shock Bolt",
+      "descJa": "敵に刺さって一定時間雷を放つクロスボウボルトを発射します。刺さったボルトは周囲の敵に{0}%の電撃ダメージを与える電流を放出します。",
+      "descEn": "Fire a crossbow bolt that lodges in an enemy and emits lightning for a time. The bolt releases currents dealing {0}% lightning damage to nearby enemies.",
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 11,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "lightning",
+      "deliveryType": "Projectile",
+      "range": 1100,
+      "value": null,
+      "params": [
+        400
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 2700
+        },
+        {
+          "level": 2,
+          "value": 2900
+        },
+        {
+          "level": 3,
+          "value": 3100
+        },
+        {
+          "level": 4,
+          "value": 3300
+        },
+        {
+          "level": 5,
+          "value": 3500
+        },
+        {
+          "level": 6,
+          "value": 3700
+        },
+        {
+          "level": 7,
+          "value": 3900
+        },
+        {
+          "level": 8,
+          "value": 4100
+        },
+        {
+          "level": 9,
+          "value": 4300
+        },
+        {
+          "level": 10,
+          "value": 4500
+        }
+      ]
+    },
+    {
+      "skillKey": 60001,
+      "class": "スレイヤー",
+      "nameJa": null,
+      "nameEn": null,
+      "descJa": null,
+      "descEn": null,
+      "activationType": "BASEATTACK",
+      "activationValue": 0,
+      "slotType": "BASEATTACK",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Melee",
+      "range": 120,
+      "value": 1000,
+      "params": [
+        600,
+        200,
+        200
+      ],
+      "levels": []
+    },
+    {
+      "skillKey": 60101,
+      "class": "スレイヤー",
+      "nameJa": "スラムジャンプ",
+      "nameEn": "Slam Jump",
+      "descJa": "敵に跳躍し、着地時に周囲の敵へ{0}%の物理ダメージの衝撃波を発生させます。",
+      "descEn": "Gather strength and smash an enemy for {0}% physical damage. If it kills the enemy, a shockwave deals 350% damage to nearby enemies.",
+      "activationType": "COOLDOWN",
+      "activationValue": 6,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Melee, AOE",
+      "range": 850,
+      "value": null,
+      "params": [
+        35,
+        100
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 3100
+        },
+        {
+          "level": 2,
+          "value": 3350
+        },
+        {
+          "level": 3,
+          "value": 3600
+        },
+        {
+          "level": 4,
+          "value": 3850
+        },
+        {
+          "level": 5,
+          "value": 4100
+        },
+        {
+          "level": 6,
+          "value": 4350
+        },
+        {
+          "level": 7,
+          "value": 4600
+        },
+        {
+          "level": 8,
+          "value": 4850
+        },
+        {
+          "level": 9,
+          "value": 5100
+        },
+        {
+          "level": 10,
+          "value": 5350
+        }
+      ]
+    },
+    {
+      "skillKey": 60201,
+      "class": "スレイヤー",
+      "nameJa": "クラッシングブロー",
+      "nameEn": "Crushing Blow",
+      "descJa": "力を溜めて敵を強打し{0}%の物理ダメージを与えます。このスキルで敵を倒すと衝撃波が発生し周囲に350%のダメージを与えます。",
+      "descEn": "Gather strength and smash an enemy for {0}% physical damage. If it kills the enemy, a shockwave deals 350% damage to nearby enemies.",
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 5,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Melee",
+      "range": 200,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 6200
+        },
+        {
+          "level": 2,
+          "value": 6600
+        },
+        {
+          "level": 3,
+          "value": 7000
+        },
+        {
+          "level": 4,
+          "value": 7400
+        },
+        {
+          "level": 5,
+          "value": 7800
+        },
+        {
+          "level": 6,
+          "value": 8200
+        },
+        {
+          "level": 7,
+          "value": 8600
+        },
+        {
+          "level": 8,
+          "value": 9000
+        },
+        {
+          "level": 9,
+          "value": 9400
+        },
+        {
+          "level": 10,
+          "value": 9800
+        }
+      ]
+    },
+    {
+      "skillKey": 60301,
+      "class": "スレイヤー",
+      "nameJa": "コマンダーズクライ",
+      "nameEn": "Commander’s Cry",
+      "descJa": "咆哮を上げて周囲の敵をスタンさせ、パーティの致命率係数を{0}%上昇させます。",
+      "descEn": "Let out a cry that stuns nearby enemies and increases party critical chance multiplier by {0}%.",
+      "activationType": "COOLDOWN",
+      "activationValue": 12,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "physical",
+      "deliveryType": "AOE",
+      "range": 150,
+      "value": null,
+      "params": [
+        700
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 500
+        },
+        {
+          "level": 2,
+          "value": 550
+        },
+        {
+          "level": 3,
+          "value": 600
+        },
+        {
+          "level": 4,
+          "value": 650
+        },
+        {
+          "level": 5,
+          "value": 700
+        },
+        {
+          "level": 6,
+          "value": 750
+        },
+        {
+          "level": 7,
+          "value": 800
+        },
+        {
+          "level": 8,
+          "value": 850
+        },
+        {
+          "level": 9,
+          "value": 900
+        },
+        {
+          "level": 10,
+          "value": 950
+        }
+      ]
+    },
+    {
+      "skillKey": 60401,
+      "class": "スレイヤー",
+      "nameJa": "グラウンドスラム",
+      "nameEn": "Ground Slam",
+      "descJa": "地面を強く叩きつけて地震を起こし、敵に{0}%の物理ダメージを与える。地震で生じた岩は範囲物理攻撃を受けると爆発する。",
+      "descEn": "Smash the ground hard, causing an earthquake that deals {0}% physical damage to enemies. Rocks created by the earthquake explode when hit by AoE physical attacks.",
+      "activationType": "BASEATTACK_COUNT",
+      "activationValue": 9,
+      "slotType": "SKILL",
+      "buffType": "Normal",
+      "damageType": "physical",
+      "deliveryType": "Melee, AOE",
+      "range": 300,
+      "value": null,
+      "params": [],
+      "levels": [
+        {
+          "level": 1,
+          "value": 3700
+        },
+        {
+          "level": 2,
+          "value": 3950
+        },
+        {
+          "level": 3,
+          "value": 4200
+        },
+        {
+          "level": 4,
+          "value": 4450
+        },
+        {
+          "level": 5,
+          "value": 4700
+        },
+        {
+          "level": 6,
+          "value": 4950
+        },
+        {
+          "level": 7,
+          "value": 5200
+        },
+        {
+          "level": 8,
+          "value": 5450
+        },
+        {
+          "level": 9,
+          "value": 5700
+        },
+        {
+          "level": 10,
+          "value": 5950
+        }
+      ]
+    },
+    {
+      "skillKey": 60501,
+      "class": "スレイヤー",
+      "nameJa": "アックススピン",
+      "nameEn": "Axe Spin",
+      "descJa": "斧を持って回転し、周囲の敵に毎秒{0}%の物理ダメージを与え、一定確率で出血させる。出血中の敵を攻撃すると追加ダメージを与える。",
+      "descEn": "Spin with an axe, dealing {0}% physical damage per second to nearby enemies and a chance to apply bleeding. Attacks against bleeding enemies deal bonus damage.",
+      "activationType": "COOLDOWN",
+      "activationValue": 18,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "physical",
+      "deliveryType": "Melee, AOE",
+      "range": 150,
+      "value": null,
+      "params": [
+        500,
+        500
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 1000
+        },
+        {
+          "level": 2,
+          "value": 1080
+        },
+        {
+          "level": 3,
+          "value": 1160
+        },
+        {
+          "level": 4,
+          "value": 1240
+        },
+        {
+          "level": 5,
+          "value": 1320
+        },
+        {
+          "level": 6,
+          "value": 1400
+        },
+        {
+          "level": 7,
+          "value": 1480
+        },
+        {
+          "level": 8,
+          "value": 1560
+        },
+        {
+          "level": 9,
+          "value": 1640
+        },
+        {
+          "level": 10,
+          "value": 1720
+        }
+      ]
+    },
+    {
+      "skillKey": 60601,
+      "class": "スレイヤー",
+      "nameJa": "ブラッドラスト",
+      "nameEn": "Bloodlust",
+      "descJa": "現在HPの半分を消費し、一定時間攻撃ダメージが{0}%増加します。",
+      "descEn": "Consume half of current HP to increase attack damage by {0}% for a time.",
+      "activationType": "COOLDOWN",
+      "activationValue": 25,
+      "slotType": "SKILL",
+      "buffType": "Buff",
+      "damageType": "physical",
+      "deliveryType": null,
+      "range": 900,
+      "value": null,
+      "params": [
+        800
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "value": 4000
+        },
+        {
+          "level": 2,
+          "value": 4300
+        },
+        {
+          "level": 3,
+          "value": 4600
+        },
+        {
+          "level": 4,
+          "value": 4900
+        },
+        {
+          "level": 5,
+          "value": 5200
+        },
+        {
+          "level": 6,
+          "value": 5500
+        },
+        {
+          "level": 7,
+          "value": 5800
+        },
+        {
+          "level": 8,
+          "value": 6100
+        },
+        {
+          "level": 9,
+          "value": 6400
+        },
+        {
+          "level": 10,
+          "value": 6700
+        }
+      ]
+    }
+  ],
+  "passiveSkills": [
+    {
+      "passiveKey": 101001,
+      "class": "ナイト",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 1
+    },
+    {
+      "passiveKey": 101002,
+      "class": "ナイト",
+      "nameJa": "体力強化",
+      "nameEn": "Health Enhancement",
+      "statType": "MaxHp",
+      "modType": "FLAT",
+      "value": 15
+    },
+    {
+      "passiveKey": 101011,
+      "class": "ナイト",
+      "nameJa": "防御力強化",
+      "nameEn": "Armor Enhancement",
+      "statType": "Armor",
+      "modType": "FLAT",
+      "value": 10
+    },
+    {
+      "passiveKey": 101012,
+      "class": "ナイト",
+      "nameJa": "毎秒HP回復強化",
+      "nameEn": "HP Regen Enhancement",
+      "statType": "HpRegenPerSec",
+      "modType": "FLAT",
+      "value": 100
+    },
+    {
+      "passiveKey": 101021,
+      "class": "ナイト",
+      "nameJa": "撃破毎HP回復強化",
+      "nameEn": "HP Per Kill Enhancement",
+      "statType": "AddHpPerKill",
+      "modType": "FLAT",
+      "value": 3
+    },
+    {
+      "passiveKey": 101022,
+      "class": "ナイト",
+      "nameJa": "ブロック率強化",
+      "nameEn": "Block Chance Enhancement",
+      "statType": "BlockChance",
+      "modType": "FLAT",
+      "value": 30
+    },
+    {
+      "passiveKey": 101031,
+      "class": "ナイト",
+      "nameJa": "物理ダメージ強化",
+      "nameEn": "Physical Damage Enhancement",
+      "statType": "PhysicalDamagePercent",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 101032,
+      "class": "ナイト",
+      "nameJa": "体力強化",
+      "nameEn": "Health Enhancement",
+      "statType": "MaxHp",
+      "modType": "ADDITIVE",
+      "value": 50
+    },
+    {
+      "passiveKey": 101041,
+      "class": "ナイト",
+      "nameJa": "クールダウン短縮",
+      "nameEn": "Cooldown Reduction",
+      "statType": "CooldownReduction",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 101042,
+      "class": "ナイト",
+      "nameJa": "毎秒HP回復強化",
+      "nameEn": "HP Regen Enhancement",
+      "statType": "HpRegenPerSec",
+      "modType": "FLAT",
+      "value": 100
+    },
+    {
+      "passiveKey": 101051,
+      "class": "ナイト",
+      "nameJa": "撃破毎HP回復強化",
+      "nameEn": "HP Per Kill Enhancement",
+      "statType": "AddHpPerKill",
+      "modType": "FLAT",
+      "value": 5
+    },
+    {
+      "passiveKey": 101052,
+      "class": "ナイト",
+      "nameJa": "ブロック率強化",
+      "nameEn": "Block Chance Enhancement",
+      "statType": "BlockChance",
+      "modType": "FLAT",
+      "value": 30
+    },
+    {
+      "passiveKey": 101061,
+      "class": "ナイト",
+      "nameJa": "攻撃速度強化",
+      "nameEn": "Attack Speed Enhancement",
+      "statType": "AttackSpeed",
+      "modType": "ADDITIVE",
+      "value": 40
+    },
+    {
+      "passiveKey": 101062,
+      "class": "ナイト",
+      "nameJa": "全属性耐性強化",
+      "nameEn": "All Elemental Resistance Enhancement",
+      "statType": "AllElementalResistance",
+      "modType": "FLAT",
+      "value": 30
+    },
+    {
+      "passiveKey": 101071,
+      "class": "ナイト",
+      "nameJa": "ダメージ軽減強化",
+      "nameEn": "Damage Reduction Enhancement",
+      "statType": "DamageReduction",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 101072,
+      "class": "ナイト",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 1
+    },
+    {
+      "passiveKey": 101081,
+      "class": "ナイト",
+      "nameJa": "スキル射程強化",
+      "nameEn": "Skill Range Enhancement",
+      "statType": "SkillRangeExpansion",
+      "modType": "ADDITIVE",
+      "value": 30
+    },
+    {
+      "passiveKey": 101082,
+      "class": "ナイト",
+      "nameJa": "効果範囲強化",
+      "nameEn": "Area of Effect Enhancement",
+      "statType": "AreaOfEffect",
+      "modType": "ADDITIVE",
+      "value": 50
+    },
+    {
+      "passiveKey": 201001,
+      "class": "レンジャー",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 1
+    },
+    {
+      "passiveKey": 201002,
+      "class": "レンジャー",
+      "nameJa": "攻撃速度強化",
+      "nameEn": "Attack Speed Enhancement",
+      "statType": "AttackSpeed",
+      "modType": "ADDITIVE",
+      "value": 40
+    },
+    {
+      "passiveKey": 201011,
+      "class": "レンジャー",
+      "nameJa": "クリティカル率強化",
+      "nameEn": "Critical Chance Enhancement",
+      "statType": "CriticalChance",
+      "modType": "ADDITIVE",
+      "value": 200
+    },
+    {
+      "passiveKey": 201012,
+      "class": "レンジャー",
+      "nameJa": "クリティカルダメージ強化",
+      "nameEn": "Critical Damage Enhancement",
+      "statType": "CriticalDamage",
+      "modType": "FLAT",
+      "value": 130
+    },
+    {
+      "passiveKey": 201021,
+      "class": "レンジャー",
+      "nameJa": "回避率強化",
+      "nameEn": "Dodge Chance Enhancement",
+      "statType": "DodgeChance",
+      "modType": "FLAT",
+      "value": 30
+    },
+    {
+      "passiveKey": 201022,
+      "class": "レンジャー",
+      "nameJa": "投射物ダメージ強化",
+      "nameEn": "Projectile Damage Enhancement",
+      "statType": "IncreaseProjectileDamage",
+      "modType": "ADDITIVE",
+      "value": 150
+    },
+    {
+      "passiveKey": 201031,
+      "class": "レンジャー",
+      "nameJa": "回避率強化",
+      "nameEn": "Dodge Chance Enhancement",
+      "statType": "DodgeChance",
+      "modType": "FLAT",
+      "value": 30
+    },
+    {
+      "passiveKey": 201032,
+      "class": "レンジャー",
+      "nameJa": "攻撃速度強化",
+      "nameEn": "Attack Speed Enhancement",
+      "statType": "AttackSpeed",
+      "modType": "ADDITIVE",
+      "value": 50
+    },
+    {
+      "passiveKey": 201041,
+      "class": "レンジャー",
+      "nameJa": "回避率強化",
+      "nameEn": "Dodge Chance Enhancement",
+      "statType": "ElementalDodgeChance",
+      "modType": "FLAT",
+      "value": 30
+    },
+    {
+      "passiveKey": 201042,
+      "class": "レンジャー",
+      "nameJa": "移動速度強化",
+      "nameEn": "Movement Speed Enhancement",
+      "statType": "MovementSpeed",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 201051,
+      "class": "レンジャー",
+      "nameJa": "回避率強化",
+      "nameEn": "Dodge Chance Enhancement",
+      "statType": "DodgeChance",
+      "modType": "FLAT",
+      "value": 30
+    },
+    {
+      "passiveKey": 201052,
+      "class": "レンジャー",
+      "nameJa": "ライフ吸収強化",
+      "nameEn": "Life Leech Enhancement",
+      "statType": "HpLeech",
+      "modType": "FLAT",
+      "value": 5
+    },
+    {
+      "passiveKey": 201061,
+      "class": "レンジャー",
+      "nameJa": "範囲ダメージ強化",
+      "nameEn": "Area of Effect Damage Enhancement",
+      "statType": "IncreaseAreaOfEffectDamage",
+      "modType": "ADDITIVE",
+      "value": 150
+    },
+    {
+      "passiveKey": 201062,
+      "class": "レンジャー",
+      "nameJa": "投射物ダメージ強化",
+      "nameEn": "Projectile Damage Enhancement",
+      "statType": "IncreaseProjectileDamage",
+      "modType": "ADDITIVE",
+      "value": 150
+    },
+    {
+      "passiveKey": 201071,
+      "class": "レンジャー",
+      "nameJa": "回避率強化",
+      "nameEn": "Dodge Chance Enhancement",
+      "statType": "DodgeChance",
+      "modType": "FLAT",
+      "value": 30
+    },
+    {
+      "passiveKey": 201072,
+      "class": "レンジャー",
+      "nameJa": "攻撃速度強化",
+      "nameEn": "Attack Speed Enhancement",
+      "statType": "AttackSpeed",
+      "modType": "ADDITIVE",
+      "value": 60
+    },
+    {
+      "passiveKey": 201081,
+      "class": "レンジャー",
+      "nameJa": "最大回避率強化",
+      "nameEn": "Max Dodge Chance Enhancement",
+      "statType": "MaxDodgeChance",
+      "modType": "FLAT",
+      "value": 10
+    },
+    {
+      "passiveKey": 201082,
+      "class": "レンジャー",
+      "nameJa": "移動速度強化",
+      "nameEn": "Movement Speed Enhancement",
+      "statType": "MovementSpeed",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 301001,
+      "class": "ソーサラー",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 2
+    },
+    {
+      "passiveKey": 301002,
+      "class": "ソーサラー",
+      "nameJa": "クールダウン短縮",
+      "nameEn": "Cooldown Reduction",
+      "statType": "CooldownReduction",
+      "modType": "FLAT",
+      "value": 10
+    },
+    {
+      "passiveKey": 301011,
+      "class": "ソーサラー",
+      "nameJa": "効果範囲強化",
+      "nameEn": "Area of Effect Enhancement",
+      "statType": "AreaOfEffect",
+      "modType": "ADDITIVE",
+      "value": 30
+    },
+    {
+      "passiveKey": 301012,
+      "class": "ソーサラー",
+      "nameJa": "クリティカル率強化",
+      "nameEn": "Critical Chance Enhancement",
+      "statType": "CriticalChance",
+      "modType": "ADDITIVE",
+      "value": 200
+    },
+    {
+      "passiveKey": 301021,
+      "class": "ソーサラー",
+      "nameJa": "火炎ダメージ強化",
+      "nameEn": "Fire Damage Enhancement",
+      "statType": "FireDamagePercent",
+      "modType": "FLAT",
+      "value": 100
+    },
+    {
+      "passiveKey": 301022,
+      "class": "ソーサラー",
+      "nameJa": "冷気ダメージ強化",
+      "nameEn": "Cold Damage Enhancement",
+      "statType": "ColdDamagePercent",
+      "modType": "FLAT",
+      "value": 100
+    },
+    {
+      "passiveKey": 301031,
+      "class": "ソーサラー",
+      "nameJa": "雷ダメージ強化",
+      "nameEn": "Lightning Damage Enhancement",
+      "statType": "LightningDamagePercent",
+      "modType": "FLAT",
+      "value": 100
+    },
+    {
+      "passiveKey": 301032,
+      "class": "ソーサラー",
+      "nameJa": "体力強化",
+      "nameEn": "Health Enhancement",
+      "statType": "MaxHp",
+      "modType": "FLAT",
+      "value": 10
+    },
+    {
+      "passiveKey": 301041,
+      "class": "ソーサラー",
+      "nameJa": "クールダウン短縮",
+      "nameEn": "Cooldown Reduction",
+      "statType": "CooldownReduction",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 301042,
+      "class": "ソーサラー",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 2
+    },
+    {
+      "passiveKey": 301051,
+      "class": "ソーサラー",
+      "nameJa": "詠唱速度強化",
+      "nameEn": "Cast Speed Enhancement",
+      "statType": "CastSpeed",
+      "modType": "ADDITIVE",
+      "value": 70
+    },
+    {
+      "passiveKey": 301052,
+      "class": "ソーサラー",
+      "nameJa": "クリティカルダメージ強化",
+      "nameEn": "Critical Damage Enhancement",
+      "statType": "CriticalDamage",
+      "modType": "FLAT",
+      "value": 200
+    },
+    {
+      "passiveKey": 301061,
+      "class": "ソーサラー",
+      "nameJa": "全属性耐性強化",
+      "nameEn": "All Elemental Resistance Enhancement",
+      "statType": "AllElementalResistance",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 301062,
+      "class": "ソーサラー",
+      "nameJa": "効果範囲強化",
+      "nameEn": "Area of Effect Enhancement",
+      "statType": "AreaOfEffect",
+      "modType": "ADDITIVE",
+      "value": 30
+    },
+    {
+      "passiveKey": 301071,
+      "class": "ソーサラー",
+      "nameJa": "クリティカル率強化",
+      "nameEn": "Critical Chance Enhancement",
+      "statType": "CriticalChance",
+      "modType": "FLAT",
+      "value": 3
+    },
+    {
+      "passiveKey": 301072,
+      "class": "ソーサラー",
+      "nameJa": "クールダウン短縮",
+      "nameEn": "Cooldown Reduction",
+      "statType": "CooldownReduction",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 301081,
+      "class": "ソーサラー",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 3
+    },
+    {
+      "passiveKey": 301082,
+      "class": "ソーサラー",
+      "nameJa": "詠唱速度強化",
+      "nameEn": "Cast Speed Enhancement",
+      "statType": "CastSpeed",
+      "modType": "ADDITIVE",
+      "value": 70
+    },
+    {
+      "passiveKey": 401001,
+      "class": "プリースト",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 1
+    },
+    {
+      "passiveKey": 401002,
+      "class": "プリースト",
+      "nameJa": "体力強化",
+      "nameEn": "Health Enhancement",
+      "statType": "MaxHp",
+      "modType": "FLAT",
+      "value": 15
+    },
+    {
+      "passiveKey": 401011,
+      "class": "プリースト",
+      "nameJa": "防御力強化",
+      "nameEn": "Armor Enhancement",
+      "statType": "Armor",
+      "modType": "FLAT",
+      "value": 10
+    },
+    {
+      "passiveKey": 401012,
+      "class": "プリースト",
+      "nameJa": "ダメージ吸収強化",
+      "nameEn": "Damage Absorption Enhancement",
+      "statType": "DamageAbsorption",
+      "modType": "FLAT",
+      "value": 5
+    },
+    {
+      "passiveKey": 401021,
+      "class": "プリースト",
+      "nameJa": "クールダウン短縮",
+      "nameEn": "Cooldown Reduction",
+      "statType": "CooldownReduction",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 401022,
+      "class": "プリースト",
+      "nameJa": "スキル回復量強化",
+      "nameEn": "Skill Heal Enhancement",
+      "statType": "SkillHealIncrease",
+      "modType": "ADDITIVE",
+      "value": 70
+    },
+    {
+      "passiveKey": 401031,
+      "class": "プリースト",
+      "nameJa": "体力強化",
+      "nameEn": "Health Enhancement",
+      "statType": "MaxHp",
+      "modType": "FLAT",
+      "value": 15
+    },
+    {
+      "passiveKey": 401032,
+      "class": "プリースト",
+      "nameJa": "ダメージ吸収強化",
+      "nameEn": "Damage Absorption Enhancement",
+      "statType": "DamageAbsorption",
+      "modType": "FLAT",
+      "value": 5
+    },
+    {
+      "passiveKey": 401041,
+      "class": "プリースト",
+      "nameJa": "詠唱速度強化",
+      "nameEn": "Cast Speed Enhancement",
+      "statType": "CastSpeed",
+      "modType": "ADDITIVE",
+      "value": 70
+    },
+    {
+      "passiveKey": 401042,
+      "class": "プリースト",
+      "nameJa": "ブロック率強化",
+      "nameEn": "Block Chance Enhancement",
+      "statType": "BlockChance",
+      "modType": "FLAT",
+      "value": 30
+    },
+    {
+      "passiveKey": 401051,
+      "class": "プリースト",
+      "nameJa": "物理ダメージ強化",
+      "nameEn": "Physical Damage Enhancement",
+      "statType": "PhysicalDamagePercent",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 401052,
+      "class": "プリースト",
+      "nameJa": "全属性耐性強化",
+      "nameEn": "All Elemental Resistance Enhancement",
+      "statType": "AllElementalResistance",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 401061,
+      "class": "プリースト",
+      "nameJa": "クールダウン短縮",
+      "nameEn": "Cooldown Reduction",
+      "statType": "CooldownReduction",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 401062,
+      "class": "プリースト",
+      "nameJa": "防御力強化",
+      "nameEn": "Armor Enhancement",
+      "statType": "Armor",
+      "modType": "FLAT",
+      "value": 50
+    },
+    {
+      "passiveKey": 401071,
+      "class": "プリースト",
+      "nameJa": "効果範囲強化",
+      "nameEn": "Area of Effect Enhancement",
+      "statType": "AreaOfEffect",
+      "modType": "ADDITIVE",
+      "value": 30
+    },
+    {
+      "passiveKey": 401072,
+      "class": "プリースト",
+      "nameJa": "詠唱速度強化",
+      "nameEn": "Cast Speed Enhancement",
+      "statType": "CastSpeed",
+      "modType": "ADDITIVE",
+      "value": 70
+    },
+    {
+      "passiveKey": 401081,
+      "class": "プリースト",
+      "nameJa": "体力強化",
+      "nameEn": "Health Enhancement",
+      "statType": "MaxHp",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 401082,
+      "class": "プリースト",
+      "nameJa": "スキル回復量強化",
+      "nameEn": "Skill Heal Enhancement",
+      "statType": "SkillHealIncrease",
+      "modType": "ADDITIVE",
+      "value": 70
+    },
+    {
+      "passiveKey": 501001,
+      "class": "ハンター",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 2
+    },
+    {
+      "passiveKey": 501002,
+      "class": "ハンター",
+      "nameJa": "クリティカル率強化",
+      "nameEn": "Critical Chance Enhancement",
+      "statType": "CriticalChance",
+      "modType": "ADDITIVE",
+      "value": 200
+    },
+    {
+      "passiveKey": 501011,
+      "class": "ハンター",
+      "nameJa": "クリティカルダメージ強化",
+      "nameEn": "Critical Damage Enhancement",
+      "statType": "CriticalDamage",
+      "modType": "FLAT",
+      "value": 100
+    },
+    {
+      "passiveKey": 501012,
+      "class": "ハンター",
+      "nameJa": "回避率強化",
+      "nameEn": "Dodge Chance Enhancement",
+      "statType": "DodgeChance",
+      "modType": "FLAT",
+      "value": 30
+    },
+    {
+      "passiveKey": 501021,
+      "class": "ハンター",
+      "nameJa": "火炎ダメージ強化",
+      "nameEn": "Fire Damage Enhancement",
+      "statType": "FireDamagePercent",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 501022,
+      "class": "ハンター",
+      "nameJa": "冷気ダメージ強化",
+      "nameEn": "Cold Damage Enhancement",
+      "statType": "ColdDamagePercent",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 501031,
+      "class": "ハンター",
+      "nameJa": "クールダウン短縮",
+      "nameEn": "Cooldown Reduction",
+      "statType": "CooldownReduction",
+      "modType": "FLAT",
+      "value": 10
+    },
+    {
+      "passiveKey": 501032,
+      "class": "ハンター",
+      "nameJa": "体力強化",
+      "nameEn": "Health Enhancement",
+      "statType": "MaxHp",
+      "modType": "FLAT",
+      "value": 15
+    },
+    {
+      "passiveKey": 501041,
+      "class": "ハンター",
+      "nameJa": "物理ダメージ強化",
+      "nameEn": "Physical Damage Enhancement",
+      "statType": "PhysicalDamagePercent",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 501042,
+      "class": "ハンター",
+      "nameJa": "クリティカル率強化",
+      "nameEn": "Critical Chance Enhancement",
+      "statType": "CriticalChance",
+      "modType": "FLAT",
+      "value": 3
+    },
+    {
+      "passiveKey": 501051,
+      "class": "ハンター",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 3
+    },
+    {
+      "passiveKey": 501052,
+      "class": "ハンター",
+      "nameJa": "効果範囲強化",
+      "nameEn": "Area of Effect Enhancement",
+      "statType": "AreaOfEffect",
+      "modType": "ADDITIVE",
+      "value": 30
+    },
+    {
+      "passiveKey": 501061,
+      "class": "ハンター",
+      "nameJa": "雷ダメージ強化",
+      "nameEn": "Lightning Damage Enhancement",
+      "statType": "LightningDamagePercent",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 501062,
+      "class": "ハンター",
+      "nameJa": "クリティカルダメージ強化",
+      "nameEn": "Critical Damage Enhancement",
+      "statType": "CriticalDamage",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 501071,
+      "class": "ハンター",
+      "nameJa": "攻撃速度強化",
+      "nameEn": "Attack Speed Enhancement",
+      "statType": "AttackSpeed",
+      "modType": "ADDITIVE",
+      "value": 40
+    },
+    {
+      "passiveKey": 501072,
+      "class": "ハンター",
+      "nameJa": "命中毎HP回復強化",
+      "nameEn": "HP Per Hit Enhancement",
+      "statType": "AddHpPerHit",
+      "modType": "FLAT",
+      "value": 3
+    },
+    {
+      "passiveKey": 501081,
+      "class": "ハンター",
+      "nameJa": "クリティカル率強化",
+      "nameEn": "Critical Chance Enhancement",
+      "statType": "CriticalChance",
+      "modType": "FLAT",
+      "value": 5
+    },
+    {
+      "passiveKey": 501082,
+      "class": "ハンター",
+      "nameJa": "クリティカルダメージ強化",
+      "nameEn": "Critical Damage Enhancement",
+      "statType": "CriticalDamage",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 601001,
+      "class": "スレイヤー",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 2
+    },
+    {
+      "passiveKey": 601002,
+      "class": "スレイヤー",
+      "nameJa": "体力強化",
+      "nameEn": "Health Enhancement",
+      "statType": "MaxHp",
+      "modType": "FLAT",
+      "value": 15
+    },
+    {
+      "passiveKey": 601011,
+      "class": "スレイヤー",
+      "nameJa": "効果範囲強化",
+      "nameEn": "Area of Effect Enhancement",
+      "statType": "AreaOfEffect",
+      "modType": "ADDITIVE",
+      "value": 30
+    },
+    {
+      "passiveKey": 601012,
+      "class": "スレイヤー",
+      "nameJa": "撃破毎HP回復強化",
+      "nameEn": "HP Per Kill Enhancement",
+      "statType": "AddHpPerKill",
+      "modType": "FLAT",
+      "value": 5
+    },
+    {
+      "passiveKey": 601021,
+      "class": "スレイヤー",
+      "nameJa": "物理ダメージ強化",
+      "nameEn": "Physical Damage Enhancement",
+      "statType": "PhysicalDamagePercent",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 601022,
+      "class": "スレイヤー",
+      "nameJa": "ライフ吸収強化",
+      "nameEn": "Life Leech Enhancement",
+      "statType": "HpLeech",
+      "modType": "FLAT",
+      "value": 5
+    },
+    {
+      "passiveKey": 601031,
+      "class": "スレイヤー",
+      "nameJa": "攻撃力強化",
+      "nameEn": "Attack Damage Enhancement",
+      "statType": "AttackDamage",
+      "modType": "FLAT",
+      "value": 2
+    },
+    {
+      "passiveKey": 601032,
+      "class": "スレイヤー",
+      "nameJa": "体力強化",
+      "nameEn": "Health Enhancement",
+      "statType": "MaxHp",
+      "modType": "FLAT",
+      "value": 15
+    },
+    {
+      "passiveKey": 601041,
+      "class": "スレイヤー",
+      "nameJa": "クリティカルダメージ強化",
+      "nameEn": "Critical Damage Enhancement",
+      "statType": "CriticalDamage",
+      "modType": "FLAT",
+      "value": 100
+    },
+    {
+      "passiveKey": 601042,
+      "class": "スレイヤー",
+      "nameJa": "物理ダメージ強化",
+      "nameEn": "Physical Damage Enhancement",
+      "statType": "PhysicalDamagePercent",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 601051,
+      "class": "スレイヤー",
+      "nameJa": "範囲ダメージ強化",
+      "nameEn": "Area of Effect Damage Enhancement",
+      "statType": "IncreaseAreaOfEffectDamage",
+      "modType": "ADDITIVE",
+      "value": 150
+    },
+    {
+      "passiveKey": 601052,
+      "class": "スレイヤー",
+      "nameJa": "効果範囲強化",
+      "nameEn": "Area of Effect Enhancement",
+      "statType": "AreaOfEffect",
+      "modType": "ADDITIVE",
+      "value": 30
+    },
+    {
+      "passiveKey": 601061,
+      "class": "スレイヤー",
+      "nameJa": "体力強化",
+      "nameEn": "Health Enhancement",
+      "statType": "MaxHp",
+      "modType": "FLAT",
+      "value": 20
+    },
+    {
+      "passiveKey": 601062,
+      "class": "スレイヤー",
+      "nameJa": "移動速度強化",
+      "nameEn": "Movement Speed Enhancement",
+      "statType": "MovementSpeed",
+      "modType": "ADDITIVE",
+      "value": 20
+    },
+    {
+      "passiveKey": 601071,
+      "class": "スレイヤー",
+      "nameJa": "範囲ダメージ強化",
+      "nameEn": "Area of Effect Damage Enhancement",
+      "statType": "IncreaseAreaOfEffectDamage",
+      "modType": "ADDITIVE",
+      "value": 150
+    },
+    {
+      "passiveKey": 601072,
+      "class": "スレイヤー",
+      "nameJa": "持続時間強化",
+      "nameEn": "Duration Enhancement",
+      "statType": "SkillDurationIncrease",
+      "modType": "ADDITIVE",
+      "value": 80
+    },
+    {
+      "passiveKey": 601081,
+      "class": "スレイヤー",
+      "nameJa": "物理ダメージ強化",
+      "nameEn": "Physical Damage Enhancement",
+      "statType": "PhysicalDamagePercent",
+      "modType": "FLAT",
+      "value": 150
+    },
+    {
+      "passiveKey": 601082,
+      "class": "スレイヤー",
+      "nameJa": "効果範囲強化",
+      "nameEn": "Area of Effect Enhancement",
+      "statType": "AreaOfEffect",
+      "modType": "ADDITIVE",
+      "value": 30
     }
   ]
 }

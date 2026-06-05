@@ -147,6 +147,8 @@ def _progress(ev):
                         return "💰 相場データを照会中"
                     if any(w in cmd for w in ("enem", "stage", "boss", "敵", "ステージ")):
                         return "👹 敵・ステージデータを照会中"
+                    if any(w in cmd for w in ("skill", "passive", "class", "スキル", "クラス", "パッシブ")):
+                        return "🧙 クラス・スキルデータを照会中"
                     if "tbh-data" in cmd:
                         return "📖 アイテムデータを照会中"
                     return "🛠 データを照会中"

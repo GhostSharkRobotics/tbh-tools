@@ -33,10 +33,14 @@
   .slots th{text-align:left;font-size:11px;color:var(--muted);font-weight:500;padding:4px 5px;}
   .slotname{font-weight:600;white-space:nowrap;}
   .cat{font-size:10px;color:var(--muted);}
-  .gemcell{min-width:200px;}
-  .gemwrap{display:flex;flex-direction:column;gap:3px;margin-bottom:4px;}
-  .gemwrap:last-child{margin-bottom:0;}
-  .geneff{font-size:10px;color:var(--accent);padding-left:2px;min-height:13px;}
+  .gemcell{min-width:220px;}
+  .statline{display:flex;gap:6px;align-items:center;margin-bottom:5px;}
+  .statline select{width:auto;flex:1;min-width:120px;}
+  .statline input{width:88px;text-align:right;}
+  .statline .unit{color:var(--muted);font-size:12px;width:12px;flex:0 0 auto;}
+  .xbtn{padding:4px 9px;color:var(--muted);line-height:1;border-radius:5px;flex:0 0 auto;}
+  .xbtn:hover{border-color:var(--down);color:var(--down);}
+  .addbtn{font-size:12px;padding:5px 11px;color:var(--accent);border-style:dashed;}
   .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle;border:1px solid #0004;}
   .rarsel{width:120px;}
   .results{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin:6px 0;}
@@ -88,7 +92,7 @@
 </head>
 <body>
 <h1>TBH ビルドシミュレーター</h1>
-<div class="sub">クラス選択 → 現在のステータス入力 → 各装備スロットに装飾素材（宝石）を挿してDPS・全ステータスを試算。最適宝石も自動ランキング。入力は自動保存。</div>
+<div class="sub">クラス選択 → 現在のステータス入力 → 各部位に盛りステータスを直接入力してDPS・全ステータスを試算。プリセットを保存して比較できます。入力は自動保存。</div>
 
 <h2>クラス</h2>
 <div class="row" id="classRow"></div>
@@ -108,28 +112,24 @@
 <div class="ctrlrow">
   <label class="ctrl"><input type="checkbox" id="buff"><span>プリースト 力の祝福</span>
     <select id="buffLv"><option value="50">Lv1 +50%</option><option value="60">Lv2 +60%</option><option value="70">Lv3 +70%</option><option value="80">Lv4 +80%</option><option value="90" selected>Lv5 +90%</option></select></label>
-  <label class="ctrl"><span>宝石ロール値</span>
-    <select id="roll"><option value="max" selected>最大</option><option value="mid">中央</option><option value="min">最小</option></select></label>
   <label class="ctrl"><span>ダメージ倍率に含める種別</span>
     <select id="dmgType"><option value="物理ダメージ" selected>物理</option><option value="火炎ダメージ">火炎</option><option value="冷気ダメージ">冷気</option><option value="雷ダメージ">雷</option><option value="カオスダメージ">カオス</option></select></label>
 </div>
 
-<h2>装飾ビルド（各スロットのレアリティでソケット数が決まる）</h2>
-<table class="slots"><thead><tr><th>部位</th><th>装備レアリティ</th><th>装飾ソケット</th></tr></thead><tbody id="slotBody"></tbody></table>
+<h2>部位ごとの盛りステータス（装飾・刻印・固有効果などの合計を直接入力）</h2>
+<div class="hint" style="margin:0 0 8px;">各部位に「＋ステータス」で行を足し、ステータスを選んで数値を入力（例: 武器に攻撃速度 5）。<b>「現在のステータス」が既に装備込みなら、ここはその上に乗る差分のみ</b>入れてください。比較用途なので基礎値の二重計上に注意。</div>
+<table class="slots"><thead><tr><th style="width:130px;">部位</th><th>盛りステータス</th></tr></thead><tbody id="slotBody"></tbody></table>
 
 <h2>結果</h2>
 <div class="results">
-  <div class="rbox main"><div class="t">合計DPS（宝石込み）</div><div class="v" id="dpsTotal">–</div><div class="d" id="dpsDelta"></div></div>
-  <div class="rbox sub"><div class="t">宝石なしDPS</div><div class="v" id="dpsBase">–</div></div>
-  <div class="rbox sub"><div class="t">装着中の宝石</div><div class="v" id="gemCount">0</div><div class="d" style="color:var(--muted)">個</div></div>
+  <div class="rbox main"><div class="t">合計DPS（盛り込み）</div><div class="v" id="dpsTotal">–</div><div class="d" id="dpsDelta"></div></div>
+  <div class="rbox sub"><div class="t">盛りなしDPS（基礎のみ）</div><div class="v" id="dpsBase">–</div></div>
+  <div class="rbox sub"><div class="t">入力したステータス</div><div class="v" id="gemCount">0</div><div class="d" style="color:var(--muted)">行</div></div>
 </div>
 <div class="breakdown" id="breakdown"></div>
 
-<h2>全ステータス合計（基礎＋宝石＋バフ）</h2>
+<h2>全ステータス合計（基礎＋盛り＋バフ）</h2>
 <div class="twocol"><table class="stattbl" id="statTblL"></table><table class="stattbl" id="statTblR"></table></div>
-
-<h2>宝石オプティマイザ（空きスロット1個に挿した時のDPS増加 上位）</h2>
-<div class="opt" id="optimizer"></div>
 
 <h2>ビルド保存</h2>
 <div class="savebar">
@@ -152,7 +152,7 @@
 <div class="hint" id="cmpHint"></div>
 
 <div class="warn" id="warn"></div>
-<div class="hint">DPS = 攻撃力 × 攻撃速度 × (1 + クリ率×クリダメ) × (1+ダメージ倍率) × バフ。クリダメは「+ボーナス」（264%=クリで3.64倍）、クリ率は100%上限、係数%は基礎値への乗算。式はレンジャー（通常攻撃）で検証済み。宝石は「色×部位」で効果が決まり、武器/防具/アクセで全く別効果になる。</div>
+<div class="hint">DPS = 攻撃力 × 攻撃速度 × (1 + クリ率×クリダメ) × (1+ダメージ倍率) × バフ。クリダメは「+ボーナス」（264%=クリで3.64倍）、クリ率は100%上限、係数%は基礎値への乗算。式はレンジャー（通常攻撃）で検証済み。各部位の盛りステータスは合算してこの式に反映され、攻撃力は実数・それ以外は%（係数）として扱われます。</div>
 
 <script>
 const DATA = /*DATA_START*/{"_meta":{"game":"Task Bar Hero (TBH)","compiledFrom":["altema.jp/taskbarhero","gamerch task-bar-hero","hamatti-games","kengomon","taskbarhero.org/en","taskbarhero.org/en/cube","taskbarhero.org/en/items","tbh.city/materials","volx","wikiwiki gget 彫刻素材","wikiwiki gget 攻略","wikiwiki gget 装飾・彫刻・刻印(碑文)","yamastudio calculator"],"warning":"数値はコミュニティwiki由来でやや不確実。実機の値が優先。宝石(装飾)31種は英語名確認済。彫刻29種は色情報なし(wiki未掲載)。uncertain:true=低信頼(Divine/Cosmic宝石・カオススポア・刻印の各属性ダメージ行など要実機確認)。","dpsFormula":"DPS = atk × spd × (1 + critRate × critDmg) × (1+物理/属性ダメージ) × バフ。クリダメは+ボーナス(264%→クリ時3.64倍)。クリ率は100%上限。係数%は基礎値への乗算。Rangerで検証済み。","itemTypes":{"gem":"装飾素材(宝石) — 色×部位で効果固定。Cube Lv8/レア以上で装着","engraving":"彫刻素材 — 1素材で2効果(部位別)。Cube Lv15で解放","inscription":"刻印(碑文) — 巻物で大量プールから1効果をランダム付与。Cube Lv25/アルカナ以上(英語版)"}},"classes":[{"name":"ナイト","nameEn":"Knight","role":"タンク","primaryStats":["HP","防御力"],"attackType":"近接物理","attackElement":"physical","free":true,"notes":"HP・防御が高い前衛の壁役。"},{"name":"レンジャー","nameEn":"Ranger","role":"遠距離DPS","primaryStats":["攻撃力","攻撃速度","クリティカル"],"attackType":"遠隔物理(弓矢)","attackElement":"physical","free":true,"verified":true,"notes":"SSランク。攻撃速度特化の手数火力。初期クリ率4%。DPS式検証済み。"},{"name":"ソーサラー","nameEn":"Sorcerer","role":"遠距離DPS(範囲)","primaryStats":["攻撃力","クリティカル率"],"attackType":"遠隔属性魔法","attackElement":"elemental","free":true,"notes":"一撃が高く範囲が得意。属性ダメージ参照。"},{"name":"プリースト","nameEn":"Priest","role":"ヒーラー/タンク/サポート","primaryStats":["HP","防御力","回復力"],"attackType":"近接物理+雷","attackElement":"physical","free":true,"notes":"無料DLC。最強格。力の祝福で味方火力底上げ。"},{"name":"ハンター","nameEn":"Hunter","role":"遠距離DPS(ボス特化/持続)","primaryStats":["攻撃力","攻撃速度"],"attackType":"遠隔物理(銃)","attackElement":"physical","free":false,"notes":"有料DLC。持続火力。"},{"name":"スレイヤー","nameEn":"Slayer","role":"近接DPS","primaryStats":["攻撃力","HP"],"attackType":"近接物理","attackElement":"physical","free":false,"notes":"有料DLC。近接高火力。"}],"buffs":[{"name":"力の祝福","class":"プリースト","stat":"攻撃力係数","levels":[50,60,70,80,90],"notes":"オーラ常時。自身＋周囲(実質全体)。攻撃力%乗算。"},{"name":"守護の祝福","class":"プリースト","stat":"全属性耐性","levels":[10,15,20,25,30],"notes":"Lv30解放。防御系(DPS非寄与)。"}],"categories":["weapon","offhand","armor","accessory"],"slots":[{"name":"武器","category":"weapon"},{"name":"オフハンド","category":"offhand"},{"name":"頭","category":"armor"},{"name":"胴","category":"armor"},{"name":"手","category":"armor"},{"name":"足","category":"armor"},{"name":"首飾り","category":"accessory"},{"name":"イヤリング","category":"accessory"},{"name":"指輪","category":"accessory"},{"name":"腕輪","category":"accessory"}],"equipRarities":[{"name":"コモン","decoSlots":0},{"name":"アンコモン","decoSlots":0},{"name":"レア","decoSlots":1},{"name":"レジェンダリー","decoSlots":2},{"name":"イモータル","decoSlots":2},{"name":"アルカナ","decoSlots":2},{"name":"ビヨンド","decoSlots":2},{"name":"セレスティアル","decoSlots":2},{"name":"ディバイン","decoSlots":2},{"name":"コズミック","decoSlots":2}],"rarityOrder":["Common","Uncommon","Rare","Legendary","Immortal","Arcana","Beyond","Celestial","Divine","Cosmic"],"gems":[{"name":"マイナールビー","color":"赤","rarity":"Common","weapon":{"stat":"火炎ダメージ","min":20,"max":30,"unit":"%"},"armor":{"stat":"火炎耐性","min":5,"max":10,"unit":"%"},"accessory":{"stat":"攻撃力","min":1,"max":2,"unit":"flat"},"nameEn":"Minor Ruby"},{"name":"マイナーサファイア","color":"青","rarity":"Common","weapon":{"stat":"冷気ダメージ","min":20,"max":30,"unit":"%"},"armor":{"stat":"防御力","min":25,"max":50,"unit":"flat"},"accessory":{"stat":"クリ率係数","min":10,"max":15,"unit":"%"},"nameEn":"Minor Sapphire"},{"name":"マイナートパーズ","color":"黄","rarity":"Common","weapon":{"stat":"雷ダメージ","min":20,"max":30,"unit":"%"},"armor":{"stat":"防御力","min":10,"max":15,"unit":"flat"},"accessory":{"stat":"詠唱速度","min":8,"max":10,"unit":"%"},"nameEn":"Minor Topaz"},{"name":"マイナーエメラルド","color":"緑","rarity":"Common","weapon":{"stat":"攻撃速度","min":5,"max":6,"unit":"%"},"armor":{"stat":"ダメージ吸収","min":1,"max":1,"unit":"flat"},"accessory":{"stat":"移動速度","min":10,"max":15,"unit":"%"},"nameEn":"Minor Emerald"},{"name":"マイナーアメジスト","color":"紫","rarity":"Common","weapon":{"stat":"物理ダメージ","min":20,"max":30,"unit":"%"},"armor":{"stat":"最大HP","min":10,"max":30,"unit":"flat"},"accessory":{"stat":"クールダウン短縮","min":1.0,"max":2.5,"unit":"%"},"nameEn":"Minor Amethyst"},{"name":"珊瑚の欠片","color":"赤","rarity":"Uncommon","weapon":{"stat":"命中毎HP回復","min":1,"max":2,"unit":"flat"},"armor":{"stat":"毎秒HP回復","min":1.5,"max":2.0,"unit":"flat"},"accessory":{"stat":"ライフスティール","min":1.5,"max":2.5,"unit":"%"},"nameEn":"Coral Piece"},{"name":"黒曜石の破片","color":"黒","rarity":"Uncommon","weapon":{"stat":"攻撃力","min":3,"max":6,"unit":"flat"},"armor":{"stat":"ブロック率","min":3.5,"max":4.5,"unit":"%"},"accessory":{"stat":"攻撃力係数","min":10,"max":15,"unit":"%"},"nameEn":"Obsidian Shard"},{"name":"アンバージェム","color":"橙","rarity":"Uncommon","weapon":{"stat":"クリダメ","min":20,"max":25,"unit":"%"},"armor":{"stat":"最大HP","min":8,"max":11,"unit":"%"},"accessory":{"stat":"効果範囲","min":8,"max":9,"unit":"%"},"nameEn":"Amber Gem"},{"name":"翡翠石","color":"緑","rarity":"Uncommon","weapon":{"stat":"クリ率係数","min":20,"max":25,"unit":"%"},"armor":{"stat":"回避率","min":3.5,"max":4.5,"unit":"%"},"accessory":{"stat":"攻撃速度","min":5,"max":6,"unit":"%"},"nameEn":"Jade Stone"},{"name":"ルビー","color":"赤","rarity":"Rare","weapon":{"stat":"火炎ダメージ","min":30,"max":40,"unit":"%"},"armor":{"stat":"火炎耐性","min":15,"max":20,"unit":"%"},"accessory":{"stat":"攻撃力","min":3,"max":6,"unit":"flat"},"nameEn":"Ruby"},{"name":"サファイア","color":"青","rarity":"Rare","weapon":{"stat":"冷気ダメージ","min":30,"max":40,"unit":"%"},"armor":{"stat":"冷気耐性","min":15,"max":20,"unit":"%"},"accessory":{"stat":"クリ率係数","min":20,"max":25,"unit":"%"},"nameEn":"Sapphire"},{"name":"トパーズ","color":"黄","rarity":"Rare","weapon":{"stat":"雷ダメージ","min":30,"max":40,"unit":"%"},"armor":{"stat":"雷耐性","min":15,"max":20,"unit":"%"},"accessory":{"stat":"詠唱速度","min":12,"max":14,"unit":"%"},"nameEn":"Topaz"},{"name":"エメラルド","color":"緑","rarity":"Rare","weapon":{"stat":"攻撃速度","min":7,"max":9,"unit":"%"},"armor":{"stat":"カオス耐性","min":15,"max":20,"unit":"%"},"accessory":{"stat":"移動速度","min":20,"max":25,"unit":"%"},"nameEn":"Emerald"},{"name":"アメジスト","color":"紫","rarity":"Rare","weapon":{"stat":"物理ダメージ","min":30,"max":40,"unit":"%"},"armor":{"stat":"最大HP","min":60,"max":90,"unit":"flat"},"accessory":{"stat":"クールダウン短縮","min":4.0,"max":5.5,"unit":"%"},"nameEn":"Amethyst"},{"name":"パール","color":"白","rarity":"Legendary","weapon":{"stat":"クールダウン短縮","min":7.0,"max":8.5,"unit":"%"},"armor":{"stat":"ダメージ軽減","min":4.0,"max":5.5,"unit":"%"},"accessory":{"stat":"クリ率係数","min":25,"max":30,"unit":"%"},"nameEn":"Pearl"},{"name":"ターコイズ","color":"青","rarity":"Legendary","weapon":{"stat":"クリ率係数","min":30,"max":35,"unit":"%"},"armor":{"stat":"クールダウン短縮","min":5.5,"max":7.0,"unit":"%"},"accessory":{"stat":"最大HP","min":90,"max":120,"unit":"flat"},"nameEn":"Turquoise"},{"name":"クリスタルクォーツ","color":"白","rarity":"Legendary","weapon":{"stat":"攻撃力","min":10,"max":15,"unit":"flat"},"armor":{"stat":"毎秒HP回復","min":2.5,"max":3.0,"unit":"flat"},"accessory":{"stat":"クリダメ","min":25,"max":30,"unit":"%"},"nameEn":"Crystal Quartz"},{"name":"ガーネット","color":"赤","rarity":"Legendary","weapon":{"stat":"クリダメ","min":30,"max":40,"unit":"%"},"armor":{"stat":"防御力","min":25,"max":30,"unit":"%"},"accessory":{"stat":"攻撃速度","min":7,"max":9,"unit":"%"},"nameEn":"Garnet"},{"name":"ダイヤモンド","color":"白","rarity":"Immortal","weapon":{"stat":"攻撃力","min":15,"max":30,"unit":"flat"},"armor":{"stat":"全属性耐性","min":13,"max":15,"unit":"%"},"accessory":{"stat":"効果範囲","min":12,"max":14,"unit":"%"},"nameEn":"Diamond"},{"name":"オパール","color":"白","rarity":"Immortal","weapon":{"stat":"攻撃速度","min":11,"max":13,"unit":"%"},"armor":{"stat":"最大HP","min":17,"max":20,"unit":"%"},"accessory":{"stat":"毎秒HP回復","min":3.0,"max":4.0,"unit":"flat"},"nameEn":"Opal"},{"name":"ラピスラズリ","color":"青","rarity":"Immortal","weapon":{"stat":"クリ率係数","min":35,"max":40,"unit":"%"},"armor":{"stat":"回避率","min":7.0,"max":9.0,"unit":"%"},"accessory":{"stat":"移動速度","min":30,"max":35,"unit":"%"},"nameEn":"Lapis Lazuli"},{"name":"ブラックパール","color":"黒","rarity":"Immortal","weapon":{"stat":"効果範囲","min":14,"max":17,"unit":"%"},"armor":{"stat":"ブロック率","min":7.0,"max":9.0,"unit":"%"},"accessory":{"stat":"詠唱速度","min":16,"max":20,"unit":"%"},"nameEn":"Black Pearl"},{"name":"エンチャントルビー","color":"赤","rarity":"Arcana","weapon":{"stat":"火炎ダメージ","min":80,"max":100,"unit":"%"},"armor":{"stat":"火炎耐性","min":30,"max":35,"unit":"%"},"accessory":{"stat":"攻撃力","min":15,"max":30,"unit":"flat"},"nameEn":"Enchanted Ruby"},{"name":"星光のサファイア","color":"青","rarity":"Arcana","weapon":{"stat":"冷気ダメージ","min":80,"max":100,"unit":"%"},"armor":{"stat":"冷気耐性","min":30,"max":35,"unit":"%"},"accessory":{"stat":"クリ率係数","min":35,"max":40,"unit":"%"},"nameEn":"Starlight Sapphire"},{"name":"ミスティックトパーズ","color":"黄","rarity":"Arcana","weapon":{"stat":"雷ダメージ","min":80,"max":100,"unit":"%"},"armor":{"stat":"雷耐性","min":30,"max":35,"unit":"%"},"accessory":{"stat":"詠唱速度","min":20,"max":25,"unit":"%"},"nameEn":"Mystic Topaz"},{"name":"アーケインクリスタル","color":"白","rarity":"Arcana","weapon":{"stat":"詠唱速度","min":25,"max":30,"unit":"%"},"armor":{"stat":"クールダウン短縮","min":8.5,"max":10.0,"unit":"%"},"accessory":{"stat":"クリダメ","min":40,"max":50,"unit":"%"},"nameEn":"Arcane Crystal"},{"name":"アストラルダイヤ","color":"白","rarity":"Beyond","weapon":{"stat":"攻撃力","min":50,"max":100,"unit":"flat"},"armor":{"stat":"全属性耐性","min":17,"max":19,"unit":"%"},"accessory":{"stat":"効果範囲","min":17,"max":20,"unit":"%"},"nameEn":"Astral Diamond"},{"name":"ファントムエメラルド","color":"緑","rarity":"Beyond","weapon":{"stat":"攻撃速度","min":15,"max":17,"unit":"%"},"armor":{"stat":"カオス耐性","min":35,"max":40,"unit":"%"},"accessory":{"stat":"移動速度","min":40,"max":45,"unit":"%"},"nameEn":"Phantom Emerald"},{"name":"トワイライトアメジスト","color":"紫","rarity":"Beyond","weapon":{"stat":"物理ダメージ","min":100,"max":130,"unit":"%"},"armor":{"stat":"最大HP","min":180,"max":210,"unit":"flat"},"accessory":{"stat":"クールダウン短縮","min":8.5,"max":10.0,"unit":"%"},"nameEn":"Twilight Amethyst"},{"name":"虚空のオパール","color":"黒","rarity":"Beyond","weapon":{"stat":"クールダウン短縮","min":11.5,"max":13.0,"unit":"%"},"armor":{"stat":"最大HP","min":25,"max":30,"unit":"%"},"accessory":{"stat":"最大HP","min":180,"max":210,"unit":"flat"},"nameEn":"Void Opal"},{"name":"セレスティアルパール","color":"白","rarity":"Celestial","weapon":{"stat":"クリ率係数","min":50,"max":55,"unit":"%"},"armor":{"stat":"ダメージ吸収","min":4,"max":5,"unit":"flat"},"accessory":{"stat":"クリ率係数","min":40,"max":45,"unit":"%"},"nameEn":"Celestial Pearl"},{"name":"ドラゴナイトクリスタル","nameEn":"Dragonite Crystal","color":"白","rarity":"Celestial","weapon":{"stat":"クリダメ","min":80,"max":100,"unit":"%"},"armor":{"stat":"防御力","min":45,"max":50,"unit":"%"},"accessory":{"stat":"クリダメ","min":60,"max":80,"unit":"%"}},{"name":"ヴォイドクリスタル","nameEn":"Void Crystal","color":"白","rarity":"Divine","uncertain":true,"weapon":{"stat":"攻撃力係数","min":100,"max":150,"unit":"%"},"armor":{"stat":"クールダウン短縮","min":130,"max":145,"unit":"%"},"accessory":{"stat":"攻撃力係数","min":70,"max":100,"unit":"%"}},{"name":"アビサルパール","nameEn":"Abyssal Pearl","color":"白","rarity":"Divine","uncertain":true,"weapon":{"stat":"命中毎HP回復","min":10,"max":12,"unit":"flat"},"armor":{"stat":"毎秒HP回復","min":1000,"max":1500,"unit":"flat"},"accessory":{"stat":"ライフスティール","min":50,"max":60,"unit":"%"}},{"name":"エーテルジェム","nameEn":"Ethereal Gem","color":"白","rarity":"Cosmic","uncertain":true,"weapon":{"stat":"マルチストライク","min":1,"max":1,"unit":"flat"},"armor":{"stat":"ダメージ軽減","min":140,"max":160,"unit":"%"},"accessory":{"stat":"通常攻撃必要数減少","min":1,"max":1,"unit":"flat"}},{"name":"カオスダイヤモンド","nameEn":"Chaos Diamond","color":"白","rarity":"Cosmic","uncertain":true,"weapon":{"stat":"投射物数","min":1,"max":1,"unit":"flat"},"armor":{"stat":"全属性耐性","min":25,"max":30,"unit":"%"},"accessory":{"stat":"クリダメ","min":1000,"max":1500,"unit":"%"}}],"engravings":[{"name":"スライムゼリー","nameEn":"Slime Jelly","rarity":"Common","weapon":[{"stat":"攻撃速度","min":5,"max":6,"unit":"%"},{"stat":"攻撃力","min":2,"max":3,"unit":"flat"}],"armor":[{"stat":"ダメージ吸収","min":1,"max":1,"unit":"flat"},{"stat":"ブロック率","min":2.5,"max":3.5,"unit":"%"}],"accessory":[{"stat":"最大HP","min":10,"max":30,"unit":"flat"},{"stat":"クリ率係数","min":10,"max":15,"unit":"%"}]},{"name":"スケルトンボーン","nameEn":"Skeleton Bone","rarity":"Common","weapon":[{"stat":"クリダメ","min":15,"max":20,"unit":"%"},{"stat":"火炎ダメージ","min":20,"max":30,"unit":"%"}],"armor":[{"stat":"防御力","min":25,"max":50,"unit":"flat"},{"stat":"防御力","min":10,"max":15,"unit":"%"}],"accessory":[{"stat":"命中毎HP回復","min":1,"max":2,"unit":"flat"},{"stat":"攻撃速度","min":4,"max":5,"unit":"%"}]},{"name":"ゴブリンの皮","nameEn":"Goblin Hide","rarity":"Common","weapon":[{"stat":"火炎ダメージ","min":20,"max":30,"unit":"%"},{"stat":"雷ダメージ","min":20,"max":30,"unit":"%"}],"armor":[{"stat":"冷気耐性","min":5,"max":10,"unit":"%"},{"stat":"火炎耐性","min":5,"max":10,"unit":"%"}],"accessory":[{"stat":"攻撃速度","min":4,"max":5,"unit":"%"},{"stat":"最大HP","min":10,"max":30,"unit":"flat"}]},{"name":"癒しの薬草","nameEn":"Healing Herb","rarity":"Uncommon","weapon":[{"stat":"火炎ダメージ","min":30,"max":40,"unit":"%"},{"stat":"冷気ダメージ","min":30,"max":40,"unit":"%"}],"armor":[{"stat":"回避率","min":3.5,"max":4.5,"unit":"%"},{"stat":"最大HP","min":8,"max":11,"unit":"%"}],"accessory":[{"stat":"クリ率係数","min":15,"max":20,"unit":"%"},{"stat":"攻撃力","min":2,"max":3,"unit":"flat"}]},{"name":"毒草","nameEn":"Poisonous Herb","rarity":"Uncommon","weapon":[{"stat":"ライフスティール","min":2.0,"max":3.0,"unit":"%"},{"stat":"雷ダメージ","min":30,"max":40,"unit":"%"}],"armor":[{"stat":"防御力","min":50,"max":100,"unit":"flat"},{"stat":"ダメージ吸収","min":1,"max":1.4,"unit":"flat"}],"accessory":[{"stat":"攻撃力","min":2,"max":3,"unit":"flat"},{"stat":"移動速度","min":15,"max":20,"unit":"%"}]},{"name":"スパイダーシルク","nameEn":"Spider Silk","rarity":"Uncommon","weapon":[{"stat":"効果範囲","min":9,"max":10,"unit":"%"},{"stat":"物理ダメージ","min":30,"max":40,"unit":"%"}],"armor":[{"stat":"冷気耐性","min":10,"max":15,"unit":"%"},{"stat":"クールダウン短縮","min":2.5,"max":4.0,"unit":"%"}],"accessory":[{"stat":"クールダウン短縮","min":2.5,"max":4.0,"unit":"%"},{"stat":"最大HP","min":30,"max":60,"unit":"flat"}]},{"name":"ウルフファング","nameEn":"Wolf Fang","rarity":"Uncommon","weapon":[{"stat":"効果範囲","min":9,"max":10,"unit":"%"},{"stat":"クリ率係数","min":20,"max":25,"unit":"%"}],"armor":[{"stat":"雷耐性","min":10,"max":15,"unit":"%"},{"stat":"防御力","min":15,"max":20,"unit":"%"}],"accessory":[{"stat":"命中毎HP回復","min":2,"max":4,"unit":"flat"},{"stat":"攻撃力","min":2,"max":3,"unit":"flat"}]},{"name":"古代樹の樹液","nameEn":"Ancient Tree Sap","rarity":"Rare","weapon":[{"stat":"クリダメ","min":25,"max":30,"unit":"%"},{"stat":"効果範囲","min":10,"max":12,"unit":"%"}],"armor":[{"stat":"毎秒HP回復","min":2.0,"max":2.5,"unit":"flat"},{"stat":"ダメージ軽減","min":3.0,"max":4.0,"unit":"%"}],"accessory":[{"stat":"クリダメ","min":20,"max":25,"unit":"%"},{"stat":"攻撃速度","min":6,"max":7,"unit":"%"}]},{"name":"キノコの胞子","nameEn":"Mushroom Spore","rarity":"Rare","weapon":[{"stat":"クールダウン短縮","min":5.5,"max":7.0,"unit":"%"},{"stat":"命中毎HP回復","min":4,"max":6,"unit":"flat"}],"armor":[{"stat":"ブロック率","min":4.5,"max":5.5,"unit":"%"},{"stat":"雷耐性","min":15,"max":20,"unit":"%"}],"accessory":[{"stat":"毎秒HP回復","min":2.0,"max":2.5,"unit":"flat"},{"stat":"最大HP","min":60,"max":90,"unit":"flat"}]},{"name":"オーガブラッド","nameEn":"Ogre Blood","rarity":"Rare","weapon":[{"stat":"効果範囲","min":10,"max":12,"unit":"%"},{"stat":"攻撃力","min":20,"max":25,"unit":"%"}],"armor":[{"stat":"毎秒HP回復","min":2.0,"max":2.5,"unit":"flat"},{"stat":"冷気耐性","min":15,"max":20,"unit":"%"}],"accessory":[{"stat":"攻撃力","min":3,"max":6,"unit":"flat"},{"stat":"最大HP","min":60,"max":90,"unit":"flat"}]},{"name":"コウモリの翼膜","nameEn":"Bat Wing Membrane","rarity":"Rare","weapon":[{"stat":"雷ダメージ","min":40,"max":50,"unit":"%"},{"stat":"火炎ダメージ","min":40,"max":50,"unit":"%"}],"armor":[{"stat":"ダメージ軽減","min":3.0,"max":4.0,"unit":"%"},{"stat":"最大HP","min":60,"max":90,"unit":"flat"}],"accessory":[{"stat":"クリダメ","min":20,"max":25,"unit":"%"},{"stat":"命中毎HP回復","min":1,"max":2,"unit":"flat"}]},{"name":"ナイトシェードエキス","nameEn":"Nightshade Extract","rarity":"Legendary","weapon":[{"stat":"攻撃力","min":25,"max":30,"unit":"%"},{"stat":"クリ率係数","min":30,"max":35,"unit":"%"}],"armor":[{"stat":"雷耐性","min":20,"max":25,"unit":"%"},{"stat":"冷気耐性","min":20,"max":25,"unit":"%"}],"accessory":[{"stat":"命中毎HP回復","min":4,"max":6,"unit":"flat"},{"stat":"クリダメ","min":25,"max":30,"unit":"%"}]},{"name":"マンドレイクの根","nameEn":"Mandrake Root","rarity":"Legendary","weapon":[{"stat":"命中毎HP回復","min":5,"max":7,"unit":"flat"},{"stat":"火炎ダメージ","min":50,"max":60,"unit":"%"}],"armor":[{"stat":"冷気耐性","min":20,"max":25,"unit":"%"},{"stat":"最大HP","min":90,"max":120,"unit":"flat"}],"accessory":[{"stat":"ライフスティール","min":2.5,"max":3.5,"unit":"%"},{"stat":"毎秒HP回復","min":2.5,"max":3.0,"unit":"flat"}]},{"name":"ハーピーの羽","nameEn":"Harpy Feather","rarity":"Legendary","weapon":[{"stat":"火炎ダメージ","min":50,"max":60,"unit":"%"},{"stat":"攻撃力","min":25,"max":30,"unit":"%"}],"armor":[{"stat":"ブロック率","min":5.5,"max":7.0,"unit":"%"},{"stat":"ダメージ軽減","min":4.0,"max":5.5,"unit":"%"}],"accessory":[{"stat":"攻撃力","min":6,"max":10,"unit":"flat"},{"stat":"最大HP","min":90,"max":120,"unit":"flat"}]},{"name":"スカル","nameEn":"Skull","rarity":"Legendary","weapon":[{"stat":"クールダウン短縮","min":7.0,"max":8.5,"unit":"%"},{"stat":"雷ダメージ","min":50,"max":60,"unit":"%"}],"armor":[{"stat":"雷耐性","min":20,"max":25,"unit":"%"},{"stat":"カオス耐性","min":20,"max":25,"unit":"%"}],"accessory":[{"stat":"詠唱速度","min":14,"max":16,"unit":"%"},{"stat":"クリダメ","min":25,"max":30,"unit":"%"}]},{"name":"デーモンブラッド","nameEn":"Demon Blood","rarity":"Immortal","weapon":[{"stat":"効果範囲","min":14,"max":17,"unit":"%"},{"stat":"雷ダメージ","min":60,"max":80,"unit":"%"}],"armor":[{"stat":"ブロック率","min":7.0,"max":9.0,"unit":"%"},{"stat":"回避率","min":7.0,"max":9.0,"unit":"%"}],"accessory":[{"stat":"ライフスティール","min":3.0,"max":4.0,"unit":"%"},{"stat":"クリ率係数","min":30,"max":35,"unit":"%"}]},{"name":"ダイス","nameEn":"Dice","rarity":"Immortal","weapon":[{"stat":"物理ダメージ","min":60,"max":80,"unit":"%"},{"stat":"冷気ダメージ","min":60,"max":80,"unit":"%"}],"armor":[{"stat":"ダメージ吸収","min":2.2,"max":2.6,"unit":"flat"},{"stat":"ブロック率","min":7.0,"max":9.0,"unit":"%"}],"accessory":[{"stat":"クールダウン短縮","min":7.0,"max":8.5,"unit":"%"},{"stat":"移動速度","min":30,"max":35,"unit":"%"}]},{"name":"ワイバーンの爪","nameEn":"Wyvern Claw","rarity":"Immortal","weapon":[{"stat":"冷気ダメージ","min":60,"max":80,"unit":"%"},{"stat":"命中毎HP回復","min":6,"max":8,"unit":"flat"}],"armor":[{"stat":"冷気耐性","min":25,"max":30,"unit":"%"},{"stat":"防御力","min":200,"max":250,"unit":"flat"}],"accessory":[{"stat":"クリ率係数","min":30,"max":35,"unit":"%"},{"stat":"毎秒HP回復","min":3.0,"max":4.0,"unit":"flat"}]},{"name":"バジリスクの鱗","nameEn":"Basilisk Scale","rarity":"Immortal","weapon":[{"stat":"ライフスティール","min":3.5,"max":4.5,"unit":"%"},{"stat":"攻撃力","min":15,"max":30,"unit":"flat"}],"armor":[{"stat":"最大HP","min":120,"max":150,"unit":"flat"},{"stat":"ダメージ軽減","min":5.5,"max":7.0,"unit":"%"}],"accessory":[{"stat":"移動速度","min":30,"max":35,"unit":"%"},{"stat":"詠唱速度","min":16,"max":20,"unit":"%"}]},{"name":"ドラゴンの胆汁","nameEn":"Dragon Bile","rarity":"Arcana","weapon":[{"stat":"クリダメ","min":50,"max":60,"unit":"%"},{"stat":"クリ率係数","min":40,"max":45,"unit":"%"}],"armor":[{"stat":"回避率","min":9.0,"max":11.0,"unit":"%"},{"stat":"ブロック率","min":9.0,"max":11.0,"unit":"%"}],"accessory":[{"stat":"クリ率係数","min":35,"max":40,"unit":"%"},{"stat":"命中毎HP回復","min":6,"max":8,"unit":"flat"}]},{"name":"フェニックスの灰","nameEn":"Phoenix Ash","rarity":"Arcana","weapon":[{"stat":"クリ率係数","min":40,"max":45,"unit":"%"},{"stat":"攻撃力","min":30,"max":50,"unit":"flat"}],"armor":[{"stat":"ダメージ吸収","min":2.6,"max":3.0,"unit":"flat"},{"stat":"ダメージ軽減","min":7.0,"max":8.5,"unit":"%"}],"accessory":[{"stat":"攻撃速度","min":11,"max":13,"unit":"%"},{"stat":"クリダメ","min":40,"max":50,"unit":"%"}]},{"name":"グリフィンのくちばし","nameEn":"Griffin Beak","rarity":"Arcana","weapon":[{"stat":"冷気ダメージ","min":80,"max":100,"unit":"%"},{"stat":"攻撃力","min":30,"max":50,"unit":"flat"}],"armor":[{"stat":"雷耐性","min":30,"max":35,"unit":"%"},{"stat":"最大HP","min":20,"max":25,"unit":"%"}],"accessory":[{"stat":"詠唱速度","min":20,"max":25,"unit":"%"},{"stat":"クリダメ","min":40,"max":50,"unit":"%"}]},{"name":"ミノタウロスの角","nameEn":"Minotaur Horn","rarity":"Arcana","weapon":[{"stat":"冷気ダメージ","min":80,"max":100,"unit":"%"},{"stat":"攻撃速度","min":13,"max":15,"unit":"%"}],"armor":[{"stat":"雷耐性","min":30,"max":35,"unit":"%"},{"stat":"毎秒HP回復","min":4.0,"max":5.0,"unit":"flat"}],"accessory":[{"stat":"効果範囲","min":14,"max":17,"unit":"%"},{"stat":"クールダウン短縮","min":8.5,"max":10.0,"unit":"%"}]},{"name":"ヴォイドの精髄","nameEn":"Void Ichor","rarity":"Beyond","weapon":[{"stat":"クリ率係数","min":45,"max":50,"unit":"%"},{"stat":"命中毎HP回復","min":8,"max":10,"unit":"flat"}],"armor":[{"stat":"ダメージ軽減","min":8.5,"max":10.0,"unit":"%"},{"stat":"冷気耐性","min":35,"max":40,"unit":"%"}],"accessory":[{"stat":"移動速度","min":40,"max":45,"unit":"%"},{"stat":"クリ率係数","min":40,"max":45,"unit":"%"}]},{"name":"タイタンマロウ","nameEn":"Titan Marrow","rarity":"Beyond","weapon":[{"stat":"攻撃力","min":50,"max":70,"unit":"%"},{"stat":"火炎ダメージ","min":100,"max":130,"unit":"%"}],"armor":[{"stat":"雷耐性","min":35,"max":40,"unit":"%"},{"stat":"ダメージ軽減","min":8.5,"max":10.0,"unit":"%"}],"accessory":[{"stat":"毎秒HP回復","min":5.0,"max":7.0,"unit":"flat"},{"stat":"最大HP","min":180,"max":210,"unit":"flat"}]},{"name":"クラーケンインク","nameEn":"Kraken Ink","rarity":"Beyond","weapon":[{"stat":"冷気ダメージ","min":100,"max":130,"unit":"%"},{"stat":"効果範囲","min":20,"max":23,"unit":"%"}],"armor":[{"stat":"雷耐性","min":35,"max":40,"unit":"%"},{"stat":"回避率","min":11.0,"max":13.0,"unit":"%"}],"accessory":[{"stat":"命中毎HP回復","min":7,"max":9,"unit":"flat"},{"stat":"攻撃力","min":30,"max":50,"unit":"flat"}]},{"name":"レイスの精髄","nameEn":"Wraith Essence","rarity":"Beyond","weapon":[{"stat":"クリダメ","min":60,"max":80,"unit":"%"},{"stat":"火炎ダメージ","min":100,"max":130,"unit":"%"}],"armor":[{"stat":"ブロック率","min":11.0,"max":13.0,"unit":"%"},{"stat":"最大HP","min":180,"max":210,"unit":"flat"}],"accessory":[{"stat":"命中毎HP回復","min":7,"max":9,"unit":"flat"},{"stat":"クリダメ","min":50,"max":60,"unit":"%"}]},{"name":"深淵の粘液","nameEn":"Abyssal Mucus","rarity":"Celestial","weapon":[{"stat":"火炎ダメージ","min":130,"max":180,"unit":"%"},{"stat":"クールダウン短縮","min":13.0,"max":14.5,"unit":"%"}],"armor":[{"stat":"防御力","min":45,"max":50,"unit":"%"},{"stat":"ブロック率","min":13.0,"max":16.0,"unit":"%"}],"accessory":[{"stat":"攻撃速度","min":15,"max":17,"unit":"%"},{"stat":"移動速度","min":45,"max":50,"unit":"%"}]},{"name":"カオススポア","nameEn":"Chaos Spore","rarity":"Celestial","uncertain":true,"weapon":[{"stat":"物理ダメージ","min":130,"max":180,"unit":"%"},{"stat":"攻撃力","min":100,"max":150,"unit":"flat"}],"armor":[{"stat":"冷気耐性","min":40,"max":45,"unit":"%"},{"stat":"カオス耐性","min":40,"max":45,"unit":"%"}],"accessory":[{"stat":"移動速度","min":45,"max":50,"unit":"%"},{"stat":"毎秒HP回復","min":700,"max":1000,"unit":"flat"}]}],"inscriptions":{"rule":"碑文(刻印)システム。強化スロットの正式名は『碑文スロット』。『碑文』=スロット名/刻まれる付与効果の総称、『刻印の巻物』=それを刻む消費アイテム(両者は同一システム)。巻物で大量プールから1効果をランダム付与(部位不問)。巻物グレード(コモン〜超越Beyond・全7種)で抽選値が変わる。英語版でCube Lv25・アルカナ以上の装備で解放とされる。1装備あたりの碑文スロット数は出典で未確認。効果数値はwiki由来で要確認(特に各属性ダメージ行、Beyondグレードの効果値は未取得)。","scrolls":[{"name":"一般刻文の巻物","nameEn":"Scroll of Common Inscription","rarity":"Common"},{"name":"アンコモン刻印の巻物","nameEn":"Scroll of Uncommon Inscription","rarity":"Uncommon"},{"name":"レア刻印の巻物","nameEn":"Scroll of Rare Inscription","rarity":"Rare"},{"name":"伝説の刻印の巻物","nameEn":"Scroll of Legendary Inscription","rarity":"Legendary"},{"name":"不滅の刻文の巻物","nameEn":"Scroll of Immortal Inscription","rarity":"Immortal"},{"name":"アルカナ刻印の巻物","nameEn":"Scroll of Arcana Inscription","rarity":"Arcana"},{"name":"超越銘文の巻物","nameEn":"Scroll of Beyond Inscription","rarity":"Beyond"}],"effects":[{"stat":"攻撃力","unit":"flat","byGrade":{"Common":{"min":1,"max":6},"Uncommon":{"min":2,"max":10},"Rare":{"min":3,"max":15},"Legendary":{"min":6,"max":30},"Immortal":{"min":10,"max":50},"Arcana":{"min":15,"max":100}}},{"stat":"攻撃力","unit":"%","byGrade":{"Common":{"min":5,"max":20},"Uncommon":{"min":10,"max":25},"Rare":{"min":15,"max":30},"Legendary":{"min":20,"max":40},"Immortal":{"min":25,"max":50},"Arcana":{"min":30,"max":70}}},{"stat":"防御力","unit":"flat","byGrade":{"Common":{"min":25,"max":150},"Rare":{"min":100,"max":250},"Legendary":{"min":150,"max":300},"Arcana":{"min":250,"max":400}}},{"stat":"防御力","unit":"%","byGrade":{"Common":{"min":10,"max":25},"Rare":{"min":20,"max":35},"Legendary":{"min":25,"max":40},"Arcana":{"min":35,"max":50}}},{"stat":"最大HP","unit":"flat","byGrade":{"Common":{"min":10,"max":90},"Uncommon":{"min":30,"max":120},"Rare":{"min":60,"max":150},"Legendary":{"min":90,"max":180},"Immortal":{"min":120,"max":210}}},{"stat":"最大HP","unit":"%","byGrade":{"Arcana":{"min":20,"max":35}}},{"stat":"攻撃速度","unit":"%","byGrade":{"Common":{"min":4,"max":7},"Rare":{"min":6,"max":11},"Immortal":{"min":9,"max":15}}},{"stat":"詠唱速度","unit":"%","byGrade":{"Common":{"min":8,"max":14},"Rare":{"min":12,"max":20},"Immortal":{"min":16,"max":30}}},{"stat":"クールダウン短縮","unit":"%","byGrade":{"Uncommon":{"min":2.5,"max":7.0},"Legendary":{"min":5.5,"max":10.0},"Arcana":{"min":8.5,"max":13.0}}},{"stat":"クリ率係数","unit":"%","byGrade":{"Uncommon":{"min":15,"max":30},"Legendary":{"min":25,"max":40},"Arcana":{"min":35,"max":50}}},{"stat":"クリダメ","unit":"%","byGrade":{"Uncommon":{"min":15,"max":30},"Legendary":{"min":25,"max":50},"Arcana":{"min":40,"max":80}}},{"stat":"物理ダメージ","unit":"%","byGrade":{"Common":{"min":10,"max":40},"Uncommon":{"min":20,"max":50},"Legendary":{"min":40,"max":80},"Immortal":{"min":50,"max":100}}},{"stat":"火炎ダメージ","unit":"%","byGrade":{"Common":{"min":10,"max":40},"Uncommon":{"min":20,"max":50},"Legendary":{"min":40,"max":80},"Immortal":{"min":50,"max":100}}},{"stat":"冷気ダメージ","unit":"%","byGrade":{"Common":{"min":10,"max":40},"Uncommon":{"min":20,"max":50},"Legendary":{"min":40,"max":80},"Immortal":{"min":50,"max":100}}},{"stat":"雷ダメージ","unit":"%","byGrade":{"Common":{"min":10,"max":40},"Uncommon":{"min":20,"max":50},"Legendary":{"min":40,"max":80},"Immortal":{"min":50,"max":100}}}]},"statMap":{"攻撃力":"Attack","攻撃力係数":"Attack %","攻撃速度":"Attack Speed","クリ率係数":"Crit Rate","クリダメ":"Crit Damage","物理ダメージ":"Physical Damage","火炎ダメージ":"Fire Damage","冷気ダメージ":"Cold Damage","雷ダメージ":"Lightning Damage","効果範囲":"Area","クールダウン短縮":"Cooldown","移動速度":"Move Speed","詠唱速度":"Cast Speed","最大HP":"Max HP","防御力":"Defense","回避率":"Dodge","ブロック率":"Block","ダメージ軽減":"Damage Reduction","ダメージ吸収":"Damage Absorb","毎秒HP回復":"HP Regen","命中毎HP回復":"HP on Hit","ライフスティール":"Life Steal","火炎耐性":"Fire Resist","冷気耐性":"Cold Resist","雷耐性":"Lightning Resist","カオス耐性":"Chaos Resist","全属性耐性":"All Resist","マルチストライク":"Multistrike","通常攻撃必要数減少":"Basic Atk Req -","投射物数":"Projectiles"}}/*DATA_END*/;
@@ -164,41 +164,21 @@ const v = id => parseFloat($(id).value) || 0;
 const fmt = x => Math.round(x).toLocaleString();
 const fmt1 = x => (Math.round(x*10)/10).toLocaleString();
 
-// state: which gem is in each [slotIndex][socketIndex], and rarity per slot, offhand category
-let state = { gems:{}, rarity:{}, offhandCat:'weapon' };
+// state: per slot, a list of manually-entered stat lines {stat, val}
+let state = { slotStats:{}, cls:0 };
+// 攻撃力 is flat; every other DPS stat is a percentage/point value
+function unitOf(stat){ return (stat==='攻撃力') ? '' : '%'; }
 
-function rollVal(eff){
-  if(!eff || eff.min==null) return 0;
-  const m = $('roll').value;
-  if(m==='min') return eff.min;
-  if(m==='mid') return (eff.min+eff.max)/2;
-  return eff.max;
-}
-// resolve a gem's effect for a given slot category
-function gemEffectFor(gem, cat){
-  let key = cat;
-  if(cat==='offhand') key = state.offhandCat; // unknown in game -> user choice
-  const eff = gem[key];
-  if(!eff) return null;
-  return { stat:eff.stat, value:rollVal(eff), unit:eff.unit, raw:eff };
-}
-function decoSlots(rarityName){
-  const r = DATA.equipRarities.find(x=>x.name===rarityName);
-  return r ? r.decoSlots : 0;
-}
-
-// collect all gem contributions currently equipped -> array of {stat,value,unit}
+// collect all manually-entered stat contributions -> array of {stat,value}
 function collectContribs(){
   const out=[];
   DATA.slots.forEach((slot,si)=>{
-    const n = decoSlots(state.rarity[si]||'レア');
-    for(let k=0;k<n;k++){
-      const gid = state.gems[si+'_'+k];
-      if(gid===undefined||gid==='') continue;
-      const gem = DATA.gems[gid];
-      const eff = gemEffectFor(gem, slot.category);
-      if(eff) out.push(eff);
-    }
+    (state.slotStats[si]||[]).forEach(ln=>{
+      if(!ln || !ln.stat) return;
+      const val = parseFloat(ln.val) || 0;
+      if(val===0) return;
+      out.push({ stat:ln.stat, value:val });
+    });
   });
   return out;
 }
@@ -222,60 +202,42 @@ function computeDPS(bucket){
 }
 
 // ---- UI build ----
-function colorDot(color){ return '<span class="dot" style="background:var(--c-'+color+',#888)"></span>'; }
-
-function gemOptionsFor(cat){
-  // gems that have an effect for this category
-  let key = cat==='offhand'?state.offhandCat:cat;
-  let html='<option value="">― なし ―</option>';
-  DATA.gems.forEach((g,i)=>{
-    if(!g[key]) return;
-    html+='<option value="'+i+'">'+g.name+'（'+g.rarity+'）</option>';
+function statSelectHTML(sel){
+  return '<option value="">― ステータス ―</option>'+
+    DPS_STATS.map(s=>'<option value="'+s+'"'+(s===sel?' selected':'')+'>'+s+'</option>').join('');
+}
+// (re)render the stat-line editor for one slot
+function renderSlotCell(td, si){
+  const lines = state.slotStats[si];
+  td.innerHTML='';
+  lines.forEach((ln,li)=>{
+    const row=document.createElement('div'); row.className='statline';
+    const ssel=document.createElement('select'); ssel.innerHTML=statSelectHTML(ln.stat);
+    const num=document.createElement('input'); num.type='number'; num.step='1'; num.placeholder='0';
+    num.value=(ln.val!=null?ln.val:'');
+    const u=document.createElement('span'); u.className='unit'; u.textContent=ln.stat?unitOf(ln.stat):'';
+    const del=document.createElement('button'); del.type='button'; del.className='xbtn'; del.textContent='×'; del.title='この行を削除';
+    ssel.onchange=()=>{ ln.stat=ssel.value; u.textContent=ln.stat?unitOf(ln.stat):''; calc(); };
+    num.oninput=()=>{ ln.val=num.value; calc(); };
+    del.onclick=()=>{ lines.splice(li,1); renderSlotCell(td,si); calc(); };
+    row.append(ssel,num,u,del); td.appendChild(row);
   });
-  return html;
+  const add=document.createElement('button'); add.type='button'; add.className='addbtn'; add.textContent='＋ ステータス';
+  add.onclick=()=>{ lines.push({stat:'',val:''}); renderSlotCell(td,si); };
+  td.appendChild(add);
 }
 
 function buildSlots(){
   const tb=$('slotBody'); tb.innerHTML='';
   DATA.slots.forEach((slot,si)=>{
-    if(state.rarity[si]===undefined) state.rarity[si]='レア';
+    if(!state.slotStats[si]) state.slotStats[si]=[];
     const tr=document.createElement('tr');
-    // name
-    let catLabel = slot.category;
     const td1=document.createElement('td');
-    td1.innerHTML='<div class="slotname">'+slot.name+'</div><div class="cat">'+catLabel+
-      (slot.category==='offhand'?' <select id="ohcat" style="display:inline-block;width:auto;padding:1px 3px;font-size:10px;"><option value="weapon">→武器扱い</option><option value="armor">→防具扱い</option><option value="accessory">→アクセ扱い</option></select>':'')+'</div>';
-    tr.appendChild(td1);
-    // rarity
-    const td2=document.createElement('td');
-    const rs=document.createElement('select'); rs.className='rarsel';
-    DATA.equipRarities.forEach(r=>{const o=document.createElement('option');o.value=r.name;o.textContent=r.name+'（'+r.decoSlots+'）';if(r.name===state.rarity[si])o.selected=true;rs.appendChild(o);});
-    rs.onchange=()=>{state.rarity[si]=rs.value;buildSlots();calc();};
-    td2.appendChild(rs); tr.appendChild(td2);
-    // gem dropdowns
-    const td3=document.createElement('td'); td3.className='gemcell';
-    const n=decoSlots(state.rarity[si]);
-    if(n===0){ td3.innerHTML='<span class="cat">装飾不可（レア未満）</span>'; }
-    for(let k=0;k<n;k++){
-      const wrap=document.createElement('div'); wrap.className='gemwrap';
-      const sel=document.createElement('select');
-      sel.innerHTML=gemOptionsFor(slot.category);
-      const cur=state.gems[si+'_'+k]; if(cur!==undefined) sel.value=cur;
-      const eff=document.createElement('div'); eff.className='geneff';
-      const upd=()=>{
-        state.gems[si+'_'+k]=sel.value;
-        if(sel.value===''){eff.textContent='';}
-        else{const g=DATA.gems[sel.value];const e=gemEffectFor(g,slot.category);
-          eff.innerHTML=colorDot(g.color)+(e?e.stat+' +'+fmt1(e.value)+(e.unit==='%'?'%':''):'—');}
-        calc();
-      };
-      sel.onchange=upd; wrap.appendChild(sel); wrap.appendChild(eff); td3.appendChild(wrap);
-      // initial eff text
-      if(sel.value!==''){const g=DATA.gems[sel.value];const e=gemEffectFor(g,slot.category);eff.innerHTML=colorDot(g.color)+(e?e.stat+' +'+fmt1(e.value)+(e.unit==='%'?'%':''):'—');}
-    }
-    tr.appendChild(td3); tb.appendChild(tr);
+    td1.innerHTML='<div class="slotname">'+slot.name+'</div><div class="cat">'+slot.category+'</div>';
+    const td2=document.createElement('td'); td2.className='gemcell';
+    renderSlotCell(td2, si);
+    tr.append(td1,td2); tb.appendChild(tr);
   });
-  const oh=$('ohcat'); if(oh){oh.value=state.offhandCat; oh.onchange=()=>{state.offhandCat=oh.value;buildSlots();calc();};}
 }
 
 function buildClasses(){
@@ -318,33 +280,6 @@ function renderStats(bucket){
   draw($('statTblL'),rows.slice(0,half)); draw($('statTblR'),rows.slice(half));
 }
 
-// ---- optimizer ----
-function renderOptimizer(baseBucket, baseDps){
-  const cats=[['weapon','武器スロット'],['armor','防具スロット'],['accessory','アクセスロット'],['offhand','オフハンド']];
-  const wrap=$('optimizer'); wrap.innerHTML='';
-  cats.forEach(([cat,label])=>{
-    let key=cat==='offhand'?state.offhandCat:cat;
-    const ranked=[];
-    DATA.gems.forEach(g=>{
-      const eff=g[key]; if(!eff) return;
-      const b=Object.assign({},baseBucket);
-      const val=rollVal(eff); b[eff.stat]=(b[eff.stat]||0)+val;
-      const d=computeDPS(b).dps - baseDps;
-      ranked.push({name:g.name,color:g.color,rarity:g.rarity,stat:eff.stat,delta:d});
-    });
-    ranked.sort((a,b)=>b.delta-a.delta);
-    const top=ranked.slice(0,5);
-    const card=document.createElement('div'); card.className='optcard';
-    let html='<h3>'+label+(cat==='offhand'?'（'+state.offhandCat+'扱い）':'')+'</h3>';
-    if(top.length===0) html+='<div class="cat">該当宝石なし</div>';
-    top.forEach(r=>{
-      const z=r.delta<0.5?' zero':'';
-      html+='<div class="optrow"><span class="g">'+colorDot(r.color)+r.name+' <span class="cat">'+r.stat+'</span></span><span class="dl'+z+'">'+(r.delta>=0?'+':'')+fmt(r.delta)+' DPS</span></div>';
-    });
-    card.innerHTML=html; wrap.appendChild(card);
-  });
-}
-
 // ---- main recompute ----
 function calc(){
   const contribs=collectContribs();
@@ -356,14 +291,13 @@ function calc(){
   const gemN=contribs.length; $('gemCount').textContent=gemN;
   const delta=(total.dps/base.dps-1)*100;
   const dEl=$('dpsDelta');
-  dEl.innerHTML = gemN? ('宝石効果: <span class="'+(delta>=0?'up':'down')+'">'+(delta>=0?'+':'')+delta.toFixed(1)+'%</span>（+'+fmt(total.dps-base.dps)+'）') : '宝石を挿すと比較が出ます';
+  dEl.innerHTML = gemN? ('盛り効果: <span class="'+(delta>=0?'up':'down')+'">'+(delta>=0?'+':'')+delta.toFixed(1)+'%</span>（+'+fmt(total.dps-base.dps)+'）') : 'ステータスを入力すると比較が出ます';
   // breakdown
   $('breakdown').innerHTML=[
     ['実効攻撃力',fmt(total.atk)],['攻撃速度/秒',fmt1(total.spd)],['実効クリ率',(total.cr*100).toFixed(1)+'%'],
     ['クリ時倍率','×'+(1+total.cd).toFixed(2)],['ダメージ倍率','×'+total.dmgMul.toFixed(2)],['バフ倍率','×'+total.buffMul.toFixed(2)]
   ].map(x=>'<div class="bd"><span class="l">'+x[0]+'</span><b>'+x[1]+'</b></div>').join('');
   renderStats(bucket);
-  renderOptimizer(bucket, total.dps);
   save();
   if($('cmpA').value===CUR||$('cmpB').value===CUR) renderCompare();
 }
@@ -371,17 +305,16 @@ function calc(){
 // ---- persistence ----
 const LS='tbh_buildsim_v1';
 function snapshot(){
-  const o={base:{},state:state, buff:$('buff').checked, buffLv:$('buffLv').value, roll:$('roll').value, dmgType:$('dmgType').value, userSetDmg:state._userSetDmg};
+  const o={base:{},state:state, buff:$('buff').checked, buffLv:$('buffLv').value, dmgType:$('dmgType').value, userSetDmg:state._userSetDmg};
   ['ad','adc','as','asc','cc','ccc','cd','cdc'].forEach(id=>o.base[id]=$(id).value);
   return o;
 }
 function applySnapshot(o){
   if(!o) return;
   if(o.base) Object.keys(o.base).forEach(id=>{if($(id))$(id).value=o.base[id];});
-  if(o.state){ state=Object.assign({gems:{},rarity:{},offhandCat:'weapon'},o.state); }
+  if(o.state){ state={ slotStats:(o.state.slotStats||{}), cls:o.state.cls||0, _userSetDmg:o.state._userSetDmg }; }
   if(o.buff!==undefined)$('buff').checked=o.buff;
   if(o.buffLv)$('buffLv').value=o.buffLv;
-  if(o.roll)$('roll').value=o.roll;
   if(o.dmgType){$('dmgType').value=o.dmgType; state._userSetDmg=o.userSetDmg;}
 }
 function save(){ try{localStorage.setItem(LS,JSON.stringify(snapshot()));}catch(e){} }
@@ -395,29 +328,14 @@ function refreshLoadSel(){
 }
 
 // ---- snapshot-based evaluation (pure, no DOM mutation) — used for preset comparison ----
-function rollValOf(eff, mode){
-  if(!eff || eff.min==null) return 0;
-  if(mode==='min') return eff.min;
-  if(mode==='mid') return (eff.min+eff.max)/2;
-  return eff.max;
-}
-function gemEffectForSnap(gem, cat, snap){
-  let key=cat; if(cat==='offhand') key=(snap.state&&snap.state.offhandCat)||'weapon';
-  const eff=gem[key]; if(!eff) return null;
-  return { stat:eff.stat, value:rollValOf(eff, snap.roll||'max'), unit:eff.unit };
-}
 function evalSnap(snap){
-  const st=snap.state||{gems:{},rarity:{}};
+  const st=snap.state||{slotStats:{}};
   const contribs=[];
   DATA.slots.forEach((slot,si)=>{
-    const n=decoSlots((st.rarity&&st.rarity[si])||'レア');
-    for(let k=0;k<n;k++){
-      const gid=st.gems&&st.gems[si+'_'+k];
-      if(gid===undefined||gid==='') continue;
-      const gem=DATA.gems[gid]; if(!gem) continue;
-      const e=gemEffectForSnap(gem, slot.category, snap);
-      if(e) contribs.push(e);
-    }
+    ((st.slotStats&&st.slotStats[si])||[]).forEach(ln=>{
+      if(!ln||!ln.stat) return; const val=parseFloat(ln.val)||0; if(val===0) return;
+      contribs.push({ stat:ln.stat, value:val });
+    });
   });
   const bucket=bucketize(contribs);
   const b=snap.base||{}; const num=id=>parseFloat(b[id])||0;
@@ -469,8 +387,8 @@ function renderCompare(){
   const dCls=eb.dps>=ea.dps?'up':'down';
   const cname=e=>DATA.classes[e.cls]?DATA.classes[e.cls].name:'—';
   head.innerHTML=
-    '<div class="rbox"><div class="nm">A: '+A.name+'</div><div class="t">'+cname(ea)+' / 宝石'+ea.gemN+'個</div><div class="v" style="font-size:24px">'+fmt(ea.dps)+'</div></div>'+
-    '<div class="rbox"><div class="nm">B: '+B.name+'</div><div class="t">'+cname(eb)+' / 宝石'+eb.gemN+'個</div><div class="v" style="font-size:24px">'+fmt(eb.dps)+'</div></div>'+
+    '<div class="rbox"><div class="nm">A: '+A.name+'</div><div class="t">'+cname(ea)+' / 盛り'+ea.gemN+'行</div><div class="v" style="font-size:24px">'+fmt(ea.dps)+'</div></div>'+
+    '<div class="rbox"><div class="nm">B: '+B.name+'</div><div class="t">'+cname(eb)+' / 盛り'+eb.gemN+'行</div><div class="v" style="font-size:24px">'+fmt(eb.dps)+'</div></div>'+
     '<div class="rbox main"><div class="nm">DPS差（B − A）</div><div class="t">&nbsp;</div><div class="v" style="font-size:24px"><span class="'+dCls+'">'+(dlt>=0?'+':'')+dlt.toFixed(1)+'%</span></div><div class="d '+dCls+'">'+(eb.dps-ea.dps>=0?'+':'')+fmt(eb.dps-ea.dps)+' DPS</div></div>';
   // stat rows: ordered DPS stats first, then union of remaining
   const order=['攻撃力','攻撃力係数','攻撃速度','攻撃速度係数','クリ率','クリ率係数','クリダメ','クリダメ係数'];
@@ -488,7 +406,7 @@ function renderCompare(){
 }
 
 // ---- events ----
-['ad','adc','as','asc','cc','ccc','cd','cdc','buff','buffLv','roll'].forEach(id=>{
+['ad','adc','as','asc','cc','ccc','cd','cdc','buff','buffLv'].forEach(id=>{
   $(id).addEventListener('input',calc); $(id).addEventListener('change',calc);
 });
 $('dmgType').addEventListener('change',()=>{state._userSetDmg=true;calc();});
@@ -511,7 +429,7 @@ $('cmpSwap').onclick=()=>{ const a=$('cmpA').value; $('cmpA').value=$('cmpB').va
 $('reset').onclick=()=>{ if(!confirm('現在の入力を初期化しますか？（保存ビルドは残ります）'))return; try{localStorage.removeItem(LS);}catch(e){} location.reload(); };
 
 // ---- warning text ----
-$('warn').innerHTML='⚠ 宝石の数値・色・レアリティ帯はコミュニティwiki由来でやや不確実です。オフハンドが武器/防具どちら扱いかは未確認のため部位カテゴリを選べます。装飾ソケット数は出典間で食い違い（日本語wiki=最大2／英語wiki=最大3）。実機の値と違う箇所はステータス欄を直接編集してください。レンジャー以外のDPS式は共通式の流用で未検証です。';
+$('warn').innerHTML='⚠ 「現在のステータス」はキャラシート値（装備込み）です。部位ごとの盛りステータスは<b>その上に追加で乗る差分</b>として計算されます（基礎にすでに含まれている装備分を二重に入れないよう注意）。本ツールはビルド比較が目的で、各装飾の正確な数値は宝石名から引かず手入力します。レンジャー以外のDPS式は共通式の流用で未検証です。';
 
 // ---- init ----
 applySnapshot(load());

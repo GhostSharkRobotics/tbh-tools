@@ -26,7 +26,7 @@
     },
     "iconCdn": "https://community.akamai.steamstatic.com/economy/image/",
     "equipStatNote": "装備ステータスはprobonk(ゲーム内部)由来を実機表示にスケール: %系(攻撃速度/クリ等)とADDITIVE/MULT=÷10して整数%、毎秒HP回復=÷100、実数系(防御/HP/移動/攻撃)はそのまま。",
-    "enemyStageNote": "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。各敵の attack は1発(基本攻撃)の詳細: damage=1発の基礎ダメージ(基準/レベルスケール), element=属性, range=射程, multiplier=スキル倍率(value/1000, 通常×1.0), speed=攻撃速度, activation=発動種別, skillKeys=参照スキルID(ボスは複数フェーズ), detailed=完全な攻撃詳細の有無。source が attack 詳細を持つのはact1の16体のみで、残り45体は range/multiplier/activation が未公開のため null(推測しない)。stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。",
+    "enemyStageNote": "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。各敵の attack は1発(基本攻撃)の詳細: damage=1発の基礎ダメージ(基準/レベルスケール), element=属性, range=射程, multiplier=スキル倍率(value/1000, 通常×1.0), speed=攻撃速度, activation=発動種別, skillKeys=参照スキルID(ボスは複数フェーズ), detailed=完全な攻撃詳細の有無。source が attack 詳細を持つのはact1の16体のみで、残り45体は range/multiplier/activation が未公開のため null(推測しない)。stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。difficulties[] は各難易度の属性耐性デバフとレベル範囲: resistancePenalty=プレイヤーの全属性耐性が受けるFLAT減算 (NORMAL 0 / NIGHTMARE -20 / HELL -40 / TORMENT -60), resistanceDebuff=属性別の減算値, resBuffKeys=probonk buff の参照ID。ペナルティ値はprobonk/buffs由来(事実)、tier↔難易度名の対応は tier3段=NORMAL以外の3難易度の1:1対応(ペナルティ昇順+レベル範囲一致)から確定した構造的対応。",
     "skillNote": "skills(アクティブ106)/passiveSkills(108) は probonk(実機データマイン)由来。skillKeyの第1桁=クラス(1ナイト/2レンジャー/3ソーサラー/4プリースト/5ハンター/6スレイヤー)。levels[]はLv1〜10の生値(説明文{0}に対応)。value/paramsはprobonk内部生値で実機表示とスケールが異なる場合あり(%系は概ね÷10で整数%)。",
     "weaponBaseNote": "基礎攻撃速度/基礎クリ等は個別装備ではなく『その武器種を使うクラス』の基礎値（probonk heroes 由来）。弓=Ranger 基礎攻撃速度1.0/秒 等。装備の攻撃速度%等はこの基礎値に加算/乗算される。raw値: 攻撃/詠唱速度は÷100=回/秒, クリ率/クリダメは÷10=%。",
     "marketNote": "equipment[].market = そのアイテムがSteamマーケットで取引可能か。false = Ver1.00.07(2026-06-02)でSteam負荷対策により市場削除された Lv25/35/45/55/60/70/75/85/90 装備(およびUncommon以上のTypeB)。これらはゲーム内に存在し所持・使用可だが新規入手・合成・取引は不可。true = 現行マーケットで取引可(Lv1/5/10/15/20/30/40/50/65/80 のLegendary+)。出典: store.steampowered.com/news/app/3678970 (1.00.07 / Urgent Notice)。"
@@ -84571,5 +84571,77 @@
       "baseCritDamage": 180,
       "baseAttackDamage": 2
     }
-  }
+  },
+  "difficulties": [
+    {
+      "name": "NORMAL",
+      "tier": 0,
+      "levelMin": 1,
+      "levelMax": 32,
+      "stageCount": 30,
+      "resistancePenalty": 0,
+      "resistanceDebuff": {},
+      "resBuffKeys": {}
+    },
+    {
+      "name": "NIGHTMARE",
+      "tier": 1,
+      "levelMin": 33,
+      "levelMax": 52,
+      "stageCount": 30,
+      "resistancePenalty": 20,
+      "resistanceDebuff": {
+        "fire": -20,
+        "cold": -20,
+        "lightning": -20,
+        "chaos": -20
+      },
+      "resBuffKeys": {
+        "fire": 9100011,
+        "cold": 9100012,
+        "lightning": 9100013,
+        "chaos": 9100014
+      }
+    },
+    {
+      "name": "HELL",
+      "tier": 2,
+      "levelMin": 53,
+      "levelMax": 77,
+      "stageCount": 30,
+      "resistancePenalty": 40,
+      "resistanceDebuff": {
+        "fire": -40,
+        "cold": -40,
+        "lightning": -40,
+        "chaos": -40
+      },
+      "resBuffKeys": {
+        "fire": 9100021,
+        "cold": 9100022,
+        "lightning": 9100023,
+        "chaos": 9100024
+      }
+    },
+    {
+      "name": "TORMENT",
+      "tier": 3,
+      "levelMin": 78,
+      "levelMax": 95,
+      "stageCount": 30,
+      "resistancePenalty": 60,
+      "resistanceDebuff": {
+        "fire": -60,
+        "cold": -60,
+        "lightning": -60,
+        "chaos": -60
+      },
+      "resBuffKeys": {
+        "fire": 9100031,
+        "cold": 9100032,
+        "lightning": 9100033,
+        "chaos": 9100034
+      }
+    }
+  ]
 }

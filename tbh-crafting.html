@@ -78,7 +78,7 @@ const APPID="3678970";
 const GORDER=["COMMON","UNCOMMON","RARE","LEGENDARY","IMMORTAL","ARCANA","CELESTIAL","COSMIC","DIVINE","BEYOND"];
 const GCOLOR={COMMON:"--g-common",UNCOMMON:"--g-uncommon",RARE:"--g-rare",LEGENDARY:"--g-legendary",IMMORTAL:"--g-immortal",ARCANA:"--g-arcana",CELESTIAL:"--g-celestial",COSMIC:"--g-cosmic",DIVINE:"--g-divine",BEYOND:"--g-beyond"};
 const GJA={COMMON:"コモン",UNCOMMON:"アンコモン",RARE:"レア",LEGENDARY:"レジェンド",IMMORTAL:"イモータル",ARCANA:"アルカナ",CELESTIAL:"セレスティアル",COSMIC:"コズミック",DIVINE:"ディバイン",BEYOND:"ビヨンド"};
-let RECIPES=[], PRICES={}, ICONS={}, ICON_CDN="", EQUIP=[];
+let RECIPES=[], PRICES={}, ICONS={}, ICON_CDN="", EQUIP=[], GEXP={};
 let curTier=null, curType=null, curSort="tier";
 function iconUrl(m){const h=m.icon&&ICONS[m.icon];return h?ICON_CDN+h:null;}
 
@@ -128,12 +128,13 @@ function render(){
       const prTxt=pr!=null?("$"+(pr/100).toFixed(2)):"—";
       const iu=iconUrl(m);
       const iconHtml=iu?`<img class="micon" src="${iu}" alt="" loading="lazy" style="border-color:${col}">`:`<span class="grade-dot" style="background:${col}"></span>`;
+      const mexp=((GEXP[m.grade]&&GEXP[m.grade].cubeExp)||0)*m.count;
       return `<a class="mat" href="${steamUrl(m)}" target="_blank" rel="noopener">
         ${iconHtml}
         <span>
           <span class="mname">${m.nameJa}</span>
           <span class="gbadge" style="background:${col}">${GJA[m.grade]||m.grade}</span><br>
-          <span class="men">${m.nameEn}</span>
+          <span class="men">${m.nameEn} ・ +${mexp.toLocaleString()} exp</span>
         </span>
         <span class="mqty">×${m.count}</span>
         <span class="mprice">${prTxt}</span>
@@ -218,6 +219,7 @@ Promise.all([
   ICONS=data.icons||{};
   ICON_CDN=(data._meta&&data._meta.iconCdn)||"";
   EQUIP=data.equipment||[];
+  GEXP=(data.crafting&&data.crafting.gradeExp)||{};
   buildFilters();
   render();
 }).catch(err=>{

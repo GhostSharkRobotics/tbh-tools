@@ -26,7 +26,7 @@
     },
     "iconCdn": "https://community.akamai.steamstatic.com/economy/image/",
     "equipStatNote": "装備ステータスはprobonk(ゲーム内部)由来を実機表示にスケール: %系(攻撃速度/クリ等)とADDITIVE/MULT=÷10して整数%、毎秒HP回復=÷100、実数系(防御/HP/移動/攻撃)はそのまま。",
-    "enemyStageNote": "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。",
+    "enemyStageNote": "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。各敵の attack は1発(基本攻撃)の詳細: damage=1発の基礎ダメージ(基準/レベルスケール), element=属性, range=射程, multiplier=スキル倍率(value/1000, 通常×1.0), speed=攻撃速度, activation=発動種別, skillKeys=参照スキルID(ボスは複数フェーズ), detailed=完全な攻撃詳細の有無。source が attack 詳細を持つのはact1の16体のみで、残り45体は range/multiplier/activation が未公開のため null(推測しない)。stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。",
     "skillNote": "skills(アクティブ106)/passiveSkills(108) は probonk(実機データマイン)由来。skillKeyの第1桁=クラス(1ナイト/2レンジャー/3ソーサラー/4プリースト/5ハンター/6スレイヤー)。levels[]はLv1〜10の生値(説明文{0}に対応)。value/paramsはprobonk内部生値で実機表示とスケールが異なる場合あり(%系は概ね÷10で整数%)。",
     "weaponBaseNote": "基礎攻撃速度/基礎クリ等は個別装備ではなく『その武器種を使うクラス』の基礎値（probonk heroes 由来）。弓=Ranger 基礎攻撃速度1.0/秒 等。装備の攻撃速度%等はこの基礎値に加算/乗算される。raw値: 攻撃/詠唱速度は÷100=回/秒, クリ率/クリダメは÷10=%。",
     "marketNote": "equipment[].market = そのアイテムがSteamマーケットで取引可能か。false = Ver1.00.07(2026-06-02)でSteam負荷対策により市場削除された Lv25/35/45/55/60/70/75/85/90 装備(およびUncommon以上のTypeB)。これらはゲーム内に存在し所持・使用可だが新規入手・合成・取引は不可。true = 現行マーケットで取引可(Lv1/5/10/15/20/30/40/50/65/80 のLegendary+)。出典: store.steampowered.com/news/app/3678970 (1.00.07 / Urgent Notice)。"
@@ -76359,6 +76359,18 @@
       "exp": 10,
       "skillKey": 100111,
       "element": "physical",
+      "attack": {
+        "damage": 10,
+        "element": "physical",
+        "range": 200,
+        "speed": 40,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100111
+        ],
+        "detailed": true
+      },
       "stageCount": 16
     },
     {
@@ -76374,6 +76386,18 @@
       "exp": 12,
       "skillKey": 100211,
       "element": "physical",
+      "attack": {
+        "damage": 15,
+        "element": "physical",
+        "range": 130,
+        "speed": 50,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100211
+        ],
+        "detailed": true
+      },
       "stageCount": 20
     },
     {
@@ -76389,6 +76413,18 @@
       "exp": 15,
       "skillKey": 100221,
       "element": "physical",
+      "attack": {
+        "damage": 10,
+        "element": "physical",
+        "range": 170,
+        "speed": 110,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100221
+        ],
+        "detailed": true
+      },
       "stageCount": 16
     },
     {
@@ -76404,6 +76440,18 @@
       "exp": 20,
       "skillKey": 100231,
       "element": "fire",
+      "attack": {
+        "damage": 18,
+        "element": "fire",
+        "range": 800,
+        "speed": 70,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100231
+        ],
+        "detailed": true
+      },
       "stageCount": 16
     },
     {
@@ -76419,6 +76467,18 @@
       "exp": 5,
       "skillKey": 100311,
       "element": "physical",
+      "attack": {
+        "damage": 10,
+        "element": "physical",
+        "range": 200,
+        "speed": 90,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100311
+        ],
+        "detailed": true
+      },
       "stageCount": 20
     },
     {
@@ -76434,6 +76494,18 @@
       "exp": 15,
       "skillKey": 100411,
       "element": "physical",
+      "attack": {
+        "damage": 14,
+        "element": "physical",
+        "range": 150,
+        "speed": 80,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100411
+        ],
+        "detailed": true
+      },
       "stageCount": 13
     },
     {
@@ -76449,6 +76521,18 @@
       "exp": 20,
       "skillKey": 100421,
       "element": "physical",
+      "attack": {
+        "damage": 16,
+        "element": "physical",
+        "range": 170,
+        "speed": 75,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100421
+        ],
+        "detailed": true
+      },
       "stageCount": 13
     },
     {
@@ -76464,6 +76548,18 @@
       "exp": 35,
       "skillKey": 100431,
       "element": "physical",
+      "attack": {
+        "damage": 17,
+        "element": "physical",
+        "range": 250,
+        "speed": 65,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100431
+        ],
+        "detailed": true
+      },
       "stageCount": 10
     },
     {
@@ -76479,6 +76575,18 @@
       "exp": 11,
       "skillKey": 100511,
       "element": "physical",
+      "attack": {
+        "damage": 20,
+        "element": "physical",
+        "range": 150,
+        "speed": 80,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100511
+        ],
+        "detailed": true
+      },
       "stageCount": 13
     },
     {
@@ -76494,6 +76602,18 @@
       "exp": 13,
       "skillKey": 100521,
       "element": "physical",
+      "attack": {
+        "damage": 20,
+        "element": "physical",
+        "range": 900,
+        "speed": 80,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100521
+        ],
+        "detailed": true
+      },
       "stageCount": 17
     },
     {
@@ -76509,6 +76629,18 @@
       "exp": 30,
       "skillKey": 100531,
       "element": "physical",
+      "attack": {
+        "damage": 20,
+        "element": "physical",
+        "range": 300,
+        "speed": 80,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          100531
+        ],
+        "detailed": true
+      },
       "stageCount": 9
     },
     {
@@ -76524,6 +76656,19 @@
       "exp": 36,
       "skillKey": "109011 109021",
       "element": null,
+      "attack": {
+        "damage": 50,
+        "element": null,
+        "range": null,
+        "speed": 115,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          109011,
+          109021
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -76539,6 +76684,20 @@
       "exp": 12,
       "skillKey": "109011 109021 109031",
       "element": null,
+      "attack": {
+        "damage": 70,
+        "element": null,
+        "range": null,
+        "speed": 130,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          109011,
+          109021,
+          109031
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -76554,6 +76713,21 @@
       "exp": 18,
       "skillKey": "109011 109021 109031 109041",
       "element": null,
+      "attack": {
+        "damage": 70,
+        "element": null,
+        "range": null,
+        "speed": 130,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          109011,
+          109021,
+          109031,
+          109041
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -76569,6 +76743,22 @@
       "exp": 15,
       "skillKey": "109011 109021 109031 109041 109051",
       "element": null,
+      "attack": {
+        "damage": 70,
+        "element": null,
+        "range": null,
+        "speed": 130,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          109011,
+          109021,
+          109031,
+          109041,
+          109051
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -76584,6 +76774,18 @@
       "exp": 10,
       "skillKey": 200111,
       "element": null,
+      "attack": {
+        "damage": 10,
+        "element": null,
+        "range": null,
+        "speed": 40,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200111
+        ],
+        "detailed": false
+      },
       "stageCount": 24
     },
     {
@@ -76599,6 +76801,18 @@
       "exp": 12,
       "skillKey": 200211,
       "element": null,
+      "attack": {
+        "damage": 15,
+        "element": null,
+        "range": null,
+        "speed": 50,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200211
+        ],
+        "detailed": false
+      },
       "stageCount": 23
     },
     {
@@ -76614,6 +76828,18 @@
       "exp": 15,
       "skillKey": 200221,
       "element": null,
+      "attack": {
+        "damage": 10,
+        "element": null,
+        "range": null,
+        "speed": 110,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200221
+        ],
+        "detailed": false
+      },
       "stageCount": 12
     },
     {
@@ -76629,6 +76855,18 @@
       "exp": 20,
       "skillKey": 200231,
       "element": null,
+      "attack": {
+        "damage": 20,
+        "element": null,
+        "range": null,
+        "speed": 70,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200231
+        ],
+        "detailed": false
+      },
       "stageCount": 23
     },
     {
@@ -76644,6 +76882,18 @@
       "exp": 25,
       "skillKey": 200241,
       "element": null,
+      "attack": {
+        "damage": 17,
+        "element": null,
+        "range": null,
+        "speed": 150,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200241
+        ],
+        "detailed": false
+      },
       "stageCount": 19
     },
     {
@@ -76659,6 +76909,18 @@
       "exp": 15,
       "skillKey": 200311,
       "element": null,
+      "attack": {
+        "damage": 18,
+        "element": null,
+        "range": null,
+        "speed": 115,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200311
+        ],
+        "detailed": false
+      },
       "stageCount": 23
     },
     {
@@ -76674,6 +76936,18 @@
       "exp": 15,
       "skillKey": 200411,
       "element": null,
+      "attack": {
+        "damage": 23,
+        "element": null,
+        "range": null,
+        "speed": 130,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200411
+        ],
+        "detailed": false
+      },
       "stageCount": 21
     },
     {
@@ -76689,6 +76963,18 @@
       "exp": 35,
       "skillKey": 200421,
       "element": null,
+      "attack": {
+        "damage": 15,
+        "element": null,
+        "range": null,
+        "speed": 55,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200421
+        ],
+        "detailed": false
+      },
       "stageCount": 5
     },
     {
@@ -76704,6 +76990,18 @@
       "exp": 11,
       "skillKey": 200511,
       "element": null,
+      "attack": {
+        "damage": 20,
+        "element": null,
+        "range": null,
+        "speed": 120,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200511
+        ],
+        "detailed": false
+      },
       "stageCount": 8
     },
     {
@@ -76719,6 +77017,18 @@
       "exp": 17,
       "skillKey": 200611,
       "element": null,
+      "attack": {
+        "damage": 20,
+        "element": null,
+        "range": null,
+        "speed": 80,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200611
+        ],
+        "detailed": false
+      },
       "stageCount": 23
     },
     {
@@ -76734,6 +77044,18 @@
       "exp": 14,
       "skillKey": 200621,
       "element": null,
+      "attack": {
+        "damage": 23,
+        "element": null,
+        "range": null,
+        "speed": 110,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200621
+        ],
+        "detailed": false
+      },
       "stageCount": 8
     },
     {
@@ -76749,6 +77071,18 @@
       "exp": 13,
       "skillKey": 200711,
       "element": null,
+      "attack": {
+        "damage": 16,
+        "element": null,
+        "range": null,
+        "speed": 80,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200711
+        ],
+        "detailed": false
+      },
       "stageCount": 23
     },
     {
@@ -76764,6 +77098,18 @@
       "exp": 45,
       "skillKey": 200811,
       "element": null,
+      "attack": {
+        "damage": 20,
+        "element": null,
+        "range": null,
+        "speed": 60,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200811
+        ],
+        "detailed": false
+      },
       "stageCount": 19
     },
     {
@@ -76779,6 +77125,18 @@
       "exp": 23,
       "skillKey": 200911,
       "element": null,
+      "attack": {
+        "damage": 25,
+        "element": null,
+        "range": null,
+        "speed": 80,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          200911
+        ],
+        "detailed": false
+      },
       "stageCount": 8
     },
     {
@@ -76794,6 +77152,18 @@
       "exp": 30,
       "skillKey": 201111,
       "element": null,
+      "attack": {
+        "damage": 17,
+        "element": null,
+        "range": null,
+        "speed": 80,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          201111
+        ],
+        "detailed": false
+      },
       "stageCount": 15
     },
     {
@@ -76809,6 +77179,18 @@
       "exp": 7,
       "skillKey": 201211,
       "element": "physical",
+      "attack": {
+        "damage": 10,
+        "element": "physical",
+        "range": 130,
+        "speed": 140,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          201211
+        ],
+        "detailed": true
+      },
       "stageCount": 0
     },
     {
@@ -76824,6 +77206,19 @@
       "exp": 12,
       "skillKey": "209011 209021",
       "element": null,
+      "attack": {
+        "damage": 80,
+        "element": null,
+        "range": null,
+        "speed": 170,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          209011,
+          209021
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -76839,6 +77234,20 @@
       "exp": 14,
       "skillKey": "209011 209021 209031",
       "element": null,
+      "attack": {
+        "damage": 100,
+        "element": null,
+        "range": null,
+        "speed": 170,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          209011,
+          209021,
+          209031
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -76854,6 +77263,21 @@
       "exp": 31,
       "skillKey": "209011 209021 209031 209041",
       "element": null,
+      "attack": {
+        "damage": 120,
+        "element": null,
+        "range": null,
+        "speed": 170,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          209011,
+          209021,
+          209031,
+          209041
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -76869,6 +77293,22 @@
       "exp": 31,
       "skillKey": "209011 209021 209031 209041 209051",
       "element": null,
+      "attack": {
+        "damage": 140,
+        "element": null,
+        "range": null,
+        "speed": 170,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          209011,
+          209021,
+          209031,
+          209041,
+          209051
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -76884,6 +77324,18 @@
       "exp": 10,
       "skillKey": 300111,
       "element": null,
+      "attack": {
+        "damage": 10,
+        "element": null,
+        "range": null,
+        "speed": 60,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300111
+        ],
+        "detailed": false
+      },
       "stageCount": 12
     },
     {
@@ -76899,6 +77351,18 @@
       "exp": 12,
       "skillKey": 300121,
       "element": null,
+      "attack": {
+        "damage": 15,
+        "element": null,
+        "range": null,
+        "speed": 90,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300121
+        ],
+        "detailed": false
+      },
       "stageCount": 11
     },
     {
@@ -76914,6 +77378,18 @@
       "exp": 15,
       "skillKey": 300131,
       "element": null,
+      "attack": {
+        "damage": 25,
+        "element": null,
+        "range": null,
+        "speed": 110,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300131
+        ],
+        "detailed": false
+      },
       "stageCount": 12
     },
     {
@@ -76929,6 +77405,18 @@
       "exp": 20,
       "skillKey": 300211,
       "element": null,
+      "attack": {
+        "damage": 12,
+        "element": null,
+        "range": null,
+        "speed": 70,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300211
+        ],
+        "detailed": false
+      },
       "stageCount": 12
     },
     {
@@ -76944,6 +77432,18 @@
       "exp": 5,
       "skillKey": 300311,
       "element": null,
+      "attack": {
+        "damage": 30,
+        "element": null,
+        "range": null,
+        "speed": 70,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300311
+        ],
+        "detailed": false
+      },
       "stageCount": 7
     },
     {
@@ -76959,6 +77459,18 @@
       "exp": 5,
       "skillKey": 300411,
       "element": null,
+      "attack": {
+        "damage": 15,
+        "element": null,
+        "range": null,
+        "speed": 70,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300411
+        ],
+        "detailed": false
+      },
       "stageCount": 12
     },
     {
@@ -76974,6 +77486,18 @@
       "exp": 5,
       "skillKey": 300421,
       "element": null,
+      "attack": {
+        "damage": 20,
+        "element": null,
+        "range": null,
+        "speed": 130,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300421
+        ],
+        "detailed": false
+      },
       "stageCount": 8
     },
     {
@@ -76989,6 +77513,18 @@
       "exp": 5,
       "skillKey": 300431,
       "element": null,
+      "attack": {
+        "damage": 15,
+        "element": null,
+        "range": null,
+        "speed": 90,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300431
+        ],
+        "detailed": false
+      },
       "stageCount": 8
     },
     {
@@ -77004,6 +77540,18 @@
       "exp": 5,
       "skillKey": 300441,
       "element": null,
+      "attack": {
+        "damage": 25,
+        "element": null,
+        "range": null,
+        "speed": 100,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300441
+        ],
+        "detailed": false
+      },
       "stageCount": 9
     },
     {
@@ -77019,6 +77567,18 @@
       "exp": 15,
       "skillKey": 300511,
       "element": null,
+      "attack": {
+        "damage": 10,
+        "element": null,
+        "range": null,
+        "speed": 180,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300511
+        ],
+        "detailed": false
+      },
       "stageCount": 16
     },
     {
@@ -77034,6 +77594,18 @@
       "exp": 20,
       "skillKey": 300611,
       "element": null,
+      "attack": {
+        "damage": 20,
+        "element": null,
+        "range": null,
+        "speed": 75,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300611
+        ],
+        "detailed": false
+      },
       "stageCount": 4
     },
     {
@@ -77049,6 +77621,18 @@
       "exp": 35,
       "skillKey": 300711,
       "element": null,
+      "attack": {
+        "damage": 16,
+        "element": null,
+        "range": null,
+        "speed": 65,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300711
+        ],
+        "detailed": false
+      },
       "stageCount": 2
     },
     {
@@ -77064,6 +77648,18 @@
       "exp": 11,
       "skillKey": 300811,
       "element": null,
+      "attack": {
+        "damage": 20,
+        "element": null,
+        "range": null,
+        "speed": 80,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300811
+        ],
+        "detailed": false
+      },
       "stageCount": 9
     },
     {
@@ -77079,6 +77675,18 @@
       "exp": 13,
       "skillKey": 300821,
       "element": null,
+      "attack": {
+        "damage": 20,
+        "element": null,
+        "range": null,
+        "speed": 80,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300821
+        ],
+        "detailed": false
+      },
       "stageCount": 8
     },
     {
@@ -77094,6 +77702,18 @@
       "exp": 30,
       "skillKey": 300831,
       "element": null,
+      "attack": {
+        "damage": 20,
+        "element": null,
+        "range": null,
+        "speed": 80,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300831
+        ],
+        "detailed": false
+      },
       "stageCount": 9
     },
     {
@@ -77109,6 +77729,18 @@
       "exp": 30,
       "skillKey": 300841,
       "element": null,
+      "attack": {
+        "damage": 30,
+        "element": null,
+        "range": null,
+        "speed": 80,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300841
+        ],
+        "detailed": false
+      },
       "stageCount": 9
     },
     {
@@ -77124,6 +77756,18 @@
       "exp": 30,
       "skillKey": 300911,
       "element": null,
+      "attack": {
+        "damage": 40,
+        "element": null,
+        "range": null,
+        "speed": 60,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          300911
+        ],
+        "detailed": false
+      },
       "stageCount": 4
     },
     {
@@ -77139,6 +77783,18 @@
       "exp": 30,
       "skillKey": 301015,
       "element": "fire",
+      "attack": {
+        "damage": 30,
+        "element": "fire",
+        "range": 800,
+        "speed": 100,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          301015
+        ],
+        "detailed": true
+      },
       "stageCount": 8
     },
     {
@@ -77154,6 +77810,18 @@
       "exp": 30,
       "skillKey": 301025,
       "element": "cold",
+      "attack": {
+        "damage": 30,
+        "element": "cold",
+        "range": 800,
+        "speed": 100,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          301025
+        ],
+        "detailed": true
+      },
       "stageCount": 7
     },
     {
@@ -77169,6 +77837,18 @@
       "exp": 30,
       "skillKey": 301035,
       "element": "lightning",
+      "attack": {
+        "damage": 30,
+        "element": "lightning",
+        "range": 800,
+        "speed": 100,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          301035
+        ],
+        "detailed": true
+      },
       "stageCount": 6
     },
     {
@@ -77184,6 +77864,18 @@
       "exp": 30,
       "skillKey": 301045,
       "element": "chaos",
+      "attack": {
+        "damage": 30,
+        "element": "chaos",
+        "range": 800,
+        "speed": 100,
+        "multiplier": 1.0,
+        "activation": "BASEATTACK",
+        "skillKeys": [
+          301045
+        ],
+        "detailed": true
+      },
       "stageCount": 4
     },
     {
@@ -77199,6 +77891,18 @@
       "exp": 30,
       "skillKey": 301111,
       "element": null,
+      "attack": {
+        "damage": 25,
+        "element": null,
+        "range": null,
+        "speed": 160,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          301111
+        ],
+        "detailed": false
+      },
       "stageCount": 8
     },
     {
@@ -77214,6 +77918,19 @@
       "exp": 1,
       "skillKey": "309011 309021",
       "element": null,
+      "attack": {
+        "damage": 70,
+        "element": null,
+        "range": null,
+        "speed": 130,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          309011,
+          309021
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -77229,6 +77946,20 @@
       "exp": 1,
       "skillKey": "309011 309021 309031",
       "element": null,
+      "attack": {
+        "damage": 80,
+        "element": null,
+        "range": null,
+        "speed": 150,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          309011,
+          309021,
+          309031
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -77244,6 +77975,21 @@
       "exp": 1,
       "skillKey": "309011 309021 309031 309041",
       "element": null,
+      "attack": {
+        "damage": 90,
+        "element": null,
+        "range": null,
+        "speed": 150,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          309011,
+          309021,
+          309031,
+          309041
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     },
     {
@@ -77259,6 +78005,22 @@
       "exp": 1,
       "skillKey": "309011 309021 309031 309041 309051",
       "element": null,
+      "attack": {
+        "damage": 100,
+        "element": null,
+        "range": null,
+        "speed": 150,
+        "multiplier": null,
+        "activation": null,
+        "skillKeys": [
+          309011,
+          309021,
+          309031,
+          309041,
+          309051
+        ],
+        "detailed": false
+      },
       "stageCount": 1
     }
   ],

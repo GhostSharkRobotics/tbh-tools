@@ -84,6 +84,11 @@ def main():
     for m in monsters:
         en, ja = name_pair(m.get("MonsterNameStringKey_i18n", {}))
         sk = m.get("SkillKey")
+        # SkillKey は単一ID(int)か、ボスのみ "id1 id2 ..."(複数フェーズ)。常にリスト化
+        skill_keys = [int(x) for x in str(sk).split()] if sk is not None else []
+        a = m.get("attack") or {}            # 基本攻撃の詳細(act1の16体のみ。残り45体は未公開でnull)
+        val = a.get("value")                  # スキル倍率(‰)。1000 = ×1.0
+        element = ELEM.get(a.get("damageType")) or skill_elem.get(sk)
         enemy = {
             "key": m["MonsterKey"],
             "nameEn": en,
@@ -97,7 +102,20 @@ def main():
             "exp": m.get("RewardExp"),
             "skillKey": sk,
             # 属性: 敵自身の attack.damageType を最優先、無ければスキルDBから。どちらも無ければ null（推測しない）
-            "element": ELEM.get((m.get("attack") or {}).get("damageType")) or skill_elem.get(sk),
+            "element": element,
+            # 敵の1発(基本攻撃)のダメージ詳細。damage は基準値で、各ステージの実値は level に応じてスケールする。
+            # multiplier=スキル倍率(value/1000)、range=射程、activation=発動種別、skillKeys=参照スキルID。
+            # source が attack を持たない45体は range/multiplier/activation を null（推測しない）。
+            "attack": {
+                "damage": m.get("AttackDamage"),                 # 1発の基礎ダメージ(基準/レベルスケール)
+                "element": element,                              # 属性(=element)
+                "range": a.get("range"),                         # 射程(未公開=null)
+                "speed": m.get("AttackSpeed"),                   # 攻撃速度(=atkSpeed)
+                "multiplier": (val / 1000) if val is not None else None,  # スキル倍率 × (未公開=null)
+                "activation": a.get("activation"),               # 発動種別 BASEATTACK(未公開=null)
+                "skillKeys": skill_keys,                         # 参照スキルID(ボスは複数フェーズ)
+                "detailed": bool(a),                             # source が完全な攻撃詳細を持つか
+            },
         }
         appear = m.get("stages", [])
         enemy["stageCount"] = len(appear)
@@ -142,6 +160,10 @@ def main():
     data.setdefault("_meta", {})["enemyStageNote"] = (
         "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は "
         "level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。"
+        "各敵の attack は1発(基本攻撃)の詳細: damage=1発の基礎ダメージ(基準/レベルスケール), element=属性, "
+        "range=射程, multiplier=スキル倍率(value/1000, 通常×1.0), speed=攻撃速度, activation=発動種別, "
+        "skillKeys=参照スキルID(ボスは複数フェーズ), detailed=完全な攻撃詳細の有無。"
+        "source が attack 詳細を持つのはact1の16体のみで、残り45体は range/multiplier/activation が未公開のため null(推測しない)。"
         "stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。"
         "difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。"
     )

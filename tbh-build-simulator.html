@@ -130,8 +130,9 @@
 <div id="aiPanel" style="display:none;">
 <h2>AIにビルドを考えてもらう（このデバイスのみ）</h2>
 <div class="savebar">
-  <input type="text" id="aiReq" placeholder="例: 物理レンジャーでDPS最大化／クリ特化で耐久も少し">
+  <input type="text" id="aiReq" placeholder="例: 物理レンジャーでDPS最大化／クリ特化で耐久も少し（続けて指示で調整できます）">
   <button class="primary" id="aiGo">AIに考えてもらう</button>
+  <a id="aiReset" href="#" style="font-size:11px;color:var(--muted);align-self:center;">会話リセット</a>
 </div>
 <div class="hint" id="aiNote" style="min-height:16px;">ローカルAIサーバ（tbh-ai-server.py）が起動しているこの端末でだけ表示されます。現在のビルドを渡して、数値を盛り欄に反映＋具体的なおすすめ装飾（宝石/彫刻/刻印）を価格つきで提示します。</div>
 <div id="aiPicks"></div>
@@ -511,21 +512,48 @@ function aiMd(src){
   }
   return h;
 }
+// SSEストリームをPOSTで読む（進捗→onProgress、最終結果を返す）
+async function aiStreamPost(url, payload, onProgress){
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  if(!r.body) throw new Error('no stream');
+  const reader=r.body.getReader(), dec=new TextDecoder(); let buf='', result=null, err=null, sid=null;
+  while(true){
+    const {value,done}=await reader.read(); if(done) break;
+    buf+=dec.decode(value,{stream:true}); let i;
+    while((i=buf.indexOf('\n\n'))>=0){
+      const line=buf.slice(0,i).replace(/^data: ?/,'').trim(); buf=buf.slice(i+2);
+      if(!line) continue; let ev; try{ev=JSON.parse(line);}catch(e){continue;}
+      if(ev.progress) onProgress&&onProgress(ev.progress);
+      else if(ev.error) err=ev.error;
+      else if(ev.done){ result=ev.result; sid=ev.session_id||null; }
+    }
+  }
+  if(err) throw new Error(err);
+  return {result, sid};
+}
+let aiSession=null, aiTimer=null;
 async function aiGo(){
   const btn=$('aiGo'), note=$('aiNote'), picks=$('aiPicks'); const old=btn.textContent;
-  btn.disabled=true; btn.textContent='考え中…'; note.textContent='宝石データ・相場を参照中…（数十秒かかることがあります）'; picks.innerHTML='';
+  const t0=Date.now(); let last='AIを起動中…';
+  const tick=()=>{ note.textContent=last+'  （'+Math.floor((Date.now()-t0)/1000)+'秒）'; };
+  if(aiTimer)clearInterval(aiTimer); tick(); aiTimer=setInterval(tick,1000);
+  btn.disabled=true; btn.textContent='考え中…'; picks.innerHTML='';
   try{
     const payload={ base:{}, buff:$('buff').checked, buffLv:$('buffLv').value, dmgType:$('dmgType').value,
-      cls:(DATA.classes[state.cls||0]||{}).name, slotStats:state.slotStats, request:$('aiReq').value.trim() };
+      cls:(DATA.classes[state.cls||0]||{}).name, slotStats:state.slotStats,
+      request:$('aiReq').value.trim(), session_id:aiSession||undefined };
     ['ad','adc','as','asc','cc','ccc','cd','cdc'].forEach(id=>payload.base[id]=$(id).value);
-    const r=await fetch(AI_BASE+'/optimize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const obj=await r.json();
-    if(obj.error){ note.innerHTML='<span class="down">エラー: '+aiEsc(obj.error)+'</span>'; }
-    else { applyAIResult(obj); note.textContent=obj.note||'反映しました'; picks.innerHTML=aiMd(obj.picks); }
-  }catch(e){ note.innerHTML='<span class="down">接続できませんでした（tbh-ai-server.py 未起動？）</span>'; }
+    const {result:obj,sid}=await aiStreamPost(AI_BASE+'/optimize', payload, m=>{last=m;tick();});
+    if(sid) aiSession=sid;
+    clearInterval(aiTimer); aiTimer=null;
+    if(!obj){ note.innerHTML='<span class="down">応答がありませんでした</span>'; }
+    else { applyAIResult(obj); note.textContent=(obj.note||'反映しました')+'（続けて「もっとクリ寄りで」等の指示もできます）'; picks.innerHTML=aiMd(obj.picks); }
+  }catch(e){ clearInterval(aiTimer); aiTimer=null; note.innerHTML='<span class="down">'+(String(e.message).includes('fetch')?'接続できませんでした（tbh-ai-server.py 未起動？）':aiEsc(e.message))+'</span>'; }
   finally{ btn.disabled=false; btn.textContent=old; }
 }
 $('aiGo').onclick=aiGo;
+$('aiReq').addEventListener('keydown',e=>{if(e.key==='Enter')aiGo();});
+$('aiReset').onclick=e=>{e.preventDefault(); aiSession=null; $('aiNote').textContent='会話をリセットしました。'; $('aiPicks').innerHTML=''; $('aiReq').focus();};
 
 // ---- init ----
 applySnapshot(load());

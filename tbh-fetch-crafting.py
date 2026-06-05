@@ -69,6 +69,17 @@ def main():
     raw_craft = extract_array(h, "crafting")
     raw_syn = extract_array(h, "synthesis")
     raw_ext = extract_array(h, "extraction")
+    raw_grades = extract_array(h, "gradesData")
+    raw_levels = extract_array(h, "cubeLevels")
+
+    # グレード別の基礎キューブexp/アルケミーgold（cube に1個投入したときの値）
+    gradeExp = {g["GRADE"]: {"cubeExp": g.get("BaseCubeExp"), "alchemyGold": g.get("BaseAlchemyGold")} for g in raw_grades}
+    # キューブレベル別の必要累計exp
+    cubeLevels = [{"level": x["level"], "exp": x["exp"]} for x in raw_levels]
+
+    def craft_exp(mats):
+        # クラフト1回のキューブexp = 投入素材のグレード基礎exp × 個数 の合計
+        return sum((gradeExp.get(m["grade"], {}).get("cubeExp") or 0) * (m.get("count") or 1) for m in mats)
 
     recipes = []
     for c in raw_craft:
@@ -94,6 +105,7 @@ def main():
             "levelMin": r.get("levelMin"),
             "levelMax": r.get("levelMax"),
             "materials": mats,                         # 必要素材(種類・個数)。グレード/IDも保持
+            "craftExp": craft_exp(mats),               # クラフト1回で得るキューブexp(投入素材の基礎exp合計)
             "gradeOdds": r.get("gradeOdds", []),       # 完成品グレードの確率(%)
             "resultDistinct": r.get("distinct"),       # 産出されうる装備の種類数
             # result.itemsByGrade(産出装備の数値ID)は equipment レコードに id が無く紐付かないため非収録
@@ -123,6 +135,8 @@ def main():
         "tiers": tiers,
         "synthesis": synthesis,
         "extraction": extraction,
+        "gradeExp": gradeExp,        # グレード→{cubeExp, alchemyGold}
+        "cubeLevels": cubeLevels,    # キューブlevel→必要累計exp
     }
     data.setdefault("_meta", {})["craftingNote"] = (
         "crafting は probonk /cube(実機データマイン)由来。equipment(完成品ステータスのみ)を補完する製作レシピ。"

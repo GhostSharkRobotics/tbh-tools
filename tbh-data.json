@@ -84462,10 +84462,10 @@
             "nameJa": "レザー",
             "grade": "COMMON",
             "count": 1,
-            "slug": "leather",
-            "icon": "61513b9912f1a422"
+            "slug": "leather"
           }
         ],
+        "craftExp": 2,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84501,8 +84501,7 @@
             "nameJa": "レザー",
             "grade": "COMMON",
             "count": 1,
-            "slug": "leather",
-            "icon": "61513b9912f1a422"
+            "slug": "leather"
           },
           {
             "id": 140004,
@@ -84510,10 +84509,10 @@
             "nameJa": "銅の塊",
             "grade": "COMMON",
             "count": 1,
-            "slug": "copper-nugget",
-            "icon": "cbe055cb59e949f7"
+            "slug": "copper-nugget"
           }
         ],
+        "craftExp": 4,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84549,10 +84548,10 @@
             "nameJa": "木材",
             "grade": "COMMON",
             "count": 1,
-            "slug": "wood",
-            "icon": "09241df78550d422"
+            "slug": "wood"
           }
         ],
+        "craftExp": 2,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84588,10 +84587,10 @@
             "nameJa": "木材",
             "grade": "COMMON",
             "count": 1,
-            "slug": "wood",
-            "icon": "09241df78550d422"
+            "slug": "wood"
           }
         ],
+        "craftExp": 2,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84627,10 +84626,10 @@
             "nameJa": "木材",
             "grade": "COMMON",
             "count": 1,
-            "slug": "wood",
-            "icon": "09241df78550d422"
+            "slug": "wood"
           }
         ],
+        "craftExp": 2,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84666,10 +84665,10 @@
             "nameJa": "木材",
             "grade": "COMMON",
             "count": 1,
-            "slug": "wood",
-            "icon": "09241df78550d422"
+            "slug": "wood"
           }
         ],
+        "craftExp": 2,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84705,8 +84704,7 @@
             "nameJa": "スモールルビー",
             "grade": "COMMON",
             "count": 1,
-            "slug": "minor-ruby",
-            "icon": "2757f9a4e031f66f"
+            "slug": "minor-ruby"
           },
           {
             "id": 110002,
@@ -84714,10 +84712,10 @@
             "nameJa": "マイナーサファイア",
             "grade": "COMMON",
             "count": 1,
-            "slug": "minor-sapphire",
-            "icon": "e9b8fc7e95828630"
+            "slug": "minor-sapphire"
           }
         ],
+        "craftExp": 4,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84753,10 +84751,10 @@
             "nameJa": "銅の塊",
             "grade": "COMMON",
             "count": 1,
-            "slug": "copper-nugget",
-            "icon": "cbe055cb59e949f7"
+            "slug": "copper-nugget"
           }
         ],
+        "craftExp": 2,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84796,8 +84794,7 @@
             "nameJa": "レザー",
             "grade": "COMMON",
             "count": 1,
-            "slug": "leather",
-            "icon": "61513b9912f1a422"
+            "slug": "leather"
           },
           {
             "id": 140004,
@@ -84805,10 +84802,10 @@
             "nameJa": "銅の塊",
             "grade": "COMMON",
             "count": 1,
-            "slug": "copper-nugget",
-            "icon": "cbe055cb59e949f7"
+            "slug": "copper-nugget"
           }
         ],
+        "craftExp": 4,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84848,10 +84845,10 @@
             "nameJa": "ストーン",
             "grade": "COMMON",
             "count": 1,
-            "slug": "stone",
-            "icon": "6226eb6690046b47"
+            "slug": "stone"
           }
         ],
+        "craftExp": 2,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84891,10 +84888,10 @@
             "nameJa": "ストーン",
             "grade": "COMMON",
             "count": 1,
-            "slug": "stone",
-            "icon": "6226eb6690046b47"
+            "slug": "stone"
           }
         ],
+        "craftExp": 2,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84934,10 +84931,10 @@
             "nameJa": "ストーン",
             "grade": "COMMON",
             "count": 1,
-            "slug": "stone",
-            "icon": "6226eb6690046b47"
+            "slug": "stone"
           }
         ],
+        "craftExp": 2,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -84977,10 +84974,10 @@
             "nameJa": "ストーン",
             "grade": "COMMON",
             "count": 1,
-            "slug": "stone",
-            "icon": "6226eb6690046b47"
+            "slug": "stone"
           }
         ],
+        "craftExp": 2,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85020,8 +85017,7 @@
             "nameJa": "マイナートパーズ",
             "grade": "COMMON",
             "count": 1,
-            "slug": "minor-topaz",
-            "icon": "34947623771e2ff5"
+            "slug": "minor-topaz"
           },
           {
             "id": 110004,
@@ -85029,10 +85025,10 @@
             "nameJa": "スモールエメラルド",
             "grade": "COMMON",
             "count": 1,
-            "slug": "minor-emerald",
-            "icon": "417c0e43b412ec35"
+            "slug": "minor-emerald"
           }
         ],
+        "craftExp": 4,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85072,10 +85068,10 @@
             "nameJa": "鉄のインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "iron-ingot",
-            "icon": "7f4525c2d1bb43e7"
+            "slug": "iron-ingot"
           }
         ],
+        "craftExp": 6,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85119,8 +85115,7 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           },
           {
             "id": 141002,
@@ -85128,10 +85123,10 @@
             "nameJa": "鉄のインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "iron-ingot",
-            "icon": "7f4525c2d1bb43e7"
+            "slug": "iron-ingot"
           }
         ],
+        "craftExp": 12,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85175,10 +85170,10 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           }
         ],
+        "craftExp": 6,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85222,10 +85217,10 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           }
         ],
+        "craftExp": 6,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85269,10 +85264,10 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           }
         ],
+        "craftExp": 6,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85316,10 +85311,10 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           }
         ],
+        "craftExp": 6,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85363,8 +85358,7 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           },
           {
             "id": 111001,
@@ -85372,8 +85366,7 @@
             "nameJa": "黒曜石の破片",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "obsidian-shard",
-            "icon": "850af40378e9bd57"
+            "slug": "obsidian-shard"
           },
           {
             "id": 111002,
@@ -85381,10 +85374,10 @@
             "nameJa": "珊瑚の欠片",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "coral-piece",
-            "icon": "2ea84b23218918eb"
+            "slug": "coral-piece"
           }
         ],
+        "craftExp": 18,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85428,10 +85421,10 @@
             "nameJa": "鉄のインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "iron-ingot",
-            "icon": "7f4525c2d1bb43e7"
+            "slug": "iron-ingot"
           }
         ],
+        "craftExp": 6,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85475,8 +85468,7 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           },
           {
             "id": 141002,
@@ -85484,10 +85476,10 @@
             "nameJa": "鉄のインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "iron-ingot",
-            "icon": "7f4525c2d1bb43e7"
+            "slug": "iron-ingot"
           }
         ],
+        "craftExp": 12,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85531,10 +85523,10 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           }
         ],
+        "craftExp": 6,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85578,10 +85570,10 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           }
         ],
+        "craftExp": 6,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85625,10 +85617,10 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           }
         ],
+        "craftExp": 6,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85672,10 +85664,10 @@
             "nameJa": "ブロンズインゴット",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "bronze-ingot",
-            "icon": "a7cc22cce3b1f012"
+            "slug": "bronze-ingot"
           }
         ],
+        "craftExp": 6,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85719,8 +85711,7 @@
             "nameJa": "スターダストインゴット",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "stardust-ingot",
-            "icon": "d66eedb8f6d78c4f"
+            "slug": "stardust-ingot"
           },
           {
             "id": 111003,
@@ -85728,8 +85719,7 @@
             "nameJa": "翡翠石",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "jade-stone",
-            "icon": "bcefc49c63b8df5b"
+            "slug": "jade-stone"
           },
           {
             "id": 111004,
@@ -85737,10 +85727,10 @@
             "nameJa": "アンバージェム",
             "grade": "UNCOMMON",
             "count": 1,
-            "slug": "amber-gem",
-            "icon": "3997d420554c9e2f"
+            "slug": "amber-gem"
           }
         ],
+        "craftExp": 66,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85784,10 +85774,10 @@
             "nameJa": "金のインゴット",
             "grade": "RARE",
             "count": 1,
-            "slug": "gold-ingot",
-            "icon": "3c1d65d0f276980f"
+            "slug": "gold-ingot"
           }
         ],
+        "craftExp": 18,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85831,8 +85821,7 @@
             "nameJa": "銀のインゴット",
             "grade": "RARE",
             "count": 1,
-            "slug": "silver-ingot",
-            "icon": "151569ac0b8d345e"
+            "slug": "silver-ingot"
           },
           {
             "id": 142002,
@@ -85840,10 +85829,10 @@
             "nameJa": "金のインゴット",
             "grade": "RARE",
             "count": 1,
-            "slug": "gold-ingot",
-            "icon": "3c1d65d0f276980f"
+            "slug": "gold-ingot"
           }
         ],
+        "craftExp": 36,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85887,10 +85876,10 @@
             "nameJa": "銀のインゴット",
             "grade": "RARE",
             "count": 1,
-            "slug": "silver-ingot",
-            "icon": "151569ac0b8d345e"
+            "slug": "silver-ingot"
           }
         ],
+        "craftExp": 18,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85934,10 +85923,10 @@
             "nameJa": "銀のインゴット",
             "grade": "RARE",
             "count": 1,
-            "slug": "silver-ingot",
-            "icon": "151569ac0b8d345e"
+            "slug": "silver-ingot"
           }
         ],
+        "craftExp": 18,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -85981,10 +85970,10 @@
             "nameJa": "銀のインゴット",
             "grade": "RARE",
             "count": 1,
-            "slug": "silver-ingot",
-            "icon": "151569ac0b8d345e"
+            "slug": "silver-ingot"
           }
         ],
+        "craftExp": 18,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -86028,10 +86017,10 @@
             "nameJa": "銀のインゴット",
             "grade": "RARE",
             "count": 1,
-            "slug": "silver-ingot",
-            "icon": "151569ac0b8d345e"
+            "slug": "silver-ingot"
           }
         ],
+        "craftExp": 18,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -86075,8 +86064,7 @@
             "nameJa": "ヴォイドアイアン",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "void-iron",
-            "icon": "02e0685f327c2771"
+            "slug": "void-iron"
           },
           {
             "id": 112001,
@@ -86084,8 +86072,7 @@
             "nameJa": "ルビー",
             "grade": "RARE",
             "count": 1,
-            "slug": "ruby",
-            "icon": "5bfc02417809c79b"
+            "slug": "ruby"
           },
           {
             "id": 112002,
@@ -86093,10 +86080,10 @@
             "nameJa": "サファイア",
             "grade": "RARE",
             "count": 1,
-            "slug": "sapphire",
-            "icon": "92e03ebea10a6d6d"
+            "slug": "sapphire"
           }
         ],
+        "craftExp": 90,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -86140,10 +86127,10 @@
             "nameJa": "ヴォイドアイアン",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "void-iron",
-            "icon": "02e0685f327c2771"
+            "slug": "void-iron"
           }
         ],
+        "craftExp": 54,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -86187,8 +86174,7 @@
             "nameJa": "スターダストインゴット",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "stardust-ingot",
-            "icon": "d66eedb8f6d78c4f"
+            "slug": "stardust-ingot"
           },
           {
             "id": 143002,
@@ -86196,10 +86182,10 @@
             "nameJa": "ヴォイドアイアン",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "void-iron",
-            "icon": "02e0685f327c2771"
+            "slug": "void-iron"
           }
         ],
+        "craftExp": 108,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -86243,10 +86229,10 @@
             "nameJa": "スターダストインゴット",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "stardust-ingot",
-            "icon": "d66eedb8f6d78c4f"
+            "slug": "stardust-ingot"
           }
         ],
+        "craftExp": 54,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -86290,10 +86276,10 @@
             "nameJa": "スターダストインゴット",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "stardust-ingot",
-            "icon": "d66eedb8f6d78c4f"
+            "slug": "stardust-ingot"
           }
         ],
+        "craftExp": 54,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -86337,10 +86323,10 @@
             "nameJa": "スターダストインゴット",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "stardust-ingot",
-            "icon": "d66eedb8f6d78c4f"
+            "slug": "stardust-ingot"
           }
         ],
+        "craftExp": 54,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -86384,10 +86370,10 @@
             "nameJa": "スターダストインゴット",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "stardust-ingot",
-            "icon": "d66eedb8f6d78c4f"
+            "slug": "stardust-ingot"
           }
         ],
+        "craftExp": 54,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -86431,8 +86417,7 @@
             "nameJa": "サンダーストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "thunderstone",
-            "icon": "fdfd67ccea961066"
+            "slug": "thunderstone"
           },
           {
             "id": 112003,
@@ -86440,8 +86425,7 @@
             "nameJa": "トパーズ",
             "grade": "RARE",
             "count": 1,
-            "slug": "topaz",
-            "icon": "0808c54f1e718263"
+            "slug": "topaz"
           },
           {
             "id": 112004,
@@ -86449,10 +86433,10 @@
             "nameJa": "エメラルド",
             "grade": "RARE",
             "count": 1,
-            "slug": "emerald",
-            "icon": "b9ad8de2c2e6e965"
+            "slug": "emerald"
           }
         ],
+        "craftExp": 198,
         "gradeOdds": [
           {
             "grade": "UNCOMMON",
@@ -86496,10 +86480,10 @@
             "nameJa": "サンダーストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "thunderstone",
-            "icon": "fdfd67ccea961066"
+            "slug": "thunderstone"
           }
         ],
+        "craftExp": 162,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -86539,8 +86523,7 @@
             "nameJa": "ブラッドストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "bloodstone",
-            "icon": "2d5a4ef3ed63c9e2"
+            "slug": "bloodstone"
           },
           {
             "id": 144002,
@@ -86548,10 +86531,10 @@
             "nameJa": "サンダーストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "thunderstone",
-            "icon": "fdfd67ccea961066"
+            "slug": "thunderstone"
           }
         ],
+        "craftExp": 324,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -86591,10 +86574,10 @@
             "nameJa": "ブラッドストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "bloodstone",
-            "icon": "2d5a4ef3ed63c9e2"
+            "slug": "bloodstone"
           }
         ],
+        "craftExp": 162,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -86634,10 +86617,10 @@
             "nameJa": "ブラッドストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "bloodstone",
-            "icon": "2d5a4ef3ed63c9e2"
+            "slug": "bloodstone"
           }
         ],
+        "craftExp": 162,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -86677,10 +86660,10 @@
             "nameJa": "ブラッドストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "bloodstone",
-            "icon": "2d5a4ef3ed63c9e2"
+            "slug": "bloodstone"
           }
         ],
+        "craftExp": 162,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -86720,10 +86703,10 @@
             "nameJa": "ブラッドストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "bloodstone",
-            "icon": "2d5a4ef3ed63c9e2"
+            "slug": "bloodstone"
           }
         ],
+        "craftExp": 162,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -86763,8 +86746,7 @@
             "nameJa": "アーケイン鉱石",
             "grade": "ARCANA",
             "count": 1,
-            "slug": "arcane-ore",
-            "icon": "321151f8e8fcf2a7"
+            "slug": "arcane-ore"
           },
           {
             "id": 113001,
@@ -86772,8 +86754,7 @@
             "nameJa": "クリスタルクォーツ",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "crystal-quartz",
-            "icon": "0a3db13a7b13a75d"
+            "slug": "crystal-quartz"
           },
           {
             "id": 113002,
@@ -86781,10 +86762,10 @@
             "nameJa": "真珠",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "pearl",
-            "icon": "ea702a43d15b4646"
+            "slug": "pearl"
           }
         ],
+        "craftExp": 626,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -86824,10 +86805,10 @@
             "nameJa": "アーケイン鉱石",
             "grade": "ARCANA",
             "count": 1,
-            "slug": "arcane-ore",
-            "icon": "321151f8e8fcf2a7"
+            "slug": "arcane-ore"
           }
         ],
+        "craftExp": 518,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -86867,8 +86848,7 @@
             "nameJa": "カオスシャード",
             "grade": "ARCANA",
             "count": 1,
-            "slug": "chaos-shard",
-            "icon": "7b973778c6561aaa"
+            "slug": "chaos-shard"
           },
           {
             "id": 145002,
@@ -86876,10 +86856,10 @@
             "nameJa": "アーケイン鉱石",
             "grade": "ARCANA",
             "count": 1,
-            "slug": "arcane-ore",
-            "icon": "321151f8e8fcf2a7"
+            "slug": "arcane-ore"
           }
         ],
+        "craftExp": 1036,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -86919,10 +86899,10 @@
             "nameJa": "ブラッドストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "bloodstone",
-            "icon": "2d5a4ef3ed63c9e2"
+            "slug": "bloodstone"
           }
         ],
+        "craftExp": 162,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -86962,10 +86942,10 @@
             "nameJa": "ブラッドストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "bloodstone",
-            "icon": "2d5a4ef3ed63c9e2"
+            "slug": "bloodstone"
           }
         ],
+        "craftExp": 162,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -87005,10 +86985,10 @@
             "nameJa": "ブラッドストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "bloodstone",
-            "icon": "2d5a4ef3ed63c9e2"
+            "slug": "bloodstone"
           }
         ],
+        "craftExp": 162,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -87048,10 +87028,10 @@
             "nameJa": "ブラッドストーン",
             "grade": "IMMORTAL",
             "count": 1,
-            "slug": "bloodstone",
-            "icon": "2d5a4ef3ed63c9e2"
+            "slug": "bloodstone"
           }
         ],
+        "craftExp": 162,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -87091,8 +87071,7 @@
             "nameJa": "オリハルコン鉱石",
             "grade": "BEYOND",
             "count": 1,
-            "slug": "orichalcum-ore",
-            "icon": "f9006d16dbb22dc3"
+            "slug": "orichalcum-ore"
           },
           {
             "id": 113003,
@@ -87100,8 +87079,7 @@
             "nameJa": "ターコイズ",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "turquoise",
-            "icon": "e25b83c52296bd34"
+            "slug": "turquoise"
           },
           {
             "id": 113004,
@@ -87109,10 +87087,10 @@
             "nameJa": "ガーネット",
             "grade": "LEGENDARY",
             "count": 1,
-            "slug": "garnet",
-            "icon": "9e818adb260c600c"
+            "slug": "garnet"
           }
         ],
+        "craftExp": 1766,
         "gradeOdds": [
           {
             "grade": "RARE",
@@ -94741,6 +94719,90 @@
         "materialType": "INSCRIPTION",
         "tier": 10,
         "cost": 200000
+      }
+    ],
+    "gradeExp": {
+      "COMMON": {
+        "cubeExp": 2,
+        "alchemyGold": 10
+      },
+      "UNCOMMON": {
+        "cubeExp": 6,
+        "alchemyGold": 30
+      },
+      "RARE": {
+        "cubeExp": 18,
+        "alchemyGold": 90
+      },
+      "LEGENDARY": {
+        "cubeExp": 54,
+        "alchemyGold": 270
+      },
+      "IMMORTAL": {
+        "cubeExp": 162,
+        "alchemyGold": 810
+      },
+      "ARCANA": {
+        "cubeExp": 518,
+        "alchemyGold": 2592
+      },
+      "BEYOND": {
+        "cubeExp": 1658,
+        "alchemyGold": 8294
+      },
+      "CELESTIAL": {
+        "cubeExp": 5803,
+        "alchemyGold": 29029
+      },
+      "DIVINE": {
+        "cubeExp": 20311,
+        "alchemyGold": 101602
+      },
+      "COSMIC": {
+        "cubeExp": 71089,
+        "alchemyGold": 355607
+      }
+    },
+    "cubeLevels": [
+      {
+        "level": 1,
+        "exp": 0
+      },
+      {
+        "level": 5,
+        "exp": 405
+      },
+      {
+        "level": 8,
+        "exp": 2255
+      },
+      {
+        "level": 10,
+        "exp": 4955
+      },
+      {
+        "level": 15,
+        "exp": 26805
+      },
+      {
+        "level": 20,
+        "exp": 106055
+      },
+      {
+        "level": 25,
+        "exp": 306305
+      },
+      {
+        "level": 50,
+        "exp": 8832555
+      },
+      {
+        "level": 75,
+        "exp": 61983805
+      },
+      {
+        "level": 100,
+        "exp": 234760055
       }
     ]
   }

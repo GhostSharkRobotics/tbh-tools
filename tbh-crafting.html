@@ -43,6 +43,8 @@
   .econrow.big span{color:var(--text);}
   .econrow.big.pos b{color:#6fcf6f;}
   .econrow.big.neg b{color:#e07a7a;}
+  .econrow.xp{border-top:1px dashed var(--border);margin-top:4px;padding-top:6px;}
+  .econrow.xp b{color:var(--accent);}
   .econnote{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.45;}
   .odds{font-size:11px;color:var(--muted);margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
   .odds b{font-weight:700;}
@@ -67,6 +69,7 @@
 <div class="note">
   データは <code>tbh-data.json</code> の <code>crafting.recipes</code> 由来。価格は <code>tbh-prices.json</code>（Steam Community Market 相場）のスナップショットで、最安の販売価格（USD）を表示。<br>
   <b>期待利益</b>＝Σ(各グレード確率 × 該当装備の市場中央値) − 素材コスト。クラフト結果はランダムなグレード・種類の装備で、レジェ未満は市場非対応のため $0 として外れ確率に算入。出来上がり確率の合計が100%未満なのはこの外れ分。手数料(Steam約15%)・売れ残りは未考慮の理論値。<br>
+  <b>キューブexp</b>＝投入素材のグレード基礎exp(BEYOND=1658, IMMORTAL=162, LEGENDARY=54…) × 個数の合計（probonk実機データ由来）。<b>exp/$</b>＝素材$1あたりのexpでレベル上げ効率の目安。期待利益がプラスのレシピは、売却でコストを回収できるため実質ノーコストでレベル上げ可能。<br>
   数値はコミュニティwiki由来でやや不確実、実機の値が優先。
 </div>
 
@@ -97,7 +100,9 @@ function economy(r){
     return {grade:o.grade,pct:o.pct,med,n:sells.length,contrib:med!=null?o.pct/100*med:0};
   });
   const ev=rows.reduce((s,x)=>s+x.contrib,0);
-  return {cost,ev,profit:ev-cost,roi:cost>0?(ev-cost)/cost:null,rows};
+  const xp=r.craftExp||0;
+  const xpPerUsd=cost>0?xp/(cost/100):null;   // 素材$あたりのキューブexp（レベル上げ効率）
+  return {cost,ev,profit:ev-cost,roi:cost>0?(ev-cost)/cost:null,rows,xp,xpPerUsd};
 }
 function steamUrl(m){
   if(PRICES[m.nameEn]) return "https://steamcommunity.com/market/listings/"+APPID+"/"+encodeURIComponent(m.nameEn);
@@ -111,6 +116,8 @@ function render(){
   if(curType!=null) rs=rs.filter(r=>r.typeJa===curType);
   if(curSort==="profit") rs.sort((a,b)=>economy(b).profit-economy(a).profit);
   else if(curSort==="roi") rs.sort((a,b)=>((economy(b).roi??-9)-(economy(a).roi??-9)));
+  else if(curSort==="xp") rs.sort((a,b)=>economy(b).xp-economy(a).xp);
+  else if(curSort==="xpcost") rs.sort((a,b)=>((economy(b).xpPerUsd??-9)-(economy(a).xpPerUsd??-9)));
   document.getElementById('count').textContent=rs.length+" レシピ";
   if(!rs.length){list.innerHTML='<div class="loading">該当なし</div>';return;}
   list.innerHTML=rs.map(r=>{
@@ -147,7 +154,8 @@ function render(){
       <div class="econrow"><span>素材コスト</span><b>${usd(ec.cost)}</b></div>
       <div class="econrow"><span>期待販売額 <small>(中央値ベース)</small></span><b>${usd(ec.ev)}</b></div>
       <div class="econrow big ${pc}"><span>期待利益 / 1回</span><b>${profitTxt} <small>ROI ${roiTxt}</small></b></div>
-      <div class="econnote">完成品が売れる確率 約${sellPct.toFixed(1).replace(/\.0$/,"")}%（残りはレジェ未満で市場価値ほぼ$0、外れも織込み済）</div>
+      <div class="econrow xp"><span>キューブexp / 1回</span><b>${ec.xp.toLocaleString()} exp <small>${ec.xpPerUsd!=null?Math.round(ec.xpPerUsd).toLocaleString()+" exp/$":""}</small></b></div>
+      <div class="econnote">完成品が売れる確率 約${sellPct.toFixed(1).replace(/\.0$/,"")}%（残りはレジェ未満で市場価値ほぼ$0、外れも織込み済）${ec.profit>=0?" ／ 期待利益プラス＝レベル上げは実質タダ〜黒字":""}</div>
     </div>`;
     const oddsBlock=`<div class="odds">出来上がり：${odds}</div>`;
     return `<div class="recipe">
@@ -191,7 +199,9 @@ function buildFilters(){
   sf.innerHTML='<span class="flabel">並び</span>'+
     '<button class="chip on" data-s="tier">Tier順</button>'+
     '<button class="chip" data-s="profit">利益順</button>'+
-    '<button class="chip" data-s="roi">ROI順</button>';
+    '<button class="chip" data-s="roi">ROI順</button>'+
+    '<button class="chip" data-s="xp">exp順</button>'+
+    '<button class="chip" data-s="xpcost">exp効率順</button>';
   sf.addEventListener('click',e=>{
     const b=e.target.closest('button');if(!b)return;
     sf.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');

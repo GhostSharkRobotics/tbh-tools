@@ -136,6 +136,15 @@ def _progress(ev):
                     return "🌐 ネット検索: " + str(inp.get("query", ""))[:48]
                 if name == "WebFetch":
                     return "🌐 ページ取得: " + str(inp.get("url", ""))[:60]
+                if name == "Bash":
+                    cmd = str(inp.get("command", ""))
+                    if "tbh-prices" in cmd:
+                        return "💰 相場データを照会中"
+                    if any(w in cmd for w in ("enem", "stage", "boss", "敵", "ステージ")):
+                        return "👹 敵・ステージデータを照会中"
+                    if "tbh-data" in cmd:
+                        return "📖 アイテムデータを照会中"
+                    return "🛠 データを照会中"
                 return "🛠 " + str(name) + " 実行中"
             if bt == "text" and b.get("text", "").strip():
                 return "💭 考えています…"

@@ -27,7 +27,8 @@
     "iconCdn": "https://community.akamai.steamstatic.com/economy/image/",
     "equipStatNote": "装備ステータスはprobonk(ゲーム内部)由来を実機表示にスケール: %系(攻撃速度/クリ等)とADDITIVE/MULT=÷10して整数%、毎秒HP回復=÷100、実数系(防御/HP/移動/攻撃)はそのまま。",
     "enemyStageNote": "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。",
-    "skillNote": "skills(アクティブ106)/passiveSkills(108) は probonk(実機データマイン)由来。skillKeyの第1桁=クラス(1ナイト/2レンジャー/3ソーサラー/4プリースト/5ハンター/6スレイヤー)。levels[]はLv1〜10の生値(説明文{0}に対応)。value/paramsはprobonk内部生値で実機表示とスケールが異なる場合あり(%系は概ね÷10で整数%)。"
+    "skillNote": "skills(アクティブ106)/passiveSkills(108) は probonk(実機データマイン)由来。skillKeyの第1桁=クラス(1ナイト/2レンジャー/3ソーサラー/4プリースト/5ハンター/6スレイヤー)。levels[]はLv1〜10の生値(説明文{0}に対応)。value/paramsはprobonk内部生値で実機表示とスケールが異なる場合あり(%系は概ね÷10で整数%)。",
+    "weaponBaseNote": "基礎攻撃速度/基礎クリ等は個別装備ではなく『その武器種を使うクラス』の基礎値（probonk heroes 由来）。弓=Ranger 基礎攻撃速度1.0/秒 等。装備の攻撃速度%等はこの基礎値に加算/乗算される。raw値: 攻撃/詠唱速度は÷100=回/秒, クリ率/クリダメは÷10=%。"
   },
   "classes": [
     {
@@ -41,7 +42,29 @@
       "attackType": "近接物理",
       "attackElement": "physical",
       "free": true,
-      "notes": "HP・防御が高い前衛の壁役。"
+      "notes": "HP・防御が高い前衛の壁役。",
+      "mainWeapon": "SWORD",
+      "mainWeaponJa": "剣",
+      "subWeapon": "SHIELD",
+      "subWeaponJa": "盾",
+      "baseStats": {
+        "攻撃力": 2,
+        "攻撃速度": 0.9,
+        "詠唱速度": 1,
+        "クリ率": 2.5,
+        "クリダメ": 140,
+        "最大HP": 130,
+        "防御力": 45
+      },
+      "baseStatsRaw": {
+        "AttackDamage": 2,
+        "AttackSpeed": 90,
+        "CastSpeed": 100,
+        "CriticalChance": 25,
+        "CriticalDamage": 1400,
+        "MaxHp": 130,
+        "Armor": 45
+      }
     },
     {
       "name": "レンジャー",
@@ -56,7 +79,29 @@
       "attackElement": "physical",
       "free": true,
       "verified": true,
-      "notes": "SSランク。攻撃速度特化の手数火力。初期クリ率4%。DPS式検証済み。"
+      "notes": "SSランク。攻撃速度特化の手数火力。初期クリ率4%。DPS式検証済み。",
+      "mainWeapon": "BOW",
+      "mainWeaponJa": "弓",
+      "subWeapon": "ARROW",
+      "subWeaponJa": "矢",
+      "baseStats": {
+        "攻撃力": 1,
+        "攻撃速度": 1,
+        "詠唱速度": 1,
+        "クリ率": 4,
+        "クリダメ": 150,
+        "最大HP": 60,
+        "防御力": 8
+      },
+      "baseStatsRaw": {
+        "AttackDamage": 1,
+        "AttackSpeed": 100,
+        "CastSpeed": 100,
+        "CriticalChance": 40,
+        "CriticalDamage": 1500,
+        "MaxHp": 60,
+        "Armor": 8
+      }
     },
     {
       "name": "ソーサラー",
@@ -69,7 +114,29 @@
       "attackType": "遠隔属性魔法",
       "attackElement": "elemental",
       "free": true,
-      "notes": "一撃が高く範囲が得意。属性ダメージ参照。"
+      "notes": "一撃が高く範囲が得意。属性ダメージ参照。",
+      "mainWeapon": "STAFF",
+      "mainWeaponJa": "杖",
+      "subWeapon": "ORB",
+      "subWeaponJa": "オーブ",
+      "baseStats": {
+        "攻撃力": 2,
+        "攻撃速度": 0.55,
+        "詠唱速度": 1,
+        "クリ率": 5,
+        "クリダメ": 165,
+        "最大HP": 50,
+        "防御力": 5
+      },
+      "baseStatsRaw": {
+        "AttackDamage": 2,
+        "AttackSpeed": 55,
+        "CastSpeed": 100,
+        "CriticalChance": 50,
+        "CriticalDamage": 1650,
+        "MaxHp": 50,
+        "Armor": 5
+      }
     },
     {
       "name": "プリースト",
@@ -83,7 +150,29 @@
       "attackType": "近接物理+雷",
       "attackElement": "physical",
       "free": true,
-      "notes": "無料DLC。最強格。力の祝福で味方火力底上げ。"
+      "notes": "無料DLC。最強格。力の祝福で味方火力底上げ。",
+      "mainWeapon": "SCEPTER",
+      "mainWeaponJa": "セプター",
+      "subWeapon": "TOME",
+      "subWeaponJa": "本",
+      "baseStats": {
+        "攻撃力": 1,
+        "攻撃速度": 0.9,
+        "詠唱速度": 1,
+        "クリ率": 2,
+        "クリダメ": 140,
+        "最大HP": 95,
+        "防御力": 30
+      },
+      "baseStatsRaw": {
+        "AttackDamage": 1,
+        "AttackSpeed": 90,
+        "CastSpeed": 100,
+        "CriticalChance": 20,
+        "CriticalDamage": 1400,
+        "MaxHp": 95,
+        "Armor": 30
+      }
     },
     {
       "name": "ハンター",
@@ -96,7 +185,29 @@
       "attackType": "遠隔物理(銃)",
       "attackElement": "physical",
       "free": false,
-      "notes": "有料DLC。持続火力。"
+      "notes": "有料DLC。持続火力。",
+      "mainWeapon": "CROSSBOW",
+      "mainWeaponJa": "クロスボウ",
+      "subWeapon": "BOLT",
+      "subWeaponJa": "ボルト",
+      "baseStats": {
+        "攻撃力": 2,
+        "攻撃速度": 0.7,
+        "詠唱速度": 1,
+        "クリ率": 4.5,
+        "クリダメ": 155,
+        "最大HP": 70,
+        "防御力": 15
+      },
+      "baseStatsRaw": {
+        "AttackDamage": 2,
+        "AttackSpeed": 70,
+        "CastSpeed": 100,
+        "CriticalChance": 45,
+        "CriticalDamage": 1550,
+        "MaxHp": 70,
+        "Armor": 15
+      }
     },
     {
       "name": "スレイヤー",
@@ -109,7 +220,29 @@
       "attackType": "近接物理",
       "attackElement": "physical",
       "free": false,
-      "notes": "有料DLC。近接高火力。"
+      "notes": "有料DLC。近接高火力。",
+      "mainWeapon": "AXE",
+      "mainWeaponJa": "斧",
+      "subWeapon": "HATCHET",
+      "subWeaponJa": "手斧",
+      "baseStats": {
+        "攻撃力": 2,
+        "攻撃速度": 0.7,
+        "詠唱速度": 1,
+        "クリ率": 2.5,
+        "クリダメ": 180,
+        "最大HP": 115,
+        "防御力": 40
+      },
+      "baseStatsRaw": {
+        "AttackDamage": 2,
+        "AttackSpeed": 70,
+        "CastSpeed": 100,
+        "CriticalChance": 25,
+        "CriticalDamage": 1800,
+        "MaxHp": 115,
+        "Armor": 40
+      }
     }
   ],
   "buffs": [
@@ -80513,5 +80646,67 @@
       "modType": "ADDITIVE",
       "value": 30
     }
-  ]
+  ],
+  "weaponBaseStats": {
+    "SWORD": {
+      "classEn": "Knight",
+      "classJa": "ナイト",
+      "gearJa": "剣",
+      "baseAttackSpeed": 0.9,
+      "baseCastSpeed": 1,
+      "baseCritChance": 2.5,
+      "baseCritDamage": 140,
+      "baseAttackDamage": 2
+    },
+    "BOW": {
+      "classEn": "Ranger",
+      "classJa": "レンジャー",
+      "gearJa": "弓",
+      "baseAttackSpeed": 1,
+      "baseCastSpeed": 1,
+      "baseCritChance": 4,
+      "baseCritDamage": 150,
+      "baseAttackDamage": 1
+    },
+    "STAFF": {
+      "classEn": "Sorcerer",
+      "classJa": "ソーサラー",
+      "gearJa": "杖",
+      "baseAttackSpeed": 0.55,
+      "baseCastSpeed": 1,
+      "baseCritChance": 5,
+      "baseCritDamage": 165,
+      "baseAttackDamage": 2
+    },
+    "SCEPTER": {
+      "classEn": "Priest",
+      "classJa": "プリースト",
+      "gearJa": "セプター",
+      "baseAttackSpeed": 0.9,
+      "baseCastSpeed": 1,
+      "baseCritChance": 2,
+      "baseCritDamage": 140,
+      "baseAttackDamage": 1
+    },
+    "CROSSBOW": {
+      "classEn": "Hunter",
+      "classJa": "ハンター",
+      "gearJa": "クロスボウ",
+      "baseAttackSpeed": 0.7,
+      "baseCastSpeed": 1,
+      "baseCritChance": 4.5,
+      "baseCritDamage": 155,
+      "baseAttackDamage": 2
+    },
+    "AXE": {
+      "classEn": "Slayer",
+      "classJa": "スレイヤー",
+      "gearJa": "斧",
+      "baseAttackSpeed": 0.7,
+      "baseCastSpeed": 1,
+      "baseCritChance": 2.5,
+      "baseCritDamage": 180,
+      "baseAttackDamage": 2
+    }
+  }
 }

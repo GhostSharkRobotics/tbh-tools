@@ -15,6 +15,10 @@ import re, json, os, urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 BASE = "https://probonk.com/tbh-task-bar-hero/"
 ELEM = {"Physical": "physical", "Fire": "fire", "Cold": "cold", "Lightning": "lightning", "Chaos": "chaos"}
+# 難易度: NORMAL以外は属性耐性デバフを受ける(ペナルティ昇順)。値はprobonk/buffs由来、難易度名の対応は構造から確定
+# (tier3段=NORMAL以外の難易度3つ、ペナルティ単調増加、レベル範囲一致)。
+DIFF_BY_PENALTY = {0: "NORMAL", 20: "NIGHTMARE", 40: "HELL", 60: "TORMENT"}
+RES_STAT = {"FireResistance": "fire", "ColdResistance": "cold", "LightningResistance": "lightning", "ChaosResistance": "chaos"}
 
 
 def fetch(slug):
@@ -153,10 +157,39 @@ def main():
     stages = sorted(stage_map.values(), key=lambda s: s["key"])
     enemies.sort(key=lambda e: e["key"])
 
+    # 難易度の属性耐性デバフ(probonk/buffs由来) + 各難易度のレベル範囲(自stagesから導出)。
+    # 9100011〜9100034 = Fire/Cold/Lightning/Chaos Resistance を -20/-40/-60(FLAT Debuff)する3段階。
+    # tier3段はちょうど NORMAL以外の3難易度に1:1対応(ペナルティ昇順、レベル範囲一致)。
+    buffs_html = fetch("buffs")
+    res_debuffs = [b for b in extract_array(buffs_html, "buffs")
+                   if 9100000 <= b["BuffKey"] < 9200000 and b.get("STATTYPE") in RES_STAT]
+    pen_keys = {}   # penalty(20/40/60) -> {element: buffKey}
+    for b in res_debuffs:
+        pen_keys.setdefault(b["Value"], {})[RES_STAT[b["STATTYPE"]]] = b["BuffKey"]
+    lv_range = {}   # difficulty -> [min,max]
+    for s in stages:
+        r = lv_range.setdefault(s["difficulty"], [s["level"], s["level"]])
+        r[0] = min(r[0], s["level"]); r[1] = max(r[1], s["level"])
+    difficulties = []
+    for pen, name in DIFF_BY_PENALTY.items():
+        keys = pen_keys.get(pen, {})
+        rng = lv_range.get(name) or [None, None]
+        difficulties.append({
+            "name": name,
+            "tier": pen // 20,                                   # 0=NORMAL,1=NIGHTMARE,2=HELL,3=TORMENT
+            "levelMin": rng[0], "levelMax": rng[1],
+            "stageCount": sum(1 for s in stages if s["difficulty"] == name),
+            # プレイヤーが受ける属性耐性デバフ(FLAT減算)。NORMALは無し。全属性同値。
+            "resistancePenalty": pen,
+            "resistanceDebuff": {el: -pen for el in ("fire", "cold", "lightning", "chaos")} if pen else {},
+            "resBuffKeys": keys,                                 # probonk buff の参照ID(属性→ID)
+        })
+
     path = os.path.join(HERE, "tbh-data.json")
     data = json.load(open(path, encoding="utf-8"))
     data["enemies"] = enemies
     data["stages"] = stages
+    data["difficulties"] = difficulties
     data.setdefault("_meta", {})["enemyStageNote"] = (
         "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は "
         "level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。"
@@ -166,6 +199,10 @@ def main():
         "source が attack 詳細を持つのはact1の16体のみで、残り45体は range/multiplier/activation が未公開のため null(推測しない)。"
         "stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。"
         "difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。"
+        "difficulties[] は各難易度の属性耐性デバフとレベル範囲: resistancePenalty=プレイヤーの全属性耐性が受けるFLAT減算 "
+        "(NORMAL 0 / NIGHTMARE -20 / HELL -40 / TORMENT -60), resistanceDebuff=属性別の減算値, "
+        "resBuffKeys=probonk buff の参照ID。ペナルティ値はprobonk/buffs由来(事実)、tier↔難易度名の対応は "
+        "tier3段=NORMAL以外の3難易度の1:1対応(ペナルティ昇順+レベル範囲一致)から確定した構造的対応。"
     )
     json.dump(data, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 
@@ -176,6 +213,9 @@ def main():
     for s in stages:
         diffs[s["difficulty"]] = diffs.get(s["difficulty"], 0) + 1
     print("difficulties:", diffs)
+    for d in difficulties:
+        print("  %-9s Lv%s-%s  res%+d (keys:%d)" % (
+            d["name"], d["levelMin"], d["levelMax"], -d["resistancePenalty"], len(d["resBuffKeys"])))
 
 
 if __name__ == "__main__":

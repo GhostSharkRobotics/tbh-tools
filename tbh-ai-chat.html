@@ -230,7 +230,7 @@ el('q').addEventListener('input',autoGrow);
 el('q').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); ask(); } });
 el('send').onclick=ask;
 el('newBtn').onclick=newConv;
-el('histBtn').onclick=()=>{ const h=el('hist'); if(h.style.display==='none'||!h.style.display){ renderHist(); h.style.display=''; } else h.style.display='none'; };
+el('histBtn').onclick=()=>{ const h=el('hist'); if(h.style.display==='none'||!h.style.display){ renderHist(); h.style.display='block'; } else h.style.display='none'; };
 
 renderThread(); health(); el('q').focus();
 </script>

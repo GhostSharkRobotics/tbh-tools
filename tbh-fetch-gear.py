@@ -22,10 +22,10 @@ BASE = "https://probonk.com/tbh-task-bar-hero/"
 GT = {"COMMON":"Common","UNCOMMON":"Uncommon","RARE":"Rare","LEGENDARY":"Legendary","IMMORTAL":"Immortal","ARCANA":"Arcana","CELESTIAL":"Celestial","COSMIC":"Cosmic","DIVINE":"Divine","BEYOND":"Beyond"}
 GJA = {"SWORD":"剣","BOW":"弓","STAFF":"杖","SCEPTER":"セプター","CROSSBOW":"クロスボウ","AXE":"斧","HATCHET":"手斧","SHIELD":"盾","ARROW":"矢","ORB":"オーブ","TOME":"本","BOLT":"ボルト","HELMET":"頭","ARMOR":"胴","GLOVES":"手","BOOTS":"足","AMULET":"首飾り","EARING":"イヤリング","RING":"指輪","BRACER":"腕輪"}
 CAT = {**dict.fromkeys(["SWORD","BOW","STAFF","SCEPTER","CROSSBOW","AXE","HATCHET"],"weapon"), **dict.fromkeys(["SHIELD","ARROW","ORB","TOME","BOLT"],"offhand"), **dict.fromkeys(["HELMET","ARMOR","GLOVES","BOOTS"],"armor"), **dict.fromkeys(["AMULET","EARING","RING","BRACER"],"accessory")}
-# Ver1.00.07(2026-06-02)でSteam負荷対策により削除された装備レベル。現行入手可は 1/5/10/15/20/30/40/50/65/80 のみ。
-# 出典: store.steampowered.com/news/app/3678970 (1.00.07 / Urgent Notice)。所持済みは使用可(合成/取引不可)。
-DELETED_LEVELS = {25, 35, 45, 55, 60, 70, 75, 85, 90}
-DELETED_REASON = "Ver1.00.07(2026-06-02)でSteamサーバ負荷対策により削除。所持済みは使用可だが入手・合成・取引不可。"
+# Ver1.00.07(2026-06-02)でSteam負荷対策により『市場から削除』された装備レベル。マーケット取引可は 1/5/10/15/20/30/40/50/65/80 のみ。
+# 出典: store.steampowered.com/news/app/3678970 (1.00.07 / Urgent Notice)。これらはゲーム内に存在し所持・使用可だが入手・合成・取引不可。
+NO_MARKET_LEVELS = {25, 35, 45, 55, 60, 70, 75, 85, 90}
+NO_MARKET_NOTE = "Ver1.00.07(2026-06-02)でSteam負荷対策により市場から削除(取引不可)。ゲーム内には存在し所持・使用は可、ただし新規入手・合成・取引は不可。"
 SLAB = {"AttackDamage":"攻撃力","AttackSpeed":"攻撃速度","CriticalChance":"クリ率係数","CriticalDamage":"クリダメ","MaxHp":"最大HP","Armor":"防御力","MovementSpeed":"移動速度","CastSpeed":"詠唱速度","CooldownReduction":"クールダウン短縮","AreaOfEffect":"効果範囲","HpRegenPerSec":"毎秒HP回復","AddHpPerHit":"命中毎HP回復","AddHpPerKill":"撃破毎HP回復","HpLeech":"ライフスティール","DodgeChance":"回避率","BlockChance":"ブロック率","DamageReduction":"ダメージ軽減","DamageAbsorption":"ダメージ吸収","AllElementalResistance":"全属性耐性","Multistrike":"マルチストライク","ProjectileCount":"投射物数","BaseAttackCountReduction":"通常攻撃必要数減少","SkillRangeExpansion":"スキル範囲拡大","SkillDurationIncrease":"スキル持続増加","SkillHealIncrease":"スキル回復増加","IncreaseProjectileDamage":"投射ダメージ増加","IncreaseExpAmount":"EXP増加量","AddAllSkillLevel":"全スキルLv+","FireResistance":"火炎耐性","ColdResistance":"冷気耐性","LightningResistance":"雷耐性","ChaosResistance":"カオス耐性","PhysicalDamage":"物理ダメージ","FireDamage":"火炎ダメージ","ColdDamage":"冷気ダメージ","LightningDamage":"雷ダメージ"}
 PERCENT = {"AttackSpeed","CriticalChance","CriticalDamage","CooldownReduction","CastSpeed","AreaOfEffect","DodgeChance","BlockChance","DamageReduction","HpLeech","AllElementalResistance","FireResistance","ColdResistance","LightningResistance","ChaosResistance","IncreaseProjectileDamage","SkillRangeExpansion","SkillDurationIncrease","SkillHealIncrease","IncreaseExpAmount"}
 
@@ -88,16 +88,14 @@ def main():
             sv, unit = scale(x["stat"], x["mod"], x["val"]); stl.append({"ja": SLAB.get(x["stat"], x["stat"]), "en": x["stat"], "val": sv, "unit": unit})
         url = icon_by_bg.get(en+"|"+gradeT); ic = sid(url) if url else None
         if url: icons[ic] = url
-        ent = {"name": me.get("nameJa") or en, "nameEn": en, "gear": gear, "gearJa": GJA.get(gear, gear), "cat": cat, "lvl": me["level"], "rarity": gradeT, "stats": stl, "icon": ic}
-        if me["level"] in DELETED_LEVELS:  # 1.00.07 で削除されたレベルは removed フラグを付与
-            ent["removed"] = True; ent["removedPatch"] = "1.00.07"; ent["removedReason"] = DELETED_REASON
+        on_market = me["level"] not in NO_MARKET_LEVELS  # 削除レベルはゲーム内に在るが市場取引不可
+        ent = {"name": me.get("nameJa") or en, "nameEn": en, "gear": gear, "gearJa": GJA.get(gear, gear), "cat": cat, "lvl": me["level"], "rarity": gradeT, "market": on_market, "stats": stl, "icon": ic}
+        if not on_market: ent["marketNote"] = NO_MARKET_NOTE
         seen[key] = ent; equip.append(ent)
-    # 現行入手可と削除済みを分割。tools は equipment(現行)を既定で使い、removedEquipment は legacy 参照用。
-    current = [e for e in equip if not e.get("removed")]
-    removed = [e for e in equip if e.get("removed")]
-    d["equipment"] = current; d["removedEquipment"] = removed; d["icons"] = icons
+    d["equipment"] = equip; d["icons"] = icons
     json.dump(d, open(dj, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-    print("equipment written:", len(current), " removedEquipment:", len(removed))
+    nomkt = sum(1 for e in equip if not e.get("market"))
+    print("equipment written:", len(equip), " (market=false:", nomkt, ")")
 
 if __name__ == "__main__":
     main()

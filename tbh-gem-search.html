@@ -260,8 +260,14 @@ el("q").oninput=e=>{state.q=e.target.value.trim();if(state.q)state.stat=null;ren
 el("resetw").onclick=()=>{COLW={};try{localStorage.removeItem("tbhColW");}catch(e){}render();};
 
 // ---- filtering ----
-function matchText(name,nameEn,stat){if(!state.q)return true;const q=state.q.toLowerCase();
-  return [name,nameEn,stat,SM[stat]||""].some(v=>(v||"").toLowerCase().includes(q));}
+// 検索語の末尾/途中の数値表記(+1, 10%, 1.5 等)はデータに格納されていないため無視して照合する
+function qhit(q,fields){
+  if(!q)return true;
+  q=String(q).toLowerCase();
+  const qn=q.replace(/\s*[+\-]?\d+(?:\.\d+)?\s*%?/g,'').trim();
+  return fields.some(v=>{v=(v||"").toLowerCase();return v.includes(q)||(qn&&v.includes(qn));});
+}
+function matchText(name,nameEn,stat){return qhit(state.q,[name,nameEn,stat,SM[stat]||""]);}
 function matches(x){
   if(!state.types.has(x.type))return false;
   if(state.gears.size)return false;            // 素材に具体的な種類(gear)は無い
@@ -276,7 +282,7 @@ function inscMatch(e){
   if(state.cats.size||state.colors.size||state.level||state.gears.size)return false;   // inscriptions have no slot/color/level/gear
   if(state.rarity&&!e.byGrade[state.rarity])return false;
   if(state.stat&&e.stat!==state.stat)return false;
-  return matchText("刻印","Inscription",e.stat);
+  return qhit(state.q,["刻印","Inscription",e.stat,SM[e.stat]||""]);
 }
 function equipMatch(e){
   if(!state.types.has("equipment"))return false;
@@ -286,9 +292,7 @@ function equipMatch(e){
   if(state.rarity&&e.rarity!==state.rarity)return false;
   if(state.level&&String(e.lvl)!==state.level)return false;
   if(state.stat&&!(e.stats||[]).some(s=>s.ja===state.stat))return false;   // 効果(固有ステータス)で絞り込み
-  if(!state.q)return true;
-  const q=state.q.toLowerCase();
-  return [e.name,e.nameEn].concat((e.stats||[]).flatMap(s=>[s.ja,s.en])).some(v=>(v||"").toLowerCase().includes(q));
+  return qhit(state.q,[e.name,e.nameEn].concat((e.stats||[]).flatMap(s=>[s.ja,s.en])));
 }
 function uniqueMatch(u){
   if(!state.types.has("unique"))return false;
@@ -297,9 +301,7 @@ function uniqueMatch(u){
   if(state.gears.size&&!state.gears.has(u.gear))return false;   // 種類で絞り込み(uniqueのgearはJP)
   if(state.rarity&&u.rarity!==state.rarity)return false;
   if(state.level&&String(u.lvl)!==state.level)return false;
-  if(!state.q)return true;
-  const q=state.q.toLowerCase();
-  return [u.name,u.nameEn,u.descJa,u.descEn,u.mod].some(v=>(v||"").toLowerCase().includes(q));
+  return qhit(state.q,[u.name,u.nameEn,u.descJa,u.descEn,u.mod]);
 }
 
 // ---- build rows ----

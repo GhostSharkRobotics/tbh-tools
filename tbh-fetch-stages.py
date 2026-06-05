@@ -22,6 +22,12 @@ def fetch(slug):
     return urllib.request.urlopen(req, timeout=40).read().decode("utf-8", "replace")
 
 
+def fetch_city(slug):
+    # tbh.city はステージのクリア期待EXP/Goldを持つ（probonkに無い）
+    req = urllib.request.Request("https://tbh.city/" + slug, headers={"User-Agent": "Mozilla/5.0"})
+    return urllib.request.urlopen(req, timeout=40).read().decode("utf-8", "replace").replace('\\"', '"')
+
+
 def unescape(s):
     # RSC ペイロードは \" → " , \\ → \ の二重エスケープ
     return s.replace('\\"', '"').replace("\\\\", "\\")
@@ -90,7 +96,8 @@ def main():
             "gold": m.get("RewardGold"),
             "exp": m.get("RewardExp"),
             "skillKey": sk,
-            "element": skill_elem.get(sk),  # 不明は null（推測しない）
+            # 属性: 敵自身の attack.damageType を最優先、無ければスキルDBから。どちらも無ければ null（推測しない）
+            "element": ELEM.get((m.get("attack") or {}).get("damageType")) or skill_elem.get(sk),
         }
         appear = m.get("stages", [])
         enemy["stageCount"] = len(appear)
@@ -108,6 +115,23 @@ def main():
             else:
                 st["enemies"].append(m["MonsterKey"])
 
+    # ステージEXP/Gold(クリア期待値)を tbh.city からマージ（id == probonk key）
+    try:
+        city = fetch_city("stages")
+        for part in re.split(r'(?=\{"id":\d+,"act":)', city):
+            mid = re.match(r'\{"id":(\d+),"act":', part)
+            mg = re.search(r'"expected_gold":(\d+)', part)
+            me = re.search(r'"expected_exp":(\d+)', part)
+            if mid and mg and me:
+                k = int(mid.group(1))
+                if k in stage_map:
+                    stage_map[k]["expectedGold"] = int(mg.group(1))
+                    stage_map[k]["expectedExp"] = int(me.group(1))
+        got = sum(1 for s in stage_map.values() if "expectedExp" in s)
+        print("stage exp/gold merged (tbh.city):", got)
+    except Exception as e:
+        print("tbh.city merge skip:", e)
+
     stages = sorted(stage_map.values(), key=lambda s: s["key"])
     enemies.sort(key=lambda e: e["key"])
 
@@ -117,7 +141,8 @@ def main():
     data["stages"] = stages
     data.setdefault("_meta", {})["enemyStageNote"] = (
         "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は "
-        "level に応じてスケールする。element はスキルの DamageType から導出した分のみ(残りは null=未確認)。"
+        "level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。"
+        "stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。"
         "difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。"
     )
     json.dump(data, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)

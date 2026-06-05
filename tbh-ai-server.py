@@ -26,7 +26,7 @@ PORT = 8765
 CLAUDE = next((p for p in [str(Path.home() / ".local/bin/claude"),
                            "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
                if Path(p).exists()), "claude")
-TIMEOUT = 180
+TIMEOUT = 300
 
 PROMPT = """あなたは放置ハクスラ「Task Bar Hero (TBH)」のDPSビルドシミュレーター用のビルドを設計します。
 

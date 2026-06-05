@@ -248,11 +248,14 @@ function inscMatch(e){
 }
 function equipMatch(e){
   if(!state.types.has("equipment"))return false;
-  if(state.stat||state.colors.size)return false;               // equipment: no effect/color search (stats not yet in DB)
+  if(state.colors.size)return false;                            // 装備に色は無い
   if(state.cats.size&&!state.cats.has(e.cat))return false;
   if(state.rarity&&e.rarity!==state.rarity)return false;
   if(state.level&&String(e.lvl)!==state.level)return false;
-  return matchText(e.name,e.nameEn,"");
+  if(state.stat&&!(e.stats||[]).some(s=>s.ja===state.stat))return false;   // 効果(固有ステータス)で絞り込み
+  if(!state.q)return true;
+  const q=state.q.toLowerCase();
+  return [e.name,e.nameEn].concat((e.stats||[]).flatMap(s=>[s.ja,s.en])).some(v=>(v||"").toLowerCase().includes(q));
 }
 function uniqueMatch(u){
   if(!state.types.has("unique"))return false;
@@ -286,9 +289,12 @@ function buildRows(){
   });
   // 装備本体
   EQUIP.filter(equipMatch).forEach(e=>{
+    let mv=null,munit="";   // 効果で絞った時は、その固有ステータスの値を「値」列に出す
+    if(state.stat){const s=(e.stats||[]).find(x=>x.ja===state.stat);if(s){mv=s.val;munit=s.mod==="FLAT"?"":"%";}}
     out.push({name:e.name,nameEn:e.nameEn,color:null,type:"equipment",rarity:e.rarity||"—",rarRank:rarRank(e.rarity),uncertain:false,
       cat:e.cat,catOrder:PART_KEYS.indexOf(e.cat),gearJa:e.gearJa,lvl:e.lvl,icon:e.icon,estats:e.stats||[],
-      stat:null,min:0,max:0,unit:"",price:(PBG[e.nameEn+"|"+e.rarity]!=null?PBG[e.nameEn+"|"+e.rarity]:null),bestKey:null,set:null,setText:null});
+      stat:null,min:mv!=null?mv:0,max:mv!=null?mv:0,unit:munit,hasVal:mv!=null,
+      price:(PBG[e.nameEn+"|"+e.rarity]!=null?PBG[e.nameEn+"|"+e.rarity]:null),bestKey:null,set:null,setText:null});
   });
   // 特殊ステータス(固有効果)を持つ装備
   UNIQUE.filter(uniqueMatch).forEach(u=>{
@@ -382,7 +388,7 @@ function render(){
     else if(isU){effCls=" effwrap";const een=(state.lang==="ja"&&r.descEn)?`<span class="een">${r.descEn}</span>`:"";
       effCell=`${state.lang==="ja"?r.descJa:(r.descEn||r.descJa)}${een}`;}
     else{const een=(state.lang==="ja"&&SM[r.stat])?`<span class="een">${SM[r.stat]}</span>`:"";effCell=`${statLabel(r.stat)}${een}`;}
-    const valCell=(isEq||isU)?"—":fmt(r.min,r.max,r.unit);
+    const valCell=isU?"—":((isEq&&!r.hasVal)?"—":fmt(r.min,r.max,r.unit));
     let setCell="—";
     if(r.set)setCell=`<span class="set">+ ${statLabel(r.set.stat)} ${fmt(r.set.min,r.set.max,r.set.unit)}</span>`;
     else if(r.setText)setCell=`<span class="grades">${r.setText}</span>`;

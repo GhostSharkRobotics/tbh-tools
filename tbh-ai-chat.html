@@ -11,11 +11,22 @@
        max-width:820px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:18px 18px 0;}
   h1{font-size:20px;font-weight:600;color:var(--accent);}
   .sub{font-size:12px;color:var(--muted);margin:2px 0 12px;}
-  .bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
-  .bar a{font-size:12px;color:var(--muted);text-decoration:none;}
-  .bar a:hover{color:var(--accent);}
+  .bar{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  .tools{display:flex;gap:8px;align-items:center;flex:0 0 auto;}
+  .tbtn{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 11px;font-size:12px;cursor:pointer;white-space:nowrap;}
+  .tbtn:hover{border-color:var(--accent);}
   #banner{display:none;background:#2a2418;border:1px solid #4a3f28;border-radius:8px;padding:10px 13px;font-size:12px;color:var(--muted);margin-bottom:12px;}
   #banner code{background:var(--surface2);padding:1px 6px;border-radius:4px;color:var(--text);}
+  #hist{display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;margin-bottom:12px;max-height:46vh;overflow-y:auto;}
+  .hitem{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent;}
+  .hitem:hover{background:var(--surface2);}
+  .hitem.on{background:var(--surface2);border-color:var(--accent);}
+  .hitem .ht{flex:1;min-width:0;}
+  .hitem .ht .tt{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hitem .ht .tm{font-size:10px;color:var(--muted);}
+  .hitem .del{color:var(--muted);font-size:15px;line-height:1;padding:3px 7px;border-radius:6px;flex:0 0 auto;}
+  .hitem .del:hover{color:var(--down);background:var(--bg);}
+  .hempty{color:var(--muted);font-size:12px;padding:12px;text-align:center;}
   #thread{flex:1;overflow-y:auto;padding-bottom:8px;}
   .msg{margin:10px 0;}
   .msg .who{font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:.04em;}
@@ -41,11 +52,15 @@
 </head>
 <body>
 <div class="bar">
-  <div><h1>TBH AIチャット</h1><div class="sub">アイテム・装飾・価格・ステージ・敵・クラス・スキルまで横断で質問。履歴はこの端末に保存され、続きから会話できます。</div></div>
-  <a id="reset" href="#" title="会話を消して最初から">🗑 新しい会話</a>
+  <div><h1>TBH AIチャット</h1><div class="sub">アイテム・価格・ステージ・敵・クラス・スキルを横断で質問。会話は複数保存され、いつでも続きから話せます。</div></div>
+  <div class="tools">
+    <button class="tbtn" id="histBtn">🗂 履歴</button>
+    <button class="tbtn" id="newBtn">＋ 新規</button>
+  </div>
 </div>
 
 <div id="banner"></div>
+<div id="hist"></div>
 <div id="thread"></div>
 <div id="status"></div>
 
@@ -57,12 +72,42 @@
 <script>
 const AI_BASE=(location.port==='8765')?'':'http://localhost:8765';
 const el=id=>document.getElementById(id);
-const LSK='tbh_aichat_v1';
+const LSK='tbh_aichat_v2';
 
-// ---- 状態（履歴＋セッション）を localStorage に保存 ----
-function load(){ try{return JSON.parse(localStorage.getItem(LSK))||{msgs:[],session:null};}catch(e){return {msgs:[],session:null};} }
-function save(){ try{localStorage.setItem(LSK,JSON.stringify(S));}catch(e){} }
-let S=load();
+// ---- 永続化: 複数会話 { convs:[{id,title,msgs,session,updated}], current } ----
+function uid(){ return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function titleOf(msgs){ const u=msgs.find(m=>m.role==='u'); const t=u?u.text.trim():''; return t? (t.slice(0,30)+(t.length>30?'…':'')) : '新しい会話'; }
+function loadDB(){
+  try{ const raw=JSON.parse(localStorage.getItem(LSK)); if(raw&&Array.isArray(raw.convs)) return raw; }catch(e){}
+  // 旧v1（単一会話）からの移行
+  try{ const old=JSON.parse(localStorage.getItem('tbh_aichat_v1'));
+    if(old&&Array.isArray(old.msgs)&&old.msgs.length){ const id=uid();
+      return {convs:[{id,title:titleOf(old.msgs),msgs:old.msgs,session:old.session||null,updated:Date.now()}],current:id}; }
+  }catch(e){}
+  return {convs:[],current:null};
+}
+let DB=loadDB();
+function saveDB(){ try{localStorage.setItem(LSK,JSON.stringify(DB));}catch(e){} }
+function cur(){ return DB.convs.find(c=>c.id===DB.current)||null; }
+function ensureCur(){
+  let c=cur();
+  if(!c){ c={id:uid(),title:'新しい会話',msgs:[],session:null,updated:Date.now()}; DB.convs.unshift(c); DB.current=c.id; saveDB(); }
+  return c;
+}
+function newConv(){
+  const c=cur();
+  if(c && c.msgs.length===0){ /* 既に空の新規会話なら使い回す */ }
+  else{ const n={id:uid(),title:'新しい会話',msgs:[],session:null,updated:Date.now()}; DB.convs.unshift(n); DB.current=n.id; saveDB(); }
+  el('hist').style.display='none'; renderThread(); el('q').focus();
+}
+function switchConv(id){ DB.current=id; saveDB(); el('hist').style.display='none'; renderThread(); el('q').focus(); }
+function deleteConv(id){
+  const c=DB.convs.find(x=>x.id===id); if(!c) return;
+  if(c.msgs.length && !confirm('この会話を削除しますか？\n「'+(c.title||'新しい会話')+'」'))return;
+  DB.convs=DB.convs.filter(x=>x.id!==id);
+  if(DB.current===id) DB.current=DB.convs.length?DB.convs[0].id:null;
+  saveDB(); renderHist(); renderThread();
+}
 
 // ---- 軽量Markdown ----
 function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
@@ -90,23 +135,32 @@ function md(src){
   return h;
 }
 
-// ---- スレッド描画 ----
+// ---- 描画 ----
 const EXAMPLES=['トーメント3-3を抜けるおすすめ装備は？','クリダメを安く盛れる装飾を価格つきで','レンジャーで物理DPSが伸びるパッシブは？','ナイトのおすすめスキル構成'];
 function renderThread(){
-  const t=el('thread'); t.innerHTML='';
-  if(!S.msgs.length){
-    t.innerHTML='<div class="empty">まだ会話がありません。何でも聞いてください。<br>'+
-      EXAMPLES.map(e=>'<span class="ex">'+esc(e)+'</span>').join('')+'</div>';
+  const t=el('thread'); const c=cur();
+  if(!c || !c.msgs.length){
+    t.innerHTML='<div class="empty">何でも聞いてください。<br>'+EXAMPLES.map(e=>'<span class="ex">'+esc(e)+'</span>').join('')+'</div>';
     [...t.querySelectorAll('.ex')].forEach(x=>x.onclick=()=>{el('q').value=x.textContent; el('q').focus(); autoGrow();});
     return;
   }
-  S.msgs.forEach(m=>{
-    const d=document.createElement('div'); d.className='msg '+m.role;
-    d.innerHTML='<div class="who">'+(m.role==='u'?'あなた':'AI')+'</div><div class="bubble">'+
-      (m.role==='u'?esc(m.text):'<div class="md">'+md(m.text)+'</div>')+'</div>';
-    t.appendChild(d);
-  });
+  t.innerHTML=c.msgs.map(m=>'<div class="msg '+m.role+'"><div class="who">'+(m.role==='u'?'あなた':'AI')+'</div><div class="bubble">'+
+      (m.role==='u'?esc(m.text):'<div class="md">'+md(m.text)+'</div>')+'</div></div>').join('');
   t.scrollTop=t.scrollHeight;
+}
+function fmtTime(ts){ if(!ts) return ''; const d=new Date(ts); const p=n=>(n<10?'0':'')+n; return (d.getMonth()+1)+'/'+d.getDate()+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+function renderHist(){
+  const h=el('hist');
+  const convs=[...DB.convs].sort((a,b)=>(b.updated||0)-(a.updated||0));
+  if(!convs.length){ h.innerHTML='<div class="hempty">保存された会話はまだありません。</div>'; return; }
+  h.innerHTML=convs.map(c=>{
+    const n=c.msgs.filter(m=>m.role==='u').length;
+    return '<div class="hitem'+(c.id===DB.current?' on':'')+'" data-id="'+c.id+'">'+
+      '<div class="ht"><div class="tt">'+esc(c.title||'新しい会話')+'</div><div class="tm">'+fmtTime(c.updated)+' ・ '+n+'問</div></div>'+
+      '<span class="del" data-del="'+c.id+'" title="削除">🗑</span></div>';
+  }).join('');
+  [...h.querySelectorAll('.hitem')].forEach(it=>it.onclick=e=>{ if(e.target.classList.contains('del'))return; switchConv(it.dataset.id); });
+  [...h.querySelectorAll('.del')].forEach(d=>d.onclick=e=>{ e.stopPropagation(); deleteConv(d.dataset.del); });
 }
 
 // ---- SSEストリーム受信 ----
@@ -134,25 +188,26 @@ async function ask(){
   if(busy) return;
   const q=el('q').value.trim(); if(!q) return;
   busy=true; el('send').disabled=true;
-  S.msgs.push({role:'u',text:q}); save();
+  const C=ensureCur();
+  C.msgs.push({role:'u',text:q}); if(C.title==='新しい会話'||!C.title) C.title=titleOf(C.msgs); C.updated=Date.now(); saveDB();
   el('q').value=''; autoGrow(); renderThread();
   const st=el('status'); const t0=Date.now(); let last='AIを起動中…';
   const tick=()=>{ st.textContent=last+'  （'+Math.floor((Date.now()-t0)/1000)+'秒）'; };
   if(timer)clearInterval(timer); tick(); timer=setInterval(tick,1000);
   try{
-    const {result,sid}=await streamPost({question:q, session_id:S.session||undefined}, m=>{last=m;tick();});
-    if(sid) S.session=sid;
-    S.msgs.push({role:'a',text:(result&&result.answer)||'(空の回答)'}); save(); renderThread();
+    const {result,sid}=await streamPost({question:q, session_id:C.session||undefined}, m=>{last=m;tick();});
+    if(sid) C.session=sid;
+    C.msgs.push({role:'a',text:(result&&result.answer)||'(空の回答)'}); C.updated=Date.now(); saveDB(); renderThread();
   }catch(e){
     const down=String(e.message).includes('fetch');
-    S.msgs.push({role:'a',text:down?'⚠ ローカルAIサーバに接続できませんでした。ターミナルで `python3 tbh-ai-server.py` を起動し、`http://localhost:8765/tbh-ai-chat.html` を開いてください。':'⚠ エラー: '+e.message});
-    save(); renderThread();
+    C.msgs.push({role:'a',text:down?'⚠ ローカルAIサーバに接続できませんでした。ターミナルで `python3 tbh-ai-server.py` を起動し、`http://localhost:8765/tbh-ai-chat.html` を開いてください。':'⚠ エラー: '+e.message});
+    C.updated=Date.now(); saveDB(); renderThread();
   }finally{
     clearInterval(timer); timer=null; st.textContent=''; busy=false; el('send').disabled=false; el('q').focus();
   }
 }
 
-// ---- サーバ検出（このページはAI必須なので、無ければ案内を出す） ----
+// ---- サーバ検出（AI必須ページなので無ければ案内） ----
 async function health(){
   try{
     const c=new AbortController(); const t=setTimeout(()=>c.abort(),1800);
@@ -171,7 +226,8 @@ function autoGrow(){ const a=el('q'); a.style.height='auto'; a.style.height=Math
 el('q').addEventListener('input',autoGrow);
 el('q').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); ask(); } });
 el('send').onclick=ask;
-el('reset').onclick=e=>{ e.preventDefault(); if(S.msgs.length && !confirm('この端末の会話履歴を消して新しい会話を始めますか？'))return; S={msgs:[],session:null}; save(); renderThread(); el('q').focus(); };
+el('newBtn').onclick=newConv;
+el('histBtn').onclick=()=>{ const h=el('hist'); if(h.style.display==='none'||!h.style.display){ renderHist(); h.style.display=''; } else h.style.display='none'; };
 
 renderThread(); health(); el('q').focus();
 </script>

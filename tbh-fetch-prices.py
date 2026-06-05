@@ -87,6 +87,9 @@ def main():
     for e in d.get("equipment", []): _attach(e, _bg(e))            # 装備は base|grade でアイコン解決
     if d.get("uniqueMods"):
         for it2 in d["uniqueMods"]["items"]: _attach(it2, _bg(it2))
+    if d.get("crafting"):                                          # クラフト素材は nameEn でアイコン解決
+        for r in d["crafting"].get("recipes", []):
+            for m in r.get("materials", []): _attach(m, icon_by_hash.get(m.get("nameEn")))
     d["icons"] = icons
     d.setdefault("_meta", {})["iconCdn"] = "https://community.akamai.steamstatic.com/economy/image/"
 

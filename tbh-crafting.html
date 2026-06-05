@@ -28,6 +28,7 @@
   .mat:hover{border-color:var(--accent);}
   .mat:last-child{margin-bottom:0;}
   .grade-dot{width:10px;height:10px;border-radius:50%;flex:none;}
+  .micon{width:40px;height:40px;flex:none;border-radius:6px;background:#0d0b08;border:1px solid var(--border);object-fit:contain;}
   .mname{font-size:14px;font-weight:600;}
   .men{font-size:11px;color:var(--muted);}
   .mqty{font-size:13px;color:var(--text);margin-left:auto;white-space:nowrap;}
@@ -60,8 +61,9 @@ const APPID="3678970";
 const GORDER=["COMMON","UNCOMMON","RARE","LEGENDARY","IMMORTAL","ARCANA","CELESTIAL","COSMIC","DIVINE","BEYOND"];
 const GCOLOR={COMMON:"--g-common",UNCOMMON:"--g-uncommon",RARE:"--g-rare",LEGENDARY:"--g-legendary",IMMORTAL:"--g-immortal",ARCANA:"--g-arcana",CELESTIAL:"--g-celestial",COSMIC:"--g-cosmic",DIVINE:"--g-divine",BEYOND:"--g-beyond"};
 const GJA={COMMON:"コモン",UNCOMMON:"アンコモン",RARE:"レア",LEGENDARY:"レジェンド",IMMORTAL:"イモータル",ARCANA:"アルカナ",CELESTIAL:"セレスティアル",COSMIC:"コズミック",DIVINE:"ディバイン",BEYOND:"ビヨンド"};
-let RECIPES=[], PRICES={};
+let RECIPES=[], PRICES={}, ICONS={}, ICON_CDN="";
 let curTier=null, curType=null;
+function iconUrl(m){const h=m.icon&&ICONS[m.icon];return h?ICON_CDN+h:null;}
 
 function gradeColor(g){return getComputedStyle(document.documentElement).getPropertyValue(GCOLOR[g]||"--muted").trim()||"#9a8f7a";}
 function priceOf(nameEn){const p=PRICES[nameEn];return p&&p.sell!=null?p.sell:null;}
@@ -83,8 +85,10 @@ function render(){
       const col=gradeColor(m.grade);
       const pr=priceOf(m.nameEn);
       const prTxt=pr!=null?(pr.toLocaleString()+"G"):"—";
+      const iu=iconUrl(m);
+      const iconHtml=iu?`<img class="micon" src="${iu}" alt="" loading="lazy" style="border-color:${col}">`:`<span class="grade-dot" style="background:${col}"></span>`;
       return `<a class="mat" href="${steamUrl(m)}" target="_blank" rel="noopener">
-        <span class="grade-dot" style="background:${col}"></span>
+        ${iconHtml}
         <span>
           <span class="mname">${m.nameJa}</span>
           <span class="gbadge" style="background:${col}">${GJA[m.grade]||m.grade}</span><br>
@@ -144,6 +148,8 @@ Promise.all([
 ]).then(([data,prices])=>{
   RECIPES=((data.crafting&&data.crafting.recipes)||[]).slice().sort((a,b)=>a.tier-b.tier);
   PRICES=(prices&&prices.prices)||{};
+  ICONS=data.icons||{};
+  ICON_CDN=(data._meta&&data._meta.iconCdn)||"";
   buildFilters();
   render();
 }).catch(err=>{

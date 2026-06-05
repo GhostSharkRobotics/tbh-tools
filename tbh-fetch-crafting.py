@@ -130,6 +130,18 @@ def main():
 
     path = os.path.join(HERE, "tbh-data.json")
     data = json.load(open(path, encoding="utf-8"))
+
+    # 既存データの素材アイコン(Steam由来、tbh-fetch-prices.py が付与)を nameEn で引き継ぐ。
+    # これをしないと再生成のたびに素材アイコンが消える（prices側の再実行が必要になる）。
+    old_icon = {m.get("nameEn"): m.get("icon")
+                for r in data.get("crafting", {}).get("recipes", [])
+                for m in r.get("materials", []) if m.get("icon")}
+    for r in recipes:
+        for m in r["materials"]:
+            ic = old_icon.get(m["nameEn"])
+            if ic:
+                m["icon"] = ic
+
     data["crafting"] = {
         "recipes": recipes,
         "tiers": tiers,

@@ -85,6 +85,8 @@
 <div class="row" id="typeChips"></div>
 <div class="lbl" id="lblPart"></div>
 <div class="row" id="catChips"></div>
+<div class="lbl" id="lblGear" style="display:none"></div>
+<div class="row" id="gearChips"></div>
 <div class="lbl" id="lblColor"></div>
 <div class="row" id="colorChips"></div>
 
@@ -117,7 +119,7 @@ const CAT_KEYS=["weapon","armor","accessory"];
 const T={
  ja:{title:"TBH アイテム検索",sub:"装備（武器/防具/アクセ/オフハンド）と強化素材（装飾/彫刻/碑文）を検索 — ヘッダクリックで並べ替え・ドラッグで列幅調整、名前クリックでSteamマーケットのページを開く。",
    ph:"効果・名前で検索（攻撃速度 / エメラルド / Composite Bow / 指輪）",quick:"よく使う効果（DPS）",type:"アイテム種別",
-   part:"部位",color:"色（宝石のみ）",gem:"装飾(宝石)",engraving:"彫刻",inscription:"碑文(刻印)",equipment:"装備",unique:"特殊",
+   part:"部位",gear:"種類（指輪・頭 など）",color:"色（宝石のみ）",gem:"装飾(宝石)",engraving:"彫刻",inscription:"碑文(刻印)",equipment:"装備",unique:"特殊",
    weapon:"武器",armor:"防具",accessory:"アクセ",offhand:"オフハンド",any:"全部位",scroll:"巻物",allRar:"全レアリティ",allLevel:"全レベル",lvl:"Lv",hits:n=>`${n} 件`,
    slot:s=>s,empty:"該当なし。検索ワードやフィルタを変えてください。",
    cols:{name:"名前",type:"種別",rarity:"レアリティ",slot:"部位",lv:"Lv",effect:"効果",value:"値",price:"価格",set:"セット効果"},
@@ -128,7 +130,7 @@ const T={
         `<span style="color:var(--warn)">⚠</span>=低信頼の数値、実機要確認。`},
  en:{title:"TBH Item Search",sub:"Search equipment (weapon/armor/accessory/offhand) and enhancement materials (gem/engraving/inscription). Click a header to sort, drag to resize columns, click a name to open its Steam Market page.",
    ph:"Search by effect or name (Attack Speed / Emerald / Composite Bow / Ring)",quick:"Common effects (DPS)",type:"Item type",
-   part:"Slot",color:"Color (gems only)",gem:"Decoration (Gem)",engraving:"Engraving",inscription:"Inscription (碑文)",equipment:"Equipment",unique:"Special",
+   part:"Slot",gear:"Gear type (Ring, Helmet…)",color:"Color (gems only)",gem:"Decoration (Gem)",engraving:"Engraving",inscription:"Inscription (碑文)",equipment:"Equipment",unique:"Special",
    weapon:"Weapon",armor:"Armor",accessory:"Accessory",offhand:"Offhand",any:"any slot",scroll:"Scroll",allRar:"All rarities",allLevel:"All levels",lvl:"Lv",hits:n=>`${n} results`,
    slot:s=>s,empty:"No matches. Try a different term or filter.",
    cols:{name:"Name",type:"Type",rarity:"Rarity",slot:"Slot",lv:"Lv",effect:"Effect",value:"Value",price:"Price",set:"Set effect"},
@@ -169,6 +171,9 @@ const UNIQUE=((DATA.uniqueMods&&DATA.uniqueMods.items)||[]).map(it=>{
     price:(PBG[it.nameEn+"|"+gr]!=null?PBG[it.nameEn+"|"+gr]:null)};
 });
 const LEVELS=[...new Set([...EQUIP.map(e=>e.lvl),...UNIQUE.map(u=>u.lvl)].filter(v=>v!=null))].sort((a,b)=>a-b);
+// 部位(cat) ごとの具体的な種類(gearJa) 一覧
+const GEAR_BY_CAT={};
+EQUIP.forEach(e=>{(GEAR_BY_CAT[e.cat]=GEAR_BY_CAT[e.cat]||[]);if(e.gearJa&&!GEAR_BY_CAT[e.cat].includes(e.gearJa))GEAR_BY_CAT[e.cat].push(e.gearJa);});
 
 // ---- flat index (gems + engravings) ----
 const INDEX=[];
@@ -183,7 +188,7 @@ const INSC=DATA.inscriptions||{scrolls:[],effects:[]};
 const COLORS=[...new Set(INDEX.filter(x=>x.color).map(x=>x.color))];
 
 // ---- state ----
-const state={lang:"ja",q:"",stat:null,types:new Set(["gem","engraving","inscription","unique"]),cats:new Set(),colors:new Set(),rarity:"",level:"",sortCol:"value",sortDir:"desc"};
+const state={lang:"ja",q:"",stat:null,types:new Set(["gem","engraving","inscription","unique"]),cats:new Set(),gears:new Set(),colors:new Set(),rarity:"",level:"",sortCol:"value",sortDir:"desc"};
 const L=()=>T[state.lang];
 const lc=()=>state.lang==="ja"?"ja":"en";
 const statLabel=s=>state.lang==="ja"?s:(SM[s]||s);
@@ -233,6 +238,7 @@ function matchText(name,nameEn,stat){if(!state.q)return true;const q=state.q.toL
   return [name,nameEn,stat,SM[stat]||""].some(v=>(v||"").toLowerCase().includes(q));}
 function matches(x){
   if(!state.types.has(x.type))return false;
+  if(state.gears.size)return false;            // 素材に具体的な種類(gear)は無い
   if(state.stat&&x.stat!==state.stat)return false;
   if(state.cats.size&&!state.cats.has(x.cat))return false;
   if(state.colors.size&&!(x.color&&state.colors.has(x.color)))return false;
@@ -241,7 +247,7 @@ function matches(x){
 }
 function inscMatch(e){
   if(!state.types.has("inscription"))return false;
-  if(state.cats.size||state.colors.size||state.level)return false;   // inscriptions have no slot/color/level
+  if(state.cats.size||state.colors.size||state.level||state.gears.size)return false;   // inscriptions have no slot/color/level/gear
   if(state.rarity&&!e.byGrade[state.rarity])return false;
   if(state.stat&&e.stat!==state.stat)return false;
   return matchText("刻印","Inscription",e.stat);
@@ -250,6 +256,7 @@ function equipMatch(e){
   if(!state.types.has("equipment"))return false;
   if(state.colors.size)return false;                            // 装備に色は無い
   if(state.cats.size&&!state.cats.has(e.cat))return false;
+  if(state.gears.size&&!state.gears.has(e.gearJa))return false;  // 種類(指輪/頭 等)で絞り込み
   if(state.rarity&&e.rarity!==state.rarity)return false;
   if(state.level&&String(e.lvl)!==state.level)return false;
   if(state.stat&&!(e.stats||[]).some(s=>s.ja===state.stat))return false;   // 効果(固有ステータス)で絞り込み
@@ -261,6 +268,7 @@ function uniqueMatch(u){
   if(!state.types.has("unique"))return false;
   if(state.stat||state.colors.size)return false;               // 特殊効果は数値stat/色では絞らない（文字検索で対応）
   if(state.cats.size&&!state.cats.has(u.cat))return false;
+  if(state.gears.size&&!state.gears.has(u.gear))return false;   // 種類で絞り込み(uniqueのgearはJP)
   if(state.rarity&&u.rarity!==state.rarity)return false;
   if(state.level&&String(u.lvl)!==state.level)return false;
   if(!state.q)return true;
@@ -332,6 +340,7 @@ function clickHeader(k){
   render();
 }
 window._ch=clickHeader;
+window._tg=function(g){state.gears.has(g)?state.gears.delete(g):state.gears.add(g);render();};
 // ---- 列幅: ドラッグで調整＋localStorageに記憶 ----
 const COLW_DEFAULT={name:220,type:88,rarity:92,slot:70,lv:56,effect:250,value:86,price:78,set:150};
 function loadColW(){try{return JSON.parse(localStorage.getItem("tbhColW"))||{};}catch(e){return {};}}
@@ -353,6 +362,13 @@ window._cp=function(en,ev){if(navigator.clipboard)navigator.clipboard.writeText(
     const s=document.createElement("span");s.className="cpok";s.textContent=" ✓copied";t.appendChild(s);setTimeout(()=>s.remove(),1100);}};
 
 function render(){
+  // 種類(gear)サブフィルタ: 選択中の部位(cat)に属する種類を表示。無効な選択は除去
+  const gearOpts=[]; state.cats.forEach(c=>(GEAR_BY_CAT[c]||[]).forEach(g=>{if(!gearOpts.includes(g))gearOpts.push(g);}));
+  [...state.gears].forEach(g=>{if(!gearOpts.includes(g))state.gears.delete(g);});
+  if(gearOpts.length){el("lblGear").style.display="";el("lblGear").textContent=L().gear;el("gearChips").style.display="";
+    el("gearChips").innerHTML=gearOpts.map(g=>`<div class="chip${state.gears.has(g)?' on':''}" onclick="_tg('${g}')">${g}</div>`).join("");
+  } else {el("lblGear").style.display="none";el("gearChips").style.display="none";el("gearChips").innerHTML="";}
+
   document.querySelectorAll("#quickStats .chip").forEach(c=>c.classList.toggle("on",c.dataset.stat===state.stat));
   document.querySelectorAll("#typeChips .chip").forEach(c=>c.classList.toggle("on",state.types.has(c.dataset.type)));
   document.querySelectorAll("#catChips .chip").forEach(c=>c.classList.toggle("on",state.cats.has(c.dataset.cat)));

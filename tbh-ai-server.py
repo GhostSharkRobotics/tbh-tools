@@ -74,9 +74,21 @@ def extract_json(text):
     return None
 
 
-def run_claude(body):
-    req = (body.get("request") or "").strip() or "DPS最大化のビルドを提案して"
-    prompt = PROMPT.replace("%%STATE%%", json.dumps(body, ensure_ascii=False)).replace("%%REQUEST%%", req)
+CHAT_PROMPT = """あなたは放置ハクスラ「Task Bar Hero (TBH)」のアイテム/ビルドに詳しいアシスタントです。
+このフォルダの ./tbh-data.json（宝石/彫刻/刻印/装備/固有効果の実数値）と ./tbh-prices.json（Steam相場のスナップショット）を必要に応じて Grep/Read で参照し、根拠のある回答をしてください（巨大なので全文読みせず検索推奨）。
+DPS式: DPS = 攻撃力 × 攻撃速度 × (1 + クリ率 × (クリダメ/100 − 1)) × (1 + ダメージ種別%/100) × バフ。クリダメはゲーム表示の「合計倍率%」。
+回答ルール:
+- 質問と同じ言語で、簡潔に（前置き不要、結論から）。
+- アイテム名は 日本語(英語) 併記。価格に触れるなら中央値 $ を添える。
+- 装飾(宝石)は「色×部位(武器/防具/アクセ)」で効果が変わる点に注意。
+- uncertain:true など不確実なデータは断定しない。
+
+質問:
+%%Q%%
+"""
+
+
+def _run(prompt):
     proc = subprocess.run(
         [CLAUDE, "-p", prompt,
          "--dangerously-skip-permissions",
@@ -86,12 +98,24 @@ def run_claude(body):
     )
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.strip() or "claude failed")
-    env = json.loads(proc.stdout)
-    obj = extract_json(env.get("result", ""))
+    return json.loads(proc.stdout).get("result", "")
+
+
+def run_claude(body):
+    req = (body.get("request") or "").strip() or "DPS最大化のビルドを提案して"
+    prompt = PROMPT.replace("%%STATE%%", json.dumps(body, ensure_ascii=False)).replace("%%REQUEST%%", req)
+    obj = extract_json(_run(prompt))
     if obj is None:
         raise RuntimeError("claudeの出力からJSONを取り出せませんでした")
     obj.setdefault("note", "")
     return obj
+
+
+def run_chat(body):
+    q = (body.get("question") or "").strip()
+    if not q:
+        raise RuntimeError("質問が空です")
+    return {"answer": _run(CHAT_PROMPT.replace("%%Q%%", q)).strip()}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -112,12 +136,13 @@ class Handler(BaseHTTPRequestHandler):
         self._serve_static()
 
     def do_POST(self):
-        if self.path.split("?")[0] != "/optimize":
+        route = self.path.split("?")[0]
+        if route not in ("/optimize", "/chat"):
             self.send_response(404); self._cors(); self.end_headers(); return
         try:
             length = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(length) or b"{}")
-            self._json(run_claude(body))
+            self._json(run_chat(body) if route == "/chat" else run_claude(body))
         except Exception as e:  # noqa: BLE001
             self._json({"error": str(e)}, code=500)
 

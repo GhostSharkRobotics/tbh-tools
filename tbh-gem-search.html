@@ -79,6 +79,14 @@
   <button class="langbtn" id="lang">A</button>
 </div>
 
+<div id="aiPanel" style="display:none;margin-bottom:14px;">
+  <div class="search" style="margin-bottom:6px;">
+    <input id="aiReq" type="text" placeholder="AIに相談（例: クリダメを安く盛るなら？物理レンジャー向けのおすすめ宝石は？）">
+    <button class="langbtn" id="aiGo" style="font-weight:600;">相談</button>
+  </div>
+  <div id="aiAns" class="note" style="white-space:pre-wrap;"></div>
+</div>
+
 <div class="lbl" id="lblQuick"></div>
 <div class="row" id="quickStats"></div>
 <div class="lbl" id="lblType"></div>
@@ -421,6 +429,27 @@ function render(){
 }
 
 buildChips();applyLangText();render();
+
+// ---- local AI consult (このデバイスのみ・tbh-ai-server.py 経由) ----
+const AI_BASE=(location.port==='8765')?'':'http://localhost:8765';
+(async()=>{ try{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),1500);
+  const r=await fetch(AI_BASE+'/health',{signal:c.signal}); clearTimeout(t);
+  if(r.ok) el('aiPanel').style.display=''; }catch(e){/* 未起動→出さない */} })();
+function aiEsc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+async function aiAsk(){
+  const btn=el('aiGo'),ans=el('aiAns'),q=el('aiReq').value.trim();
+  if(!q){el('aiReq').focus();return;}
+  const old=btn.textContent; btn.disabled=true; btn.textContent='…'; ans.textContent='考え中…（tbh-data/pricesを参照するので数十秒かかることがあります）';
+  try{
+    const r=await fetch(AI_BASE+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+    const o=await r.json();
+    if(o.error) ans.innerHTML='<span style="color:var(--warn)">エラー: '+aiEsc(o.error)+'</span>';
+    else ans.innerHTML=aiEsc(o.answer||'(空の回答)').replace(/\n/g,'<br>');
+  }catch(e){ ans.innerHTML='<span style="color:var(--warn)">接続できませんでした（tbh-ai-server.py 未起動？）</span>'; }
+  finally{ btn.disabled=false; btn.textContent=old; }
+}
+el('aiGo').onclick=aiAsk;
+el('aiReq').addEventListener('keydown',e=>{if(e.key==='Enter')aiAsk();});
 </script>
 <script src="analytics.js"></script>
 </body>

@@ -80,22 +80,29 @@
 </div>
 
 <style>
-  #aiAns{margin-top:8px;}
-  #aiAns p{margin:6px 0;}
-  #aiAns .aih{font-weight:600;color:var(--accent);margin:11px 0 4px;font-size:13px;}
-  #aiAns ul,#aiAns ol{margin:6px 0 6px 20px;}
-  #aiAns li{margin:2px 0;}
-  #aiAns code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:12px;}
-  #aiAns table.aitbl{border-collapse:collapse;margin:8px 0;width:100%;}
-  #aiAns .aitbl th,#aiAns .aitbl td{border:1px solid var(--border);padding:4px 9px;text-align:left;font-size:12px;vertical-align:top;}
-  #aiAns .aitbl th{color:var(--muted);font-weight:600;background:var(--surface);}
+  #aiThread{margin-bottom:8px;}
+  .aimsg{margin:8px 0;font-size:13px;}
+  .aimsg .who{font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:.04em;}
+  .aimsg.u .bubble{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:7px 11px;display:inline-block;}
+  .aimsg.a .bubble{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:9px 12px;}
+  .aimd p{margin:6px 0;} .aimd .aih{font-weight:600;color:var(--accent);margin:11px 0 4px;font-size:13px;}
+  .aimd ul,.aimd ol{margin:6px 0 6px 20px;} .aimd li{margin:2px 0;}
+  .aimd code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:12px;}
+  .aimd table.aitbl{border-collapse:collapse;margin:8px 0;width:100%;}
+  .aimd .aitbl th,.aimd .aitbl td{border:1px solid var(--border);padding:4px 9px;text-align:left;font-size:12px;vertical-align:top;}
+  .aimd .aitbl th{color:var(--muted);font-weight:600;background:var(--surface);}
+  #aiStatus{font-size:12px;color:var(--accent);min-height:16px;margin-top:4px;}
+  .airow{display:flex;justify-content:space-between;align-items:center;}
+  .airow a{font-size:11px;color:var(--muted);text-decoration:none;}
+  .airow a:hover{color:var(--accent);}
 </style>
 <div id="aiPanel" style="display:none;margin-bottom:14px;">
-  <div class="search" style="margin-bottom:6px;">
-    <input id="aiReq" type="text" placeholder="AIに相談（例: クリダメを安く盛るなら？物理レンジャー向けのおすすめ宝石は？）">
+  <div id="aiThread"></div>
+  <div class="search" style="margin-bottom:4px;">
+    <input id="aiReq" type="text" placeholder="AIに相談（例: クリダメを安く盛るなら？ そのまま続けて質問もできます）">
     <button class="langbtn" id="aiGo" style="font-weight:600;">相談</button>
   </div>
-  <div id="aiAns" class="note"></div>
+  <div class="airow"><div id="aiStatus"></div><a id="aiReset" href="#">会話をリセット</a></div>
 </div>
 
 <div class="lbl" id="lblQuick"></div>
@@ -470,20 +477,51 @@ function aiMd(src){
   }
   return h;
 }
+// SSEストリームをPOSTで読む（進捗→onProgress、最終結果を返す）
+async function aiStreamPost(url, payload, onProgress){
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  if(!r.body) throw new Error('no stream');
+  const reader=r.body.getReader(), dec=new TextDecoder(); let buf='', result=null, err=null, sid=null;
+  while(true){
+    const {value,done}=await reader.read(); if(done) break;
+    buf+=dec.decode(value,{stream:true}); let i;
+    while((i=buf.indexOf('\n\n'))>=0){
+      const line=buf.slice(0,i).replace(/^data: ?/,'').trim(); buf=buf.slice(i+2);
+      if(!line) continue; let ev; try{ev=JSON.parse(line);}catch(e){continue;}
+      if(ev.progress) onProgress&&onProgress(ev.progress);
+      else if(ev.error) err=ev.error;
+      else if(ev.done){ result=ev.result; sid=ev.session_id||null; }
+    }
+  }
+  if(err) throw new Error(err);
+  return {result, sid};
+}
+let aiSession=null, aiTimer=null;
+function aiAddMsg(cls, who, html){
+  const d=document.createElement('div'); d.className='aimsg '+cls;
+  d.innerHTML='<div class="who">'+who+'</div><div class="bubble">'+html+'</div>';
+  el('aiThread').appendChild(d); return d.querySelector('.bubble');
+}
 async function aiAsk(){
-  const btn=el('aiGo'),ans=el('aiAns'),q=el('aiReq').value.trim();
+  const btn=el('aiGo'), st=el('aiStatus'), q=el('aiReq').value.trim();
   if(!q){el('aiReq').focus();return;}
-  const old=btn.textContent; btn.disabled=true; btn.textContent='…'; ans.textContent='考え中…（tbh-data/pricesを参照するので数十秒かかることがあります）';
+  aiAddMsg('u','あなた',aiEsc(q)); el('aiReq').value='';
+  const bubble=aiAddMsg('a','AI','<span class="aimd"></span>');
+  const md=bubble.querySelector('.aimd');
+  const t0=Date.now(); let last='AIを起動中…';
+  const tick=()=>{ st.textContent=last+'  （'+Math.floor((Date.now()-t0)/1000)+'秒）'; };
+  if(aiTimer)clearInterval(aiTimer); tick(); aiTimer=setInterval(tick,1000);
+  btn.disabled=true; const old=btn.textContent; btn.textContent='…';
   try{
-    const r=await fetch(AI_BASE+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
-    const o=await r.json();
-    if(o.error) ans.innerHTML='<span style="color:var(--warn)">エラー: '+aiEsc(o.error)+'</span>';
-    else ans.innerHTML=aiMd(o.answer||'(空の回答)');
-  }catch(e){ ans.innerHTML='<span style="color:var(--warn)">接続できませんでした（tbh-ai-server.py 未起動？）</span>'; }
-  finally{ btn.disabled=false; btn.textContent=old; }
+    const {result,sid}=await aiStreamPost(AI_BASE+'/chat',{question:q,session_id:aiSession||undefined},m=>{last=m;tick();});
+    if(sid) aiSession=sid;
+    md.innerHTML=aiMd((result&&result.answer)||'(空の回答)');
+  }catch(e){ md.innerHTML='<span style="color:var(--warn)">'+(String(e.message).includes('fetch')?'接続できませんでした（tbh-ai-server.py 未起動？）':aiEsc(e.message))+'</span>'; }
+  finally{ clearInterval(aiTimer); aiTimer=null; st.textContent=''; btn.disabled=false; btn.textContent=old; el('aiReq').focus(); }
 }
 el('aiGo').onclick=aiAsk;
 el('aiReq').addEventListener('keydown',e=>{if(e.key==='Enter')aiAsk();});
+el('aiReset').onclick=e=>{e.preventDefault(); aiSession=null; el('aiThread').innerHTML=''; el('aiStatus').textContent=''; el('aiReq').focus();};
 </script>
 <script src="analytics.js"></script>
 </body>

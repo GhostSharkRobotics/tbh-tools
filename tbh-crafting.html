@@ -51,6 +51,14 @@
   .og{border:1px solid var(--border);border-radius:6px;padding:2px 7px;white-space:nowrap;}
   .ogp{color:var(--accent);}
   .ogp.gray{color:var(--muted);}
+  .help{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;}
+  .help summary{cursor:pointer;color:var(--accent);font-size:14px;font-weight:600;}
+  .help .helpbody{font-size:13px;color:var(--text);margin-top:8px;}
+  .help p{margin:6px 0 2px;}
+  .help ul{margin:0 0 4px;padding-left:18px;}
+  .help li{margin:3px 0;color:var(--muted);}
+  .help li b{color:var(--text);}
+  .hk{display:inline-block;background:var(--accent);color:#1a1610;border-radius:5px;padding:0 6px;font-size:12px;font-weight:700;}
   .note{font-size:12px;color:var(--muted);margin-top:22px;border-top:1px solid var(--border);padding-top:12px;}
   .loading{color:var(--muted);padding:30px 0;text-align:center;}
 </style>
@@ -59,6 +67,27 @@
 <a class="back" href="index.html">← ツール一覧</a>
 <h1>🧱 クラフト素材</h1>
 <div class="sub">タスクバーヒーローの装備クラフト（キューブ）レシピと必要素材。素材名をタップで Steam マーケットへ。</div>
+
+<details class="help">
+  <summary>💡 使い方・用語（タップで開く）</summary>
+  <div class="helpbody">
+    <p><b>目的別の並べ替え</b>（下の「並び」ボタン）：</p>
+    <ul>
+      <li><b>レベル上げ最優先</b> → <span class="hk">exp効率順</span>（素材$1あたり一番expが稼げる）</li>
+      <li><b>稼ぎ最優先</b> → <span class="hk">利益順</span>（1回の期待利益が大きい）</li>
+      <li><b>1回で多くexp</b> → <span class="hk">exp順</span>　／　<b>元手効率で稼ぐ</b> → <span class="hk">ROI順</span></li>
+    </ul>
+    <p>「Tier」で装備レベル帯を、「部位」で武器/防具/アクセを絞れます。</p>
+    <p><b>用語</b>：</p>
+    <ul>
+      <li><b>素材コスト</b>＝素材を市場で買う最安合計。</li>
+      <li><b>期待販売額</b>＝完成品はランダムなグレード。各グレードが出る確率×その装備の市場中央値の合計（売れないレジェ未満は$0）。</li>
+      <li><b>期待利益</b>＝期待販売額 − 素材コスト。「平均すると1回でこれだけ儲かる」目安。</li>
+      <li><b>ROI</b>＝投資利益率＝利益÷コスト×100%。<b>+126%なら $1の素材→平均 +$1.26 の儲け</b>（$1が$2.26に）。金額は「利益」、効率は「ROI」で見る。</li>
+      <li><b>キューブexp / exp/$</b>＝クラフト1回で入るキューブexp（＝投入素材のグレード基礎exp合計。各素材行に内訳）と、$1あたりのexp（レベル上げ効率）。</li>
+    </ul>
+  </div>
+</details>
 
 <div class="filters" id="tierFilter"></div>
 <div class="filters" id="typeFilter"></div>

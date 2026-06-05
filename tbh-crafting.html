@@ -52,7 +52,7 @@
 <div id="list"><div class="loading">読み込み中…</div></div>
 
 <div class="note">
-  データは <code>tbh-data.json</code> の <code>crafting.recipes</code> 由来。価格は <code>tbh-prices.json</code>（Steam相場）のスナップショットで、最安（sell）を表示。<br>
+  データは <code>tbh-data.json</code> の <code>crafting.recipes</code> 由来。価格は <code>tbh-prices.json</code>（Steam Community Market 相場）のスナップショットで、最安の販売価格（USD）を表示。<br>
   数値はコミュニティwiki由来でやや不確実、実機の値が優先。
 </div>
 
@@ -84,7 +84,7 @@ function render(){
     const mats=r.materials.map(m=>{
       const col=gradeColor(m.grade);
       const pr=priceOf(m.nameEn);
-      const prTxt=pr!=null?(pr.toLocaleString()+"G"):"—";
+      const prTxt=pr!=null?("$"+(pr/100).toFixed(2)):"—";
       const iu=iconUrl(m);
       const iconHtml=iu?`<img class="micon" src="${iu}" alt="" loading="lazy" style="border-color:${col}">`:`<span class="grade-dot" style="background:${col}"></span>`;
       return `<a class="mat" href="${steamUrl(m)}" target="_blank" rel="noopener">

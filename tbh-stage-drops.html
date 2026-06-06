@@ -126,6 +126,11 @@ const DIFF_JA=Object.fromEntries(DIFFS.map(d=>[d.k,d.ja]));
 const BOXSTYLE={normal:{ja:"白箱（通常モンスター）",en:"Normal monster",col:"var(--box-white)"},
   stageBoss:{ja:"青箱（ステージボス）",en:"Stage boss",col:"var(--box-blue)"},
   actBoss:{ja:"金箱（章ボス）",en:"Act boss",col:"var(--box-gold)"}};
+// 武器種→対応クラス（職別グループ判定用）。これに全member該当=職別、それ以外(防具4部位/素材)=ランダム
+const W2C={SWORD:"ナイト",BOW:"レンジャー",STAFF:"ソーサラー",SCEPTER:"プリースト",
+  SHIELD:"ナイト",ARROW:"レンジャー",ORB:"ソーサラー",TOME:"プリースト",
+  CROSSBOW:"ハンター",AXE:"スレイヤー",BOLT:"ハンター",HATCHET:"スレイヤー"};
+const isClassWeaponGroup=mem=>mem.every(x=>x.gearEn&&W2C[x.gearEn]);
 const GRADE_ORDER=["COMMON","UNCOMMON","RARE","LEGENDARY","IMMORTAL","ARCANA","BEYOND","CELESTIAL","DIVINE","COSMIC"];
 const gradeIdx=g=>{const i=GRADE_ORDER.indexOf(g);return i<0?99:i;};
 const APPID="3678970";
@@ -247,10 +252,20 @@ function contentTable(boxKey){
     const nm=r.name||{}; const tiny=r.pct<0.5;
     // バーは絶対スケール（40px=100%）。相対だと同値で全部MAXに見えるため
     const bw=Math.max(2,Math.round(40*Math.min(r.pct,100)/100));
-    // 基本4職の主武器などはグループ化されている→members全員を表示（弓=レンジャー等が隠れないように）
+    // 束ねられたグループ(主武器/サブ武器/防具/素材)はmembers全員を表示。
+    // 武器=職別(各職が自分の1種をこの確率で入手)／防具4部位・素材=ランダム(いずれか1種)。
     const mem=r.members;
-    const nameCell = mem ? mem.map(x=>itemLink({ja:x.ja,en:x.en})).join('<span class="sep"> / </span>') : itemLink(nm);
-    const gearCell = mem ? `${mem.map(x=>esc(x.gear)).join(" / ")}<span class="cls">職で変化</span>` : `${esc(r.gear||"")}${clsPill(r.heroClass)}`;
+    let nameCell, gearCell;
+    if(mem){
+      if(isClassWeaponGroup(mem)){
+        nameCell = mem.map(x=>`${itemLink({ja:x.ja,en:x.en})}<span class="cls">${W2C[x.gearEn]}</span>`).join('<span class="sep"> / </span>');
+        gearCell = `${mem.map(x=>esc(x.gear)).join(" / ")}<span class="cls">職別</span>`;
+      } else {
+        nameCell = mem.map(x=>itemLink({ja:x.ja,en:x.en})).join('<span class="sep"> / </span>');
+        const gj = mem.map(x=>esc(x.gear)).filter(Boolean).join(" / ");
+        gearCell = `${gj||"素材/宝石"}<span class="cls">いずれか${mem.length}種</span>`;
+      }
+    } else { nameCell=itemLink(nm); gearCell=`${esc(r.gear||"")}${clsPill(r.heroClass)}`; }
     h+=`<tr class="r"><td class="l nm">${nameCell}</td>`+
        `<td class="l gear">${gearCell}</td>`+
        `<td>${gradePill(r.grade)}</td>`+
@@ -306,10 +321,12 @@ function renderSearch(){
         // グループ化された主武器等はmembersを個別に検索対象に（弓/シャドウボウで一致するように）
         const variants = r.members ? r.members
           : [{ja:r.name&&r.name.ja, en:r.name&&r.name.en, gear:r.gear, gearEn:r.gearEn}];
+        // 武器グループは各職が自分の1種をこの確率で入手＝member毎にpct。素材等ランダム群は確率を共有
+        const share = (r.members && !isClassWeaponGroup(r.members)) ? r.members.length : 0;
         for(const vi of variants){
           const hay=((vi.ja||"")+" "+(vi.en||"")+" "+(vi.gear||"")).toLowerCase();
           if(hay.includes(q))
-            hits.push({nm:{ja:vi.ja,en:vi.en},grade:r.grade,gear:vi.gear,heroClass:r.heroClass,stage:s,typeKey,pct:r.pct});
+            hits.push({nm:{ja:vi.ja,en:vi.en},grade:r.grade,gear:vi.gear,heroClass:r.heroClass,stage:s,typeKey,pct:r.pct,share});
         }
       }
     }
@@ -324,7 +341,8 @@ function renderSearch(){
     const arr=groups[key].sort((a,b)=>b.pct-a.pct);
     const f=arr[0];
     html+=`<div class="rev-item">${gradePill(f.grade)} ${itemLink(f.nm)}`+
-      `<span class="gear" style="margin-left:8px">${esc(f.gear||"")}</span>${clsPill(f.heroClass)}</div>`;
+      `<span class="gear" style="margin-left:8px">${esc(f.gear||"")}</span>${clsPill(f.heroClass)}`+
+      `${f.share?`<span class="cls">いずれか${f.share}種で確率共有</span>`:""}</div>`;
     html+=`<table><thead><tr><th class="l">ステージ</th><th class="l">箱</th><th>確率</th></tr></thead><tbody>`;
     for(const h of arr){
       const st=BOXSTYLE[h.typeKey];
@@ -365,7 +383,8 @@ fetch('tbh-data.json').then(r=>r.json()).then(d=>{
     `職専用枠（クロスボウ＝ハンター等）は、職を選ぶとその職基準で確率を取り直します。`+
     `<br>同じ「1-1」でも<b>難易度ごとに別ステージ・別の箱</b>（高難易度ほど高レア度の比率が上がる）。難易度を切り替えて表示します。`+
     `<br><b>レア度</b>フィルタは「選んだレア度以上のみ表示」（確率は箱から実際に出る値のまま・分母は変えません）。`+
-    `アイテム名クリックでSteamマーケット検索へ（レジェ未満は市場対象外で出品が無い場合あり）。<b>&lt;0.01%</b>＝0ではなく極小（重みが正なので必ず抽選対象）。`;
+    `アイテム名クリックでSteamマーケット検索へ（レジェ未満は市場対象外で出品が無い場合あり）。<b>&lt;0.01%</b>＝0ではなく極小（重みが正なので必ず抽選対象）。`+
+    `<br>1行に複数アイテムは<b>束ねられたグループ</b>：武器(剣/弓/杖/セプター等)は<b>職別</b>＝自職の1種をその確率で入手。防具4部位・素材/宝石は<b>いずれか1種</b>＝表示%をその種数で分け合います。`;
   render();
 }).catch(e=>{$("view").innerHTML=`<div class="empty">データの読み込みに失敗しました。${esc(e.message)}</div>`;});
 </script>

@@ -148,11 +148,15 @@ function renderChips(){
   const dc=$("diffChips"); dc.innerHTML="";
   DIFFS.forEach(df=>dc.appendChild(chip(df.ja,state.diff===df.k,()=>{
     if(state.diff===df.k) return;
-    state.diff=df.k; state.stage=null; save(); render();
+    const cur=STAGES.find(x=>x.stageKey===state.stage);
+    state.diff=df.k;
+    // 難易度を変えても同じ「N-M」を保つ（無ければ自動選択に任せる）
+    if(cur){const eq=STAGES.find(x=>x.difficulty===df.k&&x.act===cur.act&&x.stageNo===cur.stageNo);state.stage=eq?eq.stageKey:null;}
+    save(); render();
   })));
   const ac=$("actChips"); ac.innerHTML="";
-  ac.appendChild(chip("すべて",state.act==null,()=>{state.act=null;save();renderStages();}));
-  [1,2,3].forEach(a=>ac.appendChild(chip(a+"章",state.act===a,()=>{state.act=a;save();renderStages();})));
+  ac.appendChild(chip("すべて",state.act==null,()=>{state.act=null;save();render();}));
+  [1,2,3].forEach(a=>ac.appendChild(chip(a+"章",state.act===a,()=>{state.act=a;save();render();})));
   const cc=$("classChips"); cc.innerHTML="";
   cc.appendChild(chip("すべて",state.cls==null,()=>{state.cls=null;save();render();}));
   CLASSES.forEach(c=>cc.appendChild(chip(c.ja,state.cls===c.k,()=>{state.cls=c.k;save();render();})));
@@ -275,12 +279,17 @@ function renderSearch(){
   v.innerHTML=html;
 }
 
+// 現在の難易度・章で選択中ステージが無効なら、先頭ステージを自動選択（常にアイテムが見える状態に）
+function ensureStage(){
+  const list=STAGES.filter(s=>s.difficulty===state.diff && (state.act==null||s.act===state.act));
+  if(!list.some(s=>s.stageKey===state.stage)) state.stage = list.length?list[0].stageKey:null;
+}
 function render(){
   renderChips();
-  renderStages();
   const searching=state.q.trim().length>0;
   $("stagesWrap").style.display=searching?"none":"";
-  if(searching) renderSearch(); else renderDetail();
+  if(searching){ renderStages(); renderSearch(); }
+  else { ensureStage(); renderStages(); renderDetail(); }
 }
 
 $("search").addEventListener("input",e=>{state.q=e.target.value;render();});

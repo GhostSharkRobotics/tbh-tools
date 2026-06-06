@@ -33,7 +33,17 @@
 - **Gearは武器も防具も混在**＝武器だけ入れても兜・鎧などが出る（種類は選べない）
 - **出ないもの**：Hunter DLC未所有なら**クロスボウ/ボルトは絶対に出ない**、Slayer DLC未所有なら**斧/ハチェットは絶対に出ない**
 
+**Gear（武器・防具）で出やすい種類：**
+
 [chart:synthGearType]
+
+**Accessory（アクセサリ）で出やすい種類：**
+
+[chart:synthAccessoryType]
+
+**Material（素材）で出やすい種類：**
+
+[chart:synthMaterialType]
 
 **昇格確率（1つ上のグレードへ上がる確率）— レジェまで100%、イモータルから急落＝「壁」：**
 

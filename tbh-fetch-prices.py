@@ -109,5 +109,12 @@ def main():
         open(fp, "w", encoding="utf-8").write(h)
         print("injected ->", fn)
 
+    # お買い得ファインダーは tbh-data.json + tbh-prices.json から都度再生成
+    try:
+        import subprocess, sys
+        subprocess.run([sys.executable, os.path.join(HERE, "tbh-build-deals.py")], check=True)
+    except Exception as ex:
+        print("deals rebuild skipped:", ex)
+
 if __name__ == "__main__":
     main()

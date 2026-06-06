@@ -30,15 +30,18 @@
   button.chip:hover{border-color:var(--accent);}
   button.chip.on{background:var(--accent);color:#1a1610;border-color:var(--accent);font-weight:600;}
 
-  .seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
-  .seg button{background:var(--surface);border:none;border-left:1px solid var(--border);color:var(--text);padding:5px 14px;font-size:13px;cursor:pointer;}
-  .seg button:first-child{border-left:none;}
-  .seg button.on{background:var(--accent);color:#1a1610;font-weight:600;}
+  .toggle{display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none;}
+  .toggle input{position:absolute;opacity:0;width:0;height:0;}
+  .tg-track{width:42px;height:24px;border-radius:13px;background:var(--surface2);border:1px solid var(--border);position:relative;transition:.15s;flex:none;}
+  .tg-knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:.15s;}
+  .toggle input:checked + .tg-track{background:var(--accent);border-color:var(--accent);}
+  .toggle input:checked + .tg-track .tg-knob{left:20px;background:#1a1610;}
+  .tg-label{font-size:14px;color:var(--text);}
 
   .count{font-size:12px;color:var(--muted);margin:6px 0 12px;}
 
   table{width:100%;border-collapse:collapse;font-size:13px;}
-  th{font-size:11px;color:var(--muted);font-weight:500;text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+  th{font-size:11px;color:var(--muted);font-weight:500;text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;}
   th.l{text-align:left;}
   th .arr{color:var(--accent);}
   td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
@@ -97,7 +100,7 @@
     <p><b>③ 実タイムを入れる</b> → そのステージの推定を実測で上書き。2つ以上入れると総HP・Wave数から残りのステージのタイムも自動補正し、<b>毎時EXPで並べ替え</b>ます（緑＝実測）。</p>
     <ul>
       <li><b>オーバーレベル補正</b>＝自分のレベルがステージより高いほど貰えるEXPが減る隠し仕様。同レベル付近は100%、離れるほど急減（ゲーム内部コードを解析した式・実測±1%）。低レベル側（格上ステージ）はもっと緩やか。</li>
-      <li><b>補正EXP</b>＝1クリアで実際に入る経験値。<b>毎時EXP</b>＝補正EXP ÷ クリア秒 × 3600。</li>
+      <li><b>1回EXP</b>＝1クリアで実際に入る経験値。<b>毎時EXP</b>＝1回EXP ÷ クリア秒 × 3600。</li>
       <li>ボーナス%（ルーン/装備）は全ステージ一律なので順位は変わりません。</li>
     </ul>
     <p class="est">入力は端末に保存されます。<button class="reset" id="resetBtn">入力をリセット</button></p>
@@ -125,11 +128,11 @@
 
 <div class="filters" id="diffFilter"></div>
 <div class="filters">
-  <span class="flabel">並び</span>
-  <span class="seg" id="sortSeg">
-    <button data-s="eph" class="on">毎時EXP順</button>
-    <button data-s="exp">1回EXP順</button>
-  </span>
+  <label class="toggle">
+    <input type="checkbox" id="useTime">
+    <span class="tg-track"><span class="tg-knob"></span></span>
+    <span class="tg-label">クリア秒を反映（毎時EXPで並べる）</span>
+  </label>
 </div>
 <div class="count" id="count"></div>
 <div id="banner"></div>
@@ -147,7 +150,7 @@ const DIFF_COL={NORMAL:"--d-normal",NIGHTMARE:"--d-nightmare",HELL:"--d-hell",TO
 const LS="tbh-exp-v1";
 
 let STAGES=[];
-let state={lvl:"",dps:"",bonus:"",diff:null,sort:"eph",times:{}};
+let state={lvl:"",dps:"",bonus:"",diff:null,sort:"exp",times:{}};
 
 // ── オーバーレベル経験値補正（taskbarherowiki.com がゲーム内部コードから解析した式）──
 function expMult(hero, stage){
@@ -328,17 +331,14 @@ function bindInputs(){
   };
   bind('lvl','lvl'); bind('dps','dps'); bind('bonus','bonus');
 
-  const seg=document.getElementById('sortSeg');
-  seg.querySelectorAll('button').forEach(b=>{
-    b.classList.toggle('on',b.dataset.s===state.sort);
-    b.addEventListener('click',()=>{
-      state.sort=b.dataset.s;
-      seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.s===state.sort));
-      save();render();
-    });
+  const useTime=document.getElementById('useTime');
+  useTime.checked = state.sort==="eph";
+  useTime.addEventListener('change',()=>{
+    state.sort = useTime.checked ? "eph" : "exp";
+    save();render();
   });
   document.getElementById('resetBtn').addEventListener('click',()=>{
-    state={lvl:"",dps:"",bonus:"",diff:null,sort:"eph",times:{}};
+    state={lvl:"",dps:"",bonus:"",diff:null,sort:"exp",times:{}};
     localStorage.removeItem(LS);location.reload();
   });
 }

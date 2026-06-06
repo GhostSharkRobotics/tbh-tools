@@ -26,7 +26,7 @@
     },
     "iconCdn": "https://community.akamai.steamstatic.com/economy/image/",
     "equipStatNote": "装備ステータスはprobonk(ゲーム内部)由来を実機表示にスケール: %系(攻撃速度/クリ等)とADDITIVE/MULT=÷10して整数%、毎秒HP回復=÷100、実数系(防御/HP/移動/攻撃)はそのまま。",
-    "enemyStageNote": "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。各敵の attack は1発(基本攻撃)の詳細: damage=1発の基礎ダメージ(基準/レベルスケール), element=属性, range=射程, multiplier=スキル倍率(value/1000, 通常×1.0), speed=攻撃速度, activation=発動種別, skillKeys=参照スキルID(ボスは複数フェーズ), detailed=完全な攻撃詳細の有無。source が attack 詳細を持つのはact1の16体のみで、残り45体は range/multiplier/activation が未公開のため null(推測しない)。stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。difficulties[] は各難易度の属性耐性デバフとレベル範囲: resistancePenalty=プレイヤーの全属性耐性が受けるFLAT減算 (NORMAL 0 / NIGHTMARE -20 / HELL -40 / TORMENT -60), resistanceDebuff=属性別の減算値, resBuffKeys=probonk buff の参照ID。ペナルティ値はprobonk/buffs由来(事実)、tier↔難易度名の対応は tier3段=NORMAL以外の3難易度の1:1対応(ペナルティ昇順+レベル範囲一致)から確定した構造的対応。",
+    "enemyStageNote": "enemies/stages は probonk(実機データマイン)由来。敵の atk/hp は基準値で各ステージの実値は level に応じてスケールする。element は敵attack/スキルの DamageType から導出した分のみ(残りは null=未確認)。各敵の attack は1発(基本攻撃)の詳細: damage=1発の基礎ダメージ(基準/レベルスケール), element=属性, range=射程, multiplier=スキル倍率(value/1000, 通常×1.0), speed=攻撃速度, activation=発動種別, skillKeys=参照スキルID(ボスは複数フェーズ), detailed=完全な攻撃詳細の有無。source が attack 詳細を持つのはact1の16体のみで、残り45体は range/multiplier/activation が未公開のため null(推測しない)。stages の expectedExp/expectedGold はクリア期待値(tbh.city由来)。stages の scaledBoss={hp,damage} はそのステージのボス(最強敵)のレベルスケール後の実値、avgMonsterHp/avgMonsterDmg は雑魚(wave)のスケール後の平均HP/平均ダメージ(いずれもtbh.city個別ページ由来、ボス専用ステージの平均は0)。enemies[].atk/hp が基準値なのに対し、これら scaled* がそのステージで実際に出る数値。difficulty: NORMAL/NIGHTMARE/HELL/TORMENT。type ACTBOSS=章ボスステージ。difficulties[] は各難易度の属性耐性デバフとレベル範囲: resistancePenalty=プレイヤーの全属性耐性が受けるFLAT減算 (NORMAL 0 / NIGHTMARE -20 / HELL -40 / TORMENT -60), resistanceDebuff=属性別の減算値, resBuffKeys=probonk buff の参照ID。ペナルティ値はprobonk/buffs由来(事実)、tier↔難易度名の対応は tier3段=NORMAL以外の3難易度の1:1対応(ペナルティ昇順+レベル範囲一致)から確定した構造的対応。",
     "skillNote": "skills(アクティブ106)/passiveSkills(108) は probonk(実機データマイン)由来。skillKeyの第1桁=クラス(1ナイト/2レンジャー/3ソーサラー/4プリースト/5ハンター/6スレイヤー)。levels[]はLv1〜10の生値(説明文{0}に対応)。value/paramsはprobonk内部生値で実機表示とスケールが異なる場合あり(%系は概ね÷10で整数%)。",
     "weaponBaseNote": "基礎攻撃速度/基礎クリ等は個別装備ではなく『その武器種を使うクラス』の基礎値（probonk heroes 由来）。弓=Ranger 基礎攻撃速度1.0/秒 等。装備の攻撃速度%等はこの基礎値に加算/乗算される。raw値: 攻撃/詠唱速度は÷100=回/秒, クリ率/クリダメは÷10=%。",
     "marketNote": "equipment[].market = そのアイテムがSteamマーケットで取引可能か。false = Ver1.00.07(2026-06-02)でSteam負荷対策により市場削除された Lv25/35/45/55/60/70/75/85/90 装備(およびUncommon以上のTypeB)。これらはゲーム内に存在し所持・使用可だが新規入手・合成・取引は不可。true = 現行マーケットで取引可(Lv1/5/10/15/20/30/40/50/65/80 のLegendary+)。出典: store.steampowered.com/news/app/3678970 (1.00.07 / Urgent Notice)。",
@@ -77840,7 +77840,13 @@
         10021
       ],
       "expectedGold": 140,
-      "expectedExp": 155
+      "expectedExp": 155,
+      "scaledBoss": {
+        "hp": 135,
+        "damage": 20
+      },
+      "avgMonsterHp": 42.5,
+      "avgMonsterDmg": 12.5
     },
     {
       "key": 1102,
@@ -77856,7 +77862,13 @@
         10022
       ],
       "expectedGold": 497,
-      "expectedExp": 456
+      "expectedExp": 456,
+      "scaledBoss": {
+        "hp": 324,
+        "damage": 58.5
+      },
+      "avgMonsterHp": 78,
+      "avgMonsterDmg": 15.2
     },
     {
       "key": 1103,
@@ -77873,7 +77885,13 @@
         10031
       ],
       "expectedGold": 988,
-      "expectedExp": 789
+      "expectedExp": 789,
+      "scaledBoss": {
+        "hp": 858,
+        "damage": 56
+      },
+      "avgMonsterHp": 69.1,
+      "avgMonsterDmg": 20.4
     },
     {
       "key": 1104,
@@ -77890,7 +77908,13 @@
         10041
       ],
       "expectedGold": 1967,
-      "expectedExp": 2979
+      "expectedExp": 2979,
+      "scaledBoss": {
+        "hp": 1520,
+        "damage": 88
+      },
+      "avgMonsterHp": 146.5,
+      "avgMonsterDmg": 30.9
     },
     {
       "key": 1105,
@@ -77908,7 +77932,13 @@
         10042
       ],
       "expectedGold": 3390,
-      "expectedExp": 7391
+      "expectedExp": 7391,
+      "scaledBoss": {
+        "hp": 4070,
+        "damage": 132.6
+      },
+      "avgMonsterHp": 237.6,
+      "avgMonsterDmg": 38
     },
     {
       "key": 1106,
@@ -77925,7 +77955,13 @@
         10043
       ],
       "expectedGold": 4633,
-      "expectedExp": 11704
+      "expectedExp": 11704,
+      "scaledBoss": {
+        "hp": 1770,
+        "damage": 186
+      },
+      "avgMonsterHp": 526.1,
+      "avgMonsterDmg": 43.2
     },
     {
       "key": 1107,
@@ -77941,7 +77977,13 @@
         10052
       ],
       "expectedGold": 3564,
-      "expectedExp": 15111
+      "expectedExp": 15111,
+      "scaledBoss": {
+        "hp": 3888,
+        "damage": 210
+      },
+      "avgMonsterHp": 238.7,
+      "avgMonsterDmg": 57
     },
     {
       "key": 1108,
@@ -77958,7 +78000,13 @@
         10053
       ],
       "expectedGold": 5795,
-      "expectedExp": 26966
+      "expectedExp": 26966,
+      "scaledBoss": {
+        "hp": 2037,
+        "damage": 246
+      },
+      "avgMonsterHp": 407.7,
+      "avgMonsterDmg": 69.2
     },
     {
       "key": 1109,
@@ -77977,7 +78025,13 @@
         10053
       ],
       "expectedGold": 10071,
-      "expectedExp": 59813
+      "expectedExp": 59813,
+      "scaledBoss": {
+        "hp": 11877,
+        "damage": 224.4
+      },
+      "avgMonsterHp": 759,
+      "avgMonsterDmg": 73.5
     },
     {
       "key": 1110,
@@ -77989,7 +78043,13 @@
       "boss": 10901,
       "enemies": [],
       "expectedGold": 3250,
-      "expectedExp": 1332
+      "expectedExp": 1332,
+      "scaledBoss": {
+        "hp": 15435,
+        "damage": 235
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 1201,
@@ -78005,7 +78065,13 @@
         20022
       ],
       "expectedGold": 9114,
-      "expectedExp": 74432
+      "expectedExp": 74432,
+      "scaledBoss": {
+        "hp": 8865,
+        "damage": 255
+      },
+      "avgMonsterHp": 853.7,
+      "avgMonsterDmg": 58.3
     },
     {
       "key": 1202,
@@ -78022,7 +78088,13 @@
         20024
       ],
       "expectedGold": 12129,
-      "expectedExp": 100241
+      "expectedExp": 100241,
+      "scaledBoss": {
+        "hp": 5397,
+        "damage": 238.5
+      },
+      "avgMonsterHp": 1317.1,
+      "avgMonsterDmg": 68.9
     },
     {
       "key": 1203,
@@ -78040,7 +78112,13 @@
         20041
       ],
       "expectedGold": 12657,
-      "expectedExp": 117422
+      "expectedExp": 117422,
+      "scaledBoss": {
+        "hp": 10791,
+        "damage": 302.4
+      },
+      "avgMonsterHp": 2154.4,
+      "avgMonsterDmg": 87.8
     },
     {
       "key": 1204,
@@ -78058,7 +78136,13 @@
         20051
       ],
       "expectedGold": 14440,
-      "expectedExp": 151300
+      "expectedExp": 151300,
+      "scaledBoss": {
+        "hp": 10989,
+        "damage": 407.1
+      },
+      "avgMonsterHp": 2606.7,
+      "avgMonsterDmg": 102
     },
     {
       "key": 1205,
@@ -78075,7 +78159,13 @@
         20051
       ],
       "expectedGold": 13419,
-      "expectedExp": 153438
+      "expectedExp": 153438,
+      "scaledBoss": {
+        "hp": 34293,
+        "damage": 297.6
+      },
+      "avgMonsterHp": 2186.8,
+      "avgMonsterDmg": 93
     },
     {
       "key": 1206,
@@ -78092,7 +78182,13 @@
         20071
       ],
       "expectedGold": 25926,
-      "expectedExp": 352425
+      "expectedExp": 352425,
+      "scaledBoss": {
+        "hp": 80595,
+        "damage": 390
+      },
+      "avgMonsterHp": 4999.9,
+      "avgMonsterDmg": 115.4
     },
     {
       "key": 1207,
@@ -78110,7 +78206,13 @@
         20081
       ],
       "expectedGold": 26451,
-      "expectedExp": 355721
+      "expectedExp": 355721,
+      "scaledBoss": {
+        "hp": 46662,
+        "damage": 408
+      },
+      "avgMonsterHp": 7041,
+      "avgMonsterDmg": 115.9
     },
     {
       "key": 1208,
@@ -78127,7 +78229,13 @@
         20091
       ],
       "expectedGold": 21603,
-      "expectedExp": 305561
+      "expectedExp": 305561,
+      "scaledBoss": {
+        "hp": 44658,
+        "damage": 426
+      },
+      "avgMonsterHp": 5907.1,
+      "avgMonsterDmg": 108.2
     },
     {
       "key": 1209,
@@ -78145,7 +78253,13 @@
         20111
       ],
       "expectedGold": 38929,
-      "expectedExp": 585796
+      "expectedExp": 585796,
+      "scaledBoss": {
+        "hp": 149292,
+        "damage": 377.4
+      },
+      "avgMonsterHp": 11181.3,
+      "avgMonsterDmg": 120.8
     },
     {
       "key": 1210,
@@ -78157,7 +78271,13 @@
       "boss": 20901,
       "enemies": [],
       "expectedGold": 8500,
-      "expectedExp": 2808
+      "expectedExp": 2808,
+      "scaledBoss": {
+        "hp": 202945,
+        "damage": 616
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 1301,
@@ -78173,7 +78293,13 @@
         30013
       ],
       "expectedGold": 29423,
-      "expectedExp": 500587
+      "expectedExp": 500587,
+      "scaledBoss": {
+        "hp": 56115,
+        "damage": 408
+      },
+      "avgMonsterHp": 7085.2,
+      "avgMonsterDmg": 120
     },
     {
       "key": 1302,
@@ -78191,7 +78317,13 @@
         30041
       ],
       "expectedGold": 31223,
-      "expectedExp": 448164
+      "expectedExp": 448164,
+      "scaledBoss": {
+        "hp": 29547,
+        "damage": 373.5
+      },
+      "avgMonsterHp": 11545.7,
+      "avgMonsterDmg": 123
     },
     {
       "key": 1303,
@@ -78208,7 +78340,13 @@
         30042
       ],
       "expectedGold": 42969,
-      "expectedExp": 563089
+      "expectedExp": 563089,
+      "scaledBoss": {
+        "hp": 52041,
+        "damage": 464.4
+      },
+      "avgMonsterHp": 13214.2,
+      "avgMonsterDmg": 167.3
     },
     {
       "key": 1304,
@@ -78226,7 +78364,13 @@
         30051
       ],
       "expectedGold": 45860,
-      "expectedExp": 593565
+      "expectedExp": 593565,
+      "scaledBoss": {
+        "hp": 47439,
+        "damage": 614.1
+      },
+      "avgMonsterHp": 20869.7,
+      "avgMonsterDmg": 127.6
     },
     {
       "key": 1305,
@@ -78244,7 +78388,13 @@
         30051
       ],
       "expectedGold": 46263,
-      "expectedExp": 698314
+      "expectedExp": 698314,
+      "scaledBoss": {
+        "hp": 134343,
+        "damage": 441.6
+      },
+      "avgMonsterHp": 18155.8,
+      "avgMonsterDmg": 128.8
     },
     {
       "key": 1306,
@@ -78262,7 +78412,13 @@
         30091
       ],
       "expectedGold": 91212,
-      "expectedExp": 1763625
+      "expectedExp": 1763625,
+      "scaledBoss": {
+        "hp": 289845,
+        "damage": 570
+      },
+      "avgMonsterHp": 23939,
+      "avgMonsterDmg": 262.8
     },
     {
       "key": 1307,
@@ -78280,7 +78436,13 @@
         30084
       ],
       "expectedGold": 96091,
-      "expectedExp": 1713679
+      "expectedExp": 1713679,
+      "scaledBoss": {
+        "hp": 155562,
+        "damage": 588
+      },
+      "avgMonsterHp": 21768.9,
+      "avgMonsterDmg": 229.3
     },
     {
       "key": 1308,
@@ -78297,7 +78459,13 @@
         30111
       ],
       "expectedGold": 160443,
-      "expectedExp": 2798571
+      "expectedExp": 2798571,
+      "scaledBoss": {
+        "hp": 139158,
+        "damage": 606
+      },
+      "avgMonsterHp": 20338.1,
+      "avgMonsterDmg": 209.9
     },
     {
       "key": 1309,
@@ -78315,7 +78483,13 @@
         30111
       ],
       "expectedGold": 160725,
-      "expectedExp": 2969575
+      "expectedExp": 2969575,
+      "scaledBoss": {
+        "hp": 437892,
+        "damage": 532.9
+      },
+      "avgMonsterHp": 21253,
+      "avgMonsterDmg": 216.5
     },
     {
       "key": 1310,
@@ -78327,7 +78501,13 @@
       "boss": 30901,
       "enemies": [],
       "expectedGold": 18750,
-      "expectedExp": 644
+      "expectedExp": 644,
+      "scaledBoss": {
+        "hp": 776985,
+        "damage": 759.5
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 2101,
@@ -78343,7 +78523,13 @@
         10022
       ],
       "expectedGold": 101920,
-      "expectedExp": 1821200
+      "expectedExp": 1821200,
+      "scaledBoss": {
+        "hp": 148365,
+        "damage": 576.3
+      },
+      "avgMonsterHp": 14287,
+      "avgMonsterDmg": 131.8
     },
     {
       "key": 2102,
@@ -78360,7 +78546,13 @@
         10023
       ],
       "expectedGold": 123520,
-      "expectedExp": 2191500
+      "expectedExp": 2191500,
+      "scaledBoss": {
+        "hp": 74697,
+        "damage": 531
+      },
+      "avgMonsterHp": 14228,
+      "avgMonsterDmg": 156.4
     },
     {
       "key": 2103,
@@ -78377,7 +78569,13 @@
         10031
       ],
       "expectedGold": 145008,
-      "expectedExp": 2377700
+      "expectedExp": 2377700,
+      "scaledBoss": {
+        "hp": 126291,
+        "damage": 666.9
+      },
+      "avgMonsterHp": 11959.4,
+      "avgMonsterDmg": 163.6
     },
     {
       "key": 2104,
@@ -78394,7 +78592,13 @@
         10041
       ],
       "expectedGold": 152155,
-      "expectedExp": 2725690
+      "expectedExp": 2725690,
+      "scaledBoss": {
+        "hp": 103329,
+        "damage": 852.1
+      },
+      "avgMonsterHp": 17221.5,
+      "avgMonsterDmg": 176
     },
     {
       "key": 2105,
@@ -78412,7 +78616,13 @@
         10042
       ],
       "expectedGold": 202332,
-      "expectedExp": 3638131
+      "expectedExp": 3638131,
+      "scaledBoss": {
+        "hp": 283383,
+        "damage": 621.6
+      },
+      "avgMonsterHp": 22177.8,
+      "avgMonsterDmg": 189.1
     },
     {
       "key": 2106,
@@ -78429,7 +78639,13 @@
         10043
       ],
       "expectedGold": 244882,
-      "expectedExp": 4518360
+      "expectedExp": 4518360,
+      "scaledBoss": {
+        "hp": 593595,
+        "damage": 816
+      },
+      "avgMonsterHp": 39206.6,
+      "avgMonsterDmg": 189.6
     },
     {
       "key": 2107,
@@ -78445,7 +78661,13 @@
         10052
       ],
       "expectedGold": 152334,
-      "expectedExp": 2620678
+      "expectedExp": 2620678,
+      "scaledBoss": {
+        "hp": 310002,
+        "damage": 858
+      },
+      "avgMonsterHp": 15569.7,
+      "avgMonsterDmg": 233
     },
     {
       "key": 2108,
@@ -78462,7 +78684,13 @@
         10053
       ],
       "expectedGold": 210052,
-      "expectedExp": 3699182
+      "expectedExp": 3699182,
+      "scaledBoss": {
+        "hp": 270378,
+        "damage": 906
+      },
+      "avgMonsterHp": 21045,
+      "avgMonsterDmg": 254.8
     },
     {
       "key": 2109,
@@ -78481,7 +78709,13 @@
         10053
       ],
       "expectedGold": 307664,
-      "expectedExp": 5593624
+      "expectedExp": 5593624,
+      "scaledBoss": {
+        "hp": 831012,
+        "damage": 816
+      },
+      "avgMonsterHp": 37788.4,
+      "avgMonsterDmg": 267.3
     },
     {
       "key": 2110,
@@ -78493,7 +78727,13 @@
       "boss": 10902,
       "enemies": [],
       "expectedGold": 30550,
-      "expectedExp": 13392
+      "expectedExp": 13392,
+      "scaledBoss": {
+        "hp": 1251845,
+        "damage": 1120
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 2201,
@@ -78509,7 +78749,13 @@
         20022
       ],
       "expectedGold": 232350,
-      "expectedExp": 4353962
+      "expectedExp": 4353962,
+      "scaledBoss": {
+        "hp": 254565,
+        "damage": 867
+      },
+      "avgMonsterHp": 24513.7,
+      "avgMonsterDmg": 198.3
     },
     {
       "key": 2202,
@@ -78526,7 +78772,13 @@
         20024
       ],
       "expectedGold": 288250,
-      "expectedExp": 5333920
+      "expectedExp": 5333920,
+      "scaledBoss": {
+        "hp": 118797,
+        "damage": 765
+      },
+      "avgMonsterHp": 28992.1,
+      "avgMonsterDmg": 221
     },
     {
       "key": 2203,
@@ -78544,7 +78796,13 @@
         20041
       ],
       "expectedGold": 286676,
-      "expectedExp": 5193650
+      "expectedExp": 5193650,
+      "scaledBoss": {
+        "hp": 197901,
+        "damage": 977.4
+      },
+      "avgMonsterHp": 38813.9,
+      "avgMonsterDmg": 291.1
     },
     {
       "key": 2204,
@@ -78562,7 +78820,13 @@
         20051
       ],
       "expectedGold": 277100,
-      "expectedExp": 5166480
+      "expectedExp": 5166480,
+      "scaledBoss": {
+        "hp": 161919,
+        "damage": 1248.9
+      },
+      "avgMonsterHp": 37890.1,
+      "avgMonsterDmg": 317.6
     },
     {
       "key": 2205,
@@ -78579,7 +78843,13 @@
         20051
       ],
       "expectedGold": 244428,
-      "expectedExp": 4578412
+      "expectedExp": 4578412,
+      "scaledBoss": {
+        "hp": 437943,
+        "damage": 926.4
+      },
+      "avgMonsterHp": 27926.8,
+      "avgMonsterDmg": 289.5
     },
     {
       "key": 2206,
@@ -78596,7 +78866,13 @@
         20071
       ],
       "expectedGold": 368024,
-      "expectedExp": 6994650
+      "expectedExp": 6994650,
+      "scaledBoss": {
+        "hp": 856845,
+        "damage": 1158
+      },
+      "avgMonsterHp": 53156.1,
+      "avgMonsterDmg": 342.6
     },
     {
       "key": 2207,
@@ -78614,7 +78890,13 @@
         20081
       ],
       "expectedGold": 370369,
-      "expectedExp": 7170445
+      "expectedExp": 7170445,
+      "scaledBoss": {
+        "hp": 442662,
+        "damage": 1236
+      },
+      "avgMonsterHp": 62110.6,
+      "avgMonsterDmg": 330.8
     },
     {
       "key": 2208,
@@ -78631,7 +78913,13 @@
         20091
       ],
       "expectedGold": 305341,
-      "expectedExp": 5748400
+      "expectedExp": 5748400,
+      "scaledBoss": {
+        "hp": 362178,
+        "damage": 1236
+      },
+      "avgMonsterHp": 48206.6,
+      "avgMonsterDmg": 339
     },
     {
       "key": 2209,
@@ -78649,7 +78937,13 @@
         20111
       ],
       "expectedGold": 496819,
-      "expectedExp": 9403456
+      "expectedExp": 9403456,
+      "scaledBoss": {
+        "hp": 1104012,
+        "damage": 1122
+      },
+      "avgMonsterHp": 80450.8,
+      "avgMonsterDmg": 373.6
     },
     {
       "key": 2210,
@@ -78661,7 +78955,13 @@
       "boss": 20902,
       "enemies": [],
       "expectedGold": 39550,
-      "expectedExp": 20664
+      "expectedExp": 20664,
+      "scaledBoss": {
+        "hp": 1380015,
+        "damage": 2200
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 2301,
@@ -78677,7 +78977,13 @@
         30013
       ],
       "expectedGold": 321591,
-      "expectedExp": 6137678
+      "expectedExp": 6137678,
+      "scaledBoss": {
+        "hp": 335565,
+        "damage": 1198.5
+      },
+      "avgMonsterHp": 41759.2,
+      "avgMonsterDmg": 352.5
     },
     {
       "key": 2302,
@@ -78695,7 +79001,13 @@
         30041
       ],
       "expectedGold": 373539,
-      "expectedExp": 6489884
+      "expectedExp": 6489884,
+      "scaledBoss": {
+        "hp": 164787,
+        "damage": 1129.5
+      },
+      "avgMonsterHp": 95907.8,
+      "avgMonsterDmg": 359.8
     },
     {
       "key": 2303,
@@ -78713,7 +79025,13 @@
         30044
       ],
       "expectedGold": 361610,
-      "expectedExp": 5161942
+      "expectedExp": 5161942,
+      "scaledBoss": {
+        "hp": 272151,
+        "damage": 1447.2
+      },
+      "avgMonsterHp": 66878,
+      "avgMonsterDmg": 535.2
     },
     {
       "key": 2304,
@@ -78732,7 +79050,13 @@
         30051
       ],
       "expectedGold": 373922,
-      "expectedExp": 5167636
+      "expectedExp": 5167636,
+      "scaledBoss": {
+        "hp": 233739,
+        "damage": 1970
+      },
+      "avgMonsterHp": 99063.6,
+      "avgMonsterDmg": 430.2
     },
     {
       "key": 2305,
@@ -78751,7 +79075,13 @@
         30051
       ],
       "expectedGold": 362126,
-      "expectedExp": 5638578
+      "expectedExp": 5638578,
+      "scaledBoss": {
+        "hp": 626313,
+        "damage": 1464
+      },
+      "avgMonsterHp": 88742.2,
+      "avgMonsterDmg": 489.9
     },
     {
       "key": 2306,
@@ -78769,7 +79099,13 @@
         30091
       ],
       "expectedGold": 637990,
-      "expectedExp": 12734966
+      "expectedExp": 12734966,
+      "scaledBoss": {
+        "hp": 1225395,
+        "damage": 1830
+      },
+      "avgMonsterHp": 92083.8,
+      "avgMonsterDmg": 794.6
     },
     {
       "key": 2307,
@@ -78787,7 +79123,13 @@
         30084
       ],
       "expectedGold": 590571,
-      "expectedExp": 11250108
+      "expectedExp": 11250108,
+      "scaledBoss": {
+        "hp": 627462,
+        "damage": 1959
+      },
+      "avgMonsterHp": 90995.6,
+      "avgMonsterDmg": 774.3
     },
     {
       "key": 2308,
@@ -78805,7 +79147,13 @@
         30111
       ],
       "expectedGold": 1006954,
-      "expectedExp": 19213435
+      "expectedExp": 19213435,
+      "scaledBoss": {
+        "hp": 513378,
+        "damage": 1959
+      },
+      "avgMonsterHp": 77112.3,
+      "avgMonsterDmg": 752.8
     },
     {
       "key": 2309,
@@ -78824,7 +79172,13 @@
         30111
       ],
       "expectedGold": 1029308,
-      "expectedExp": 19766330
+      "expectedExp": 19766330,
+      "scaledBoss": {
+        "hp": 1551732,
+        "damage": 1785
+      },
+      "avgMonsterHp": 85073,
+      "avgMonsterDmg": 875
     },
     {
       "key": 2310,
@@ -78836,7 +79190,13 @@
       "boss": 30902,
       "enemies": [],
       "expectedGold": 54250,
-      "expectedExp": 2064
+      "expectedExp": 2064,
+      "scaledBoss": {
+        "hp": 2735425,
+        "damage": 2800
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 3101,
@@ -78852,7 +79212,13 @@
         10022
       ],
       "expectedGold": 510646,
-      "expectedExp": 9896040
+      "expectedExp": 9896040,
+      "scaledBoss": {
+        "hp": 467865,
+        "damage": 1915
+      },
+      "avgMonsterHp": 45053.7,
+      "avgMonsterDmg": 438.1
     },
     {
       "key": 3102,
@@ -78869,7 +79235,13 @@
         10023
       ],
       "expectedGold": 608554,
-      "expectedExp": 11704500
+      "expectedExp": 11704500,
+      "scaledBoss": {
+        "hp": 227997,
+        "damage": 1813.5
+      },
+      "avgMonsterHp": 43428,
+      "avgMonsterDmg": 534
     },
     {
       "key": 3103,
@@ -78886,7 +79258,13 @@
         10031
       ],
       "expectedGold": 660660,
-      "expectedExp": 11647890
+      "expectedExp": 11647890,
+      "scaledBoss": {
+        "hp": 373791,
+        "damage": 2335.5
+      },
+      "avgMonsterHp": 35396.9,
+      "avgMonsterDmg": 573.1
     },
     {
       "key": 3104,
@@ -78903,7 +79281,13 @@
         10041
       ],
       "expectedGold": 687065,
-      "expectedExp": 13280085
+      "expectedExp": 13280085,
+      "scaledBoss": {
+        "hp": 318789,
+        "damage": 3201.6
+      },
+      "avgMonsterHp": 53131.5,
+      "avgMonsterDmg": 661.2
     },
     {
       "key": 3105,
@@ -78921,7 +79305,13 @@
         10042
       ],
       "expectedGold": 820042,
-      "expectedExp": 15844032
+      "expectedExp": 15844032,
+      "scaledBoss": {
+        "hp": 848493,
+        "damage": 2388
+      },
+      "avgMonsterHp": 66403.8,
+      "avgMonsterDmg": 726.4
     },
     {
       "key": 3106,
@@ -78938,7 +79328,13 @@
         10043
       ],
       "expectedGold": 964576,
-      "expectedExp": 18905670
+      "expectedExp": 18905670,
+      "scaledBoss": {
+        "hp": 1727595,
+        "damage": 3198
+      },
+      "avgMonsterHp": 114106.6,
+      "avgMonsterDmg": 743.2
     },
     {
       "key": 3107,
@@ -78954,7 +79350,13 @@
         10052
       ],
       "expectedGold": 579768,
-      "expectedExp": 10555925
+      "expectedExp": 10555925,
+      "scaledBoss": {
+        "hp": 878262,
+        "damage": 3423
+      },
+      "avgMonsterHp": 44110.2,
+      "avgMonsterDmg": 929.7
     },
     {
       "key": 3108,
@@ -78971,7 +79373,13 @@
         10053
       ],
       "expectedGold": 756982,
-      "expectedExp": 14064875
+      "expectedExp": 14064875,
+      "scaledBoss": {
+        "hp": 718578,
+        "damage": 3423
+      },
+      "avgMonsterHp": 55931,
+      "avgMonsterDmg": 962.7
     },
     {
       "key": 3109,
@@ -78990,7 +79398,13 @@
         10053
       ],
       "expectedGold": 1037687,
-      "expectedExp": 19815880
+      "expectedExp": 19815880,
+      "scaledBoss": {
+        "hp": 2157012,
+        "damage": 3103.3
+      },
+      "avgMonsterHp": 98085.3,
+      "avgMonsterDmg": 1016.7
     },
     {
       "key": 3110,
@@ -79002,7 +79416,13 @@
       "boss": 10903,
       "enemies": [],
       "expectedGold": 74050,
-      "expectedExp": 51408
+      "expectedExp": 51408,
+      "scaledBoss": {
+        "hp": 3249345,
+        "damage": 4259.5
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 3201,
@@ -79018,7 +79438,13 @@
         20022
       ],
       "expectedGold": 799069,
-      "expectedExp": 15651896
+      "expectedExp": 15651896,
+      "scaledBoss": {
+        "hp": 646065,
+        "damage": 3322.7
+      },
+      "avgMonsterHp": 62213.7,
+      "avgMonsterDmg": 760.1
     },
     {
       "key": 3202,
@@ -79035,7 +79461,13 @@
         20024
       ],
       "expectedGold": 1030956,
-      "expectedExp": 20042480
+      "expectedExp": 20042480,
+      "scaledBoss": {
+        "hp": 312837,
+        "damage": 3147.8
+      },
+      "avgMonsterHp": 76347.1,
+      "avgMonsterDmg": 909.4
     },
     {
       "key": 3203,
@@ -79053,7 +79485,13 @@
         20041
       ],
       "expectedGold": 1008833,
-      "expectedExp": 19173348
+      "expectedExp": 19173348,
+      "scaledBoss": {
+        "hp": 509751,
+        "damage": 4063.5
+      },
+      "avgMonsterHp": 96929.9,
+      "avgMonsterDmg": 1262.3
     },
     {
       "key": 3204,
@@ -79072,7 +79510,13 @@
         20051
       ],
       "expectedGold": 1150537,
-      "expectedExp": 22443113
+      "expectedExp": 22443113,
+      "scaledBoss": {
+        "hp": 432189,
+        "damage": 5592.4
+      },
+      "avgMonsterHp": 100723.3,
+      "avgMonsterDmg": 1436
     },
     {
       "key": 3205,
@@ -79090,7 +79534,13 @@
         20051
       ],
       "expectedGold": 880323,
-      "expectedExp": 17209808
+      "expectedExp": 17209808,
+      "scaledBoss": {
+        "hp": 1143813,
+        "damage": 4192.8
+      },
+      "avgMonsterHp": 73002.6,
+      "avgMonsterDmg": 1337.1
     },
     {
       "key": 3206,
@@ -79108,7 +79558,13 @@
         20071
       ],
       "expectedGold": 1336324,
-      "expectedExp": 26425279
+      "expectedExp": 26425279,
+      "scaledBoss": {
+        "hp": 2316195,
+        "damage": 5649
+      },
+      "avgMonsterHp": 139051.5,
+      "avgMonsterDmg": 1705.6
     },
     {
       "key": 3207,
@@ -79127,7 +79583,13 @@
         20081
       ],
       "expectedGold": 1519318,
-      "expectedExp": 30406964
+      "expectedExp": 30406964,
+      "scaledBoss": {
+        "hp": 1171302,
+        "damage": 6087
+      },
+      "avgMonsterHp": 160489.8,
+      "avgMonsterDmg": 1615.7
     },
     {
       "key": 3208,
@@ -79145,7 +79607,13 @@
         20091
       ],
       "expectedGold": 1358062,
-      "expectedExp": 26612169
+      "expectedExp": 26612169,
+      "scaledBoss": {
+        "hp": 990738,
+        "damage": 6555
+      },
+      "avgMonsterHp": 132688.1,
+      "avgMonsterDmg": 1814.3
     },
     {
       "key": 3209,
@@ -79163,7 +79631,13 @@
         20111
       ],
       "expectedGold": 1732340,
-      "expectedExp": 34081036
+      "expectedExp": 34081036,
+      "scaledBoss": {
+        "hp": 2957292,
+        "damage": 5995.1
+      },
+      "avgMonsterHp": 212835.4,
+      "avgMonsterDmg": 2030.4
     },
     {
       "key": 3210,
@@ -79175,7 +79649,13 @@
       "boss": 20903,
       "enemies": [],
       "expectedGold": 100150,
-      "expectedExp": 120900
+      "expectedExp": 120900,
+      "scaledBoss": {
+        "hp": 3886185,
+        "damage": 14106
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 3301,
@@ -79191,7 +79671,13 @@
         30013
       ],
       "expectedGold": 1131895,
-      "expectedExp": 22359123
+      "expectedExp": 22359123,
+      "scaledBoss": {
+        "hp": 880965,
+        "damage": 6443.8
+      },
+      "avgMonsterHp": 111233,
+      "avgMonsterDmg": 1895.2
     },
     {
       "key": 3302,
@@ -79209,7 +79695,13 @@
         30041
       ],
       "expectedGold": 1308900,
-      "expectedExp": 23406306
+      "expectedExp": 23406306,
+      "scaledBoss": {
+        "hp": 424347,
+        "damage": 6104.2
+      },
+      "avgMonsterHp": 257398.7,
+      "avgMonsterDmg": 1937.9
     },
     {
       "key": 3303,
@@ -79227,7 +79719,13 @@
         30044
       ],
       "expectedGold": 1224810,
-      "expectedExp": 17735760
+      "expectedExp": 17735760,
+      "scaledBoss": {
+        "hp": 687951,
+        "damage": 7854.3
+      },
+      "avgMonsterHp": 165856.3,
+      "avgMonsterDmg": 2947.5
     },
     {
       "key": 3304,
@@ -79246,7 +79744,13 @@
         30051
       ],
       "expectedGold": 1251021,
-      "expectedExp": 17582400
+      "expectedExp": 17582400,
+      "scaledBoss": {
+        "hp": 580419,
+        "damage": 10781.2
+      },
+      "avgMonsterHp": 240439.3,
+      "avgMonsterDmg": 2421.9
     },
     {
       "key": 3305,
@@ -79265,7 +79769,13 @@
         30051
       ],
       "expectedGold": 1197570,
-      "expectedExp": 18895221
+      "expectedExp": 18895221,
+      "scaledBoss": {
+        "hp": 1528833,
+        "damage": 8066.4
+      },
+      "avgMonsterHp": 212752.4,
+      "avgMonsterDmg": 2760.8
     },
     {
       "key": 3306,
@@ -79283,7 +79793,13 @@
         30091
       ],
       "expectedGold": 2263295,
-      "expectedExp": 46249213
+      "expectedExp": 46249213,
+      "scaledBoss": {
+        "hp": 3081645,
+        "damage": 10851
+      },
+      "avgMonsterHp": 237726.9,
+      "avgMonsterDmg": 4805.4
     },
     {
       "key": 3307,
@@ -79302,7 +79818,13 @@
         30084
       ],
       "expectedGold": 2464014,
-      "expectedExp": 48301747
+      "expectedExp": 48301747,
+      "scaledBoss": {
+        "hp": 1551462,
+        "damage": 11679
+      },
+      "avgMonsterHp": 240293.8,
+      "avgMonsterDmg": 4282.3
     },
     {
       "key": 3308,
@@ -79321,7 +79843,13 @@
         30111
       ],
       "expectedGold": 3397589,
-      "expectedExp": 66736786
+      "expectedExp": 66736786,
+      "scaledBoss": {
+        "hp": 1269378,
+        "damage": 11679
+      },
+      "avgMonsterHp": 200902.8,
+      "avgMonsterDmg": 4775.7
     },
     {
       "key": 3309,
@@ -79340,7 +79868,13 @@
         30111
       ],
       "expectedGold": 3418005,
-      "expectedExp": 67377641
+      "expectedExp": 67377641,
+      "scaledBoss": {
+        "hp": 3774732,
+        "damage": 10681.9
+      },
+      "avgMonsterHp": 195545.5,
+      "avgMonsterDmg": 5358
     },
     {
       "key": 3310,
@@ -79352,7 +79886,13 @@
       "boss": 30903,
       "enemies": [],
       "expectedGold": 126750,
-      "expectedExp": 4964
+      "expectedExp": 4964,
+      "scaledBoss": {
+        "hp": 7380085,
+        "damage": 18850.5
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 4101,
@@ -79368,7 +79908,13 @@
         10022
       ],
       "expectedGold": 1697287,
-      "expectedExp": 33638328
+      "expectedExp": 33638328,
+      "scaledBoss": {
+        "hp": 1120365,
+        "damage": 11487.8
+      },
+      "avgMonsterHp": 107887,
+      "avgMonsterDmg": 2627.9
     },
     {
       "key": 4102,
@@ -79385,7 +79931,13 @@
         10023
       ],
       "expectedGold": 2001671,
-      "expectedExp": 39430125
+      "expectedExp": 39430125,
+      "scaledBoss": {
+        "hp": 537747,
+        "damage": 10892.2
+      },
+      "avgMonsterHp": 102428,
+      "avgMonsterDmg": 3207.2
     },
     {
       "key": 4103,
@@ -79402,7 +79954,13 @@
         10031
       ],
       "expectedGold": 2058710,
-      "expectedExp": 37102896
+      "expectedExp": 37102896,
+      "scaledBoss": {
+        "hp": 868791,
+        "damage": 14247.9
+      },
+      "avgMonsterHp": 82271.9,
+      "avgMonsterDmg": 3496
     },
     {
       "key": 4104,
@@ -79419,7 +79977,13 @@
         10041
       ],
       "expectedGold": 2114088,
-      "expectedExp": 41738004
+      "expectedExp": 41738004,
+      "scaledBoss": {
+        "hp": 730539,
+        "damage": 20054.8
+      },
+      "avgMonsterHp": 121756.5,
+      "avgMonsterDmg": 4141.8
     },
     {
       "key": 4105,
@@ -79437,7 +80001,13 @@
         10042
       ],
       "expectedGold": 2493942,
-      "expectedExp": 49189327
+      "expectedExp": 49189327,
+      "scaledBoss": {
+        "hp": 1917993,
+        "damage": 15477.6
+      },
+      "avgMonsterHp": 150103.8,
+      "avgMonsterDmg": 4707.8
     },
     {
       "key": 4106,
@@ -79454,7 +80024,13 @@
         10043
       ],
       "expectedGold": 2888208,
-      "expectedExp": 57524640
+      "expectedExp": 57524640,
+      "scaledBoss": {
+        "hp": 3853845,
+        "damage": 21555
+      },
+      "avgMonsterHp": 254544.1,
+      "avgMonsterDmg": 5009.5
     },
     {
       "key": 4107,
@@ -79470,7 +80046,13 @@
         10052
       ],
       "expectedGold": 1700521,
-      "expectedExp": 31453555
+      "expectedExp": 31453555,
+      "scaledBoss": {
+        "hp": 1934262,
+        "damage": 24063
+      },
+      "avgMonsterHp": 97147.3,
+      "avgMonsterDmg": 6535.6
     },
     {
       "key": 4108,
@@ -79487,7 +80069,13 @@
         10053
       ],
       "expectedGold": 2223461,
-      "expectedExp": 42040312
+      "expectedExp": 42040312,
+      "scaledBoss": {
+        "hp": 1582578,
+        "damage": 24063
+      },
+      "avgMonsterHp": 123181,
+      "avgMonsterDmg": 6767.7
     },
     {
       "key": 4109,
@@ -79506,7 +80094,13 @@
         10053
       ],
       "expectedGold": 3011304,
-      "expectedExp": 58418003
+      "expectedExp": 58418003,
+      "scaledBoss": {
+        "hp": 4692012,
+        "damage": 22840.4
+      },
+      "avgMonsterHp": 213358.7,
+      "avgMonsterDmg": 7482.8
     },
     {
       "key": 4110,
@@ -79518,7 +80112,13 @@
       "boss": 10904,
       "enemies": [],
       "expectedGold": 156550,
-      "expectedExp": 92340
+      "expectedExp": 92340,
+      "scaledBoss": {
+        "hp": 7068095,
+        "damage": 31349.5
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 4201,
@@ -79534,7 +80134,13 @@
         20022
       ],
       "expectedGold": 2280705,
-      "expectedExp": 45334520
+      "expectedExp": 45334520,
+      "scaledBoss": {
+        "hp": 1388565,
+        "damage": 25737.1
+      },
+      "avgMonsterHp": 133713.7,
+      "avgMonsterDmg": 5887.6
     },
     {
       "key": 4202,
@@ -79551,7 +80157,13 @@
         20024
       ],
       "expectedGold": 2847591,
-      "expectedExp": 56238798
+      "expectedExp": 56238798,
+      "scaledBoss": {
+        "hp": 647997,
+        "damage": 22709.2
+      },
+      "avgMonsterHp": 158142.1,
+      "avgMonsterDmg": 6560.4
     },
     {
       "key": 4203,
@@ -79569,7 +80181,13 @@
         20041
       ],
       "expectedGold": 2762337,
-      "expectedExp": 53360815
+      "expectedExp": 53360815,
+      "scaledBoss": {
+        "hp": 1044351,
+        "damage": 30858.3
+      },
+      "avgMonsterHp": 194665.8,
+      "avgMonsterDmg": 9834.3
     },
     {
       "key": 4204,
@@ -79588,7 +80206,13 @@
         20051
       ],
       "expectedGold": 3032333,
-      "expectedExp": 59961010
+      "expectedExp": 59961010,
+      "scaledBoss": {
+        "hp": 854469,
+        "damage": 39430.1
+      },
+      "avgMonsterHp": 197074.5,
+      "avgMonsterDmg": 10234.2
     },
     {
       "key": 4205,
@@ -79605,7 +80229,13 @@
         20051
       ],
       "expectedGold": 2280481,
-      "expectedExp": 45151344
+      "expectedExp": 45151344,
+      "scaledBoss": {
+        "hp": 2238843,
+        "damage": 31116
+      },
+      "avgMonsterHp": 142766.8,
+      "avgMonsterDmg": 9723.8
     },
     {
       "key": 4206,
@@ -79622,7 +80252,13 @@
         20071
       ],
       "expectedGold": 3408081,
-      "expectedExp": 67985820
+      "expectedExp": 67985820,
+      "scaledBoss": {
+        "hp": 4380345,
+        "damage": 38895
+      },
+      "avgMonsterHp": 271743.6,
+      "avgMonsterDmg": 11506.4
     },
     {
       "key": 4207,
@@ -79641,7 +80277,13 @@
         20081
       ],
       "expectedGold": 3780651,
-      "expectedExp": 76522666
+      "expectedExp": 76522666,
+      "scaledBoss": {
+        "hp": 2194962,
+        "damage": 44103
+      },
+      "avgMonsterHp": 300750,
+      "avgMonsterDmg": 11706.4
     },
     {
       "key": 4208,
@@ -79658,7 +80300,13 @@
         20091
       ],
       "expectedGold": 2793822,
-      "expectedExp": 55365600
+      "expectedExp": 55365600,
+      "scaledBoss": {
+        "hp": 1795878,
+        "damage": 44103
+      },
+      "avgMonsterHp": 239450.4,
+      "avgMonsterDmg": 12348.8
     },
     {
       "key": 4209,
@@ -79676,7 +80324,13 @@
         20111
       ],
       "expectedGold": 4140013,
-      "expectedExp": 82186134
+      "expectedExp": 82186134,
+      "scaledBoss": {
+        "hp": 5316012,
+        "damage": 44464.3
+      },
+      "avgMonsterHp": 382591.8,
+      "avgMonsterDmg": 15059.2
     },
     {
       "key": 4210,
@@ -79688,7 +80342,13 @@
       "boss": 20904,
       "enemies": [],
       "expectedGold": 176800,
-      "expectedExp": 215946
+      "expectedExp": 215946,
+      "scaledBoss": {
+        "hp": 8008095,
+        "damage": 122059
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     },
     {
       "key": 4301,
@@ -79704,7 +80364,13 @@
         30013
       ],
       "expectedGold": 2669420,
-      "expectedExp": 53141814
+      "expectedExp": 53141814,
+      "scaledBoss": {
+        "hp": 1570815,
+        "damage": 53991.2
+      },
+      "avgMonsterHp": 198335.2,
+      "avgMonsterDmg": 15879.8
     },
     {
       "key": 4302,
@@ -79722,7 +80388,13 @@
         30041
       ],
       "expectedGold": 3000221,
-      "expectedExp": 54117165
+      "expectedExp": 54117165,
+      "scaledBoss": {
+        "hp": 733047,
+        "damage": 47639.3
+      },
+      "avgMonsterHp": 444648.7,
+      "avgMonsterDmg": 15123.6
     },
     {
       "key": 4303,
@@ -79741,7 +80413,13 @@
         30102
       ],
       "expectedGold": 3723356,
-      "expectedExp": 62409360
+      "expectedExp": 62409360,
+      "scaledBoss": {
+        "hp": 1179651,
+        "damage": 69954.3
+      },
+      "avgMonsterHp": 296943.8,
+      "avgMonsterDmg": 29118.2
     },
     {
       "key": 4304,
@@ -79760,7 +80438,13 @@
         30051
       ],
       "expectedGold": 2763205,
-      "expectedExp": 39050994
+      "expectedExp": 39050994,
+      "scaledBoss": {
+        "hp": 965169,
+        "damage": 89386.1
+      },
+      "avgMonsterHp": 399822.4,
+      "avgMonsterDmg": 20079.5
     },
     {
       "key": 4305,
@@ -79779,7 +80463,13 @@
         30103
       ],
       "expectedGold": 3427413,
-      "expectedExp": 56739389
+      "expectedExp": 56739389,
+      "scaledBoss": {
+        "hp": 2525193,
+        "damage": 75948
+      },
+      "avgMonsterHp": 399751.8,
+      "avgMonsterDmg": 31797.1
     },
     {
       "key": 4306,
@@ -79798,7 +80488,13 @@
         30103
       ],
       "expectedGold": 5326565,
-      "expectedExp": 108317272
+      "expectedExp": 108317272,
+      "scaledBoss": {
+        "hp": 4940595,
+        "damage": 94935
+      },
+      "avgMonsterHp": 373696,
+      "avgMonsterDmg": 43248.2
     },
     {
       "key": 4307,
@@ -79817,7 +80513,13 @@
         30104
       ],
       "expectedGold": 6071736,
-      "expectedExp": 123450440
+      "expectedExp": 123450440,
+      "scaledBoss": {
+        "hp": 2472162,
+        "damage": 118143
+      },
+      "avgMonsterHp": 321896.1,
+      "avgMonsterDmg": 44303.6
     },
     {
       "key": 4308,
@@ -79836,7 +80538,13 @@
         30111
       ],
       "expectedGold": 7229390,
-      "expectedExp": 143001891
+      "expectedExp": 143001891,
+      "scaledBoss": {
+        "hp": 2022678,
+        "damage": 118143
+      },
+      "avgMonsterHp": 311901.6,
+      "avgMonsterDmg": 50172.9
     },
     {
       "key": 4309,
@@ -79855,7 +80563,13 @@
         30111
       ],
       "expectedGold": 7259953,
-      "expectedExp": 143963032
+      "expectedExp": 143963032,
+      "scaledBoss": {
+        "hp": 5979012,
+        "damage": 125248.3
+      },
+      "avgMonsterHp": 311775.4,
+      "avgMonsterDmg": 64702.2
     },
     {
       "key": 4310,
@@ -79867,7 +80581,13 @@
       "boss": 30904,
       "enemies": [],
       "expectedGold": 198300,
-      "expectedExp": 7826
+      "expectedExp": 7826,
+      "scaledBoss": {
+        "hp": 13606085,
+        "damage": 245585
+      },
+      "avgMonsterHp": 0,
+      "avgMonsterDmg": 0
     }
   ],
   "skills": [

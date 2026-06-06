@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>TBH 仕様メモ / Specs</title>
 <style>
   :root{--bg:#14110d;--surface:#1f1b15;--surface2:#262017;--accent:#d8a657;--text:#ece3d2;--muted:#9a8f7a;--border:#3a342a;}
@@ -112,7 +115,7 @@ function drawCharts(){
     if(cd) drawBarList(el,cd);
   });
 }
-fetch('TBH-解析メモ.md').then(r=>r.text()).then(md=>{
+fetch('TBH-解析メモ.md?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(md=>{
   const {html,toc}=render(md);
   document.getElementById('md').innerHTML=html;
   drawCharts();

@@ -286,6 +286,7 @@ function qhit(q,fields){
 }
 function matchText(name,nameEn,stat){return qhit(state.q,[name,nameEn,stat,SM[stat]||""]);}
 function matches(x){
+  if(state.specialOnly)return false;           // 「特殊」ON時は装備の固有効果だけ(素材は出さない)
   if(!state.types.has(x.type))return false;
   if(state.gears.size)return false;            // 素材に具体的な種類(gear)は無い
   if(state.stat&&x.stat!==state.stat)return false;
@@ -295,6 +296,7 @@ function matches(x){
   return matchText(x.name,x.nameEn,x.stat);
 }
 function inscMatch(e){
+  if(state.specialOnly)return false;           // 「特殊」ON時は装備の固有効果だけ
   if(!state.types.has("inscription"))return false;
   if(state.cats.size||state.colors.size||state.level||state.gears.size)return false;   // inscriptions have no slot/color/level/gear
   if(state.rarity&&!e.byGrade[state.rarity])return false;
@@ -313,7 +315,7 @@ function equipMatch(e){
   return qhit(state.q,[e.name,e.nameEn].concat((e.stats||[]).flatMap(s=>[s.ja,s.en])));
 }
 function uniqueMatch(u){
-  if(!(equipShown()&&state.specialOnly))return false;   // 装備が表示対象＋「特殊」ON のときだけ
+  if(!state.specialOnly)return false;   // 「特殊」ONのときだけ(特殊は装備固有なので種別不問で固有効果付き装備を表示)
   if(state.stat||state.colors.size)return false;               // 特殊効果は数値stat/色では絞らない（文字検索で対応）
   if(state.cats.size&&!state.cats.has(u.cat))return false;
   if(state.gears.size&&!state.gears.has(u.gear))return false;   // 種類で絞り込み(uniqueのgearはJP)

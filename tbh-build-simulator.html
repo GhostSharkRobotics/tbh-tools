@@ -100,6 +100,32 @@
   .cmptbl td.dcell{font-weight:600;}
   .cmptbl tr.hl td{background:rgba(216,166,87,.06);}
   @media(max-width:760px){.grid4{grid-template-columns:repeat(2,1fr);}.results{grid-template-columns:1fr;}.opt{grid-template-columns:1fr;}.twocol{grid-template-columns:1fr;}.gemcell{min-width:150px;}.cmphead{grid-template-columns:1fr;}}
+  /* ---- 最強構成オートビルダー ---- */
+  .autobar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:14px 0 4px;background:linear-gradient(90deg,rgba(216,166,87,.14),rgba(216,166,87,.02));border:1px solid var(--accent);border-radius:10px;padding:11px 14px;}
+  #autoBtn{font-size:15px;padding:11px 22px;}
+  #autoBtn:disabled{opacity:.6;cursor:wait;}
+  .autobar .ctrl{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer;}
+  #autoPanel{margin-top:10px;}
+  #autoPanel:empty{display:none;}
+  .autohead{font-size:16px;margin-bottom:4px;}
+  .autohead b{color:var(--accent);}
+  .autonote{font-size:11px;color:var(--muted);line-height:1.6;background:#2a2418;border:1px solid #4a3f28;border-radius:7px;padding:8px 11px;margin-bottom:10px;}
+  .autorank{border-collapse:collapse;width:100%;max-width:440px;margin-bottom:12px;}
+  .autorank th{font-size:11px;color:var(--muted);font-weight:500;text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);}
+  .autorank td{padding:5px 8px;border-bottom:1px solid var(--border);font-size:13px;font-variant-numeric:tabular-nums;}
+  .autorank td:nth-child(3){text-align:right;color:var(--up);font-weight:600;}
+  .autorank td:nth-child(4){text-align:right;}
+  .autorank tr.cur td{background:rgba(216,166,87,.08);}
+  .autorank tr.cur td:nth-child(2){color:var(--accent);font-weight:600;}
+  .autorank .applybtn{padding:3px 11px;font-size:12px;}
+  .autobuild{background:var(--surface);border:1px solid var(--border);border-radius:9px;overflow:hidden;}
+  .abrow{display:grid;grid-template-columns:74px 1.1fr 1.4fr;gap:10px;align-items:baseline;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12px;}
+  .abrow:last-child{border:none;}
+  .abslot{color:var(--muted);}
+  .abitem{color:var(--text);}
+  .abitem em{color:var(--accent);font-style:normal;font-size:11px;margin-left:4px;}
+  .abdec{color:var(--up);font-size:11px;}
+  .abdec .none{color:var(--muted);}
 </style>
 </head>
 <body>
@@ -109,6 +135,15 @@
 <h2>クラス</h2>
 <div class="row" id="classRow"></div>
 <div class="classinfo" id="classInfo"></div>
+
+<div class="autobar">
+<button class="primary" id="autoBtn">⚡ 最強構成を自動計算</button>
+<label class="ctrl"><input type="checkbox" id="optEng" checked><span>彫刻</span></label>
+<label class="ctrl"><input type="checkbox" id="optInsc" checked><span>刻印</span></label>
+<label class="ctrl"><input type="checkbox" id="optUnc"><span>未確認の最高宝石(Divine/Cosmic)</span></label>
+<label class="ctrl"><input type="checkbox" id="optParty"><span>味方プリースト(力の祝福)</span></label>
+</div>
+<div id="autoPanel"></div>
 
 <h2>現在のステータス（装備込みのキャラシート値）</h2>
 <div class="grid4">
@@ -557,6 +592,239 @@ async function aiGo(){
 $('aiGo').onclick=aiGo;
 $('aiReq').addEventListener('keydown',e=>{if(e.key==='Enter')aiGo();});
 $('aiReset').onclick=e=>{e.preventDefault(); aiSession=null; $('aiNote').textContent='会話をリセットしました。'; $('aiPicks').innerHTML=''; $('aiReq').focus();};
+
+// ================= 最強構成オートビルダー =================
+// DPS式に効くステータスのみを対象に、全クラス×全装備×宝石×彫刻×刻印を
+// 座標上昇法で探索し、各クラスの最強ロードアウトを組んでDPSで順位付けする。
+// 武器のベース攻撃速度（レアリティ依存）はゲームデータ未収録のため、各クラスの
+// 基礎攻撃速度を使用（編集可能・注記あり）。固有効果はDPS式に乗らないため未計上。
+
+// rarity(en) -> 装飾スロット数
+const RARITY_DECO={}; DATA.rarityOrder.forEach((r,i)=>{ RARITY_DECO[r]=(DATA.equipRarities[i]||{}).decoSlots||0; });
+// rarity(en) -> 和名 / 強さ順インデックス
+const RARITY_JA={}; DATA.rarityOrder.forEach((r,i)=>{ RARITY_JA[r]=(DATA.equipRarities[i]||{}).name||r; });
+const RARITY_IDX={}; DATA.rarityOrder.forEach((r,i)=>{ RARITY_IDX[r]=i; });
+const ARCANA_IDX=DATA.rarityOrder.indexOf('Arcana');
+// 部位index -> {gearコード(武器/オフハンドはクラス依存), cat}
+const SLOT_GEAR=[
+  {gears:null,cat:'weapon'},{gears:null,cat:'offhand'},
+  {gears:['HELMET'],cat:'armor'},{gears:['ARMOR'],cat:'armor'},
+  {gears:['GLOVES'],cat:'armor'},{gears:['BOOTS'],cat:'armor'},
+  {gears:['AMULET'],cat:'accessory'},{gears:['EARING'],cat:'accessory'},
+  {gears:['RING'],cat:'accessory'},{gears:['BRACER'],cat:'accessory'}
+];
+// (ステータス和名, 単位) -> DPSバケットのキー（効かないものはnull）
+function dpsKey(ja,unit){
+  if(ja==='攻撃力') return unit==='%'?'攻撃力係数':'攻撃力';
+  if(ja==='攻撃力係数') return '攻撃力係数';
+  if(ja==='攻撃速度'||ja==='攻撃速度係数') return '攻撃速度';
+  if(ja==='クリ率') return 'クリ率';
+  if(ja==='クリ率係数') return 'クリ率係数';
+  if(ja==='クリダメ') return 'クリダメ';
+  if(ja==='クリダメ係数') return 'クリダメ係数';
+  if(ja==='物理ダメージ'||ja==='火炎ダメージ'||ja==='冷気ダメージ'||ja==='雷ダメージ'||ja==='カオスダメージ') return ja;
+  return null;
+}
+function uOf(u){ return u==='%'?'%':''; } // gem/engraving/inscriptionの unit を dpsKey用へ
+function mergeB(a,b){ const o=Object.assign({},a); for(const k in b) o[k]=(o[k]||0)+b[k]; return o; }
+function addB(a,k,v){ const o=Object.assign({},a); o[k]=(o[k]||0)+v; return o; }
+// 装備の「ベース攻撃力」と「DPSボーナスバケット」を分離（武器のみベース攻撃力を抽出）
+function itemBonus(item,isWeapon){
+  const flats=item.stats.filter(s=>s.ja==='攻撃力'&&(s.unit===''||s.unit==null)).map(s=>s.val);
+  const baseVal=(isWeapon&&flats.length)?Math.max.apply(null,flats):0;
+  let usedBase=false; const b={};
+  item.stats.forEach(s=>{
+    if(s.ja==='攻撃力'&&(s.unit===''||s.unit==null)){
+      if(isWeapon&&!usedBase&&s.val===baseVal){ usedBase=true; return; } // ベース攻撃力はスキップ
+      b['攻撃力']=(b['攻撃力']||0)+s.val; return;
+    }
+    const k=dpsKey(s.ja,s.unit); if(k) b[k]=(b[k]||0)+s.val;
+  });
+  return {bucket:b, base:baseVal};
+}
+// コアDPS（base={atk,spd,cc,cd} + 加算バケット）
+function dpsCore(base,bucket,dmgType,buffMul){
+  const atk=(base.atk+(bucket['攻撃力']||0))*(1+(bucket['攻撃力係数']||0)/100);
+  const spd=base.spd*(1+(bucket['攻撃速度']||0)/100);
+  const cr=Math.min((base.cc+(bucket['クリ率']||0))*(1+(bucket['クリ率係数']||0)/100),100)/100;
+  const cdT=(base.cd+(bucket['クリダメ']||0))*(1+(bucket['クリダメ係数']||0)/100)/100;
+  const cd=Math.max(cdT-1,0);
+  const dmgMul=1+(bucket[dmgType]||0)/100;
+  return atk*spd*(1+cr*cd)*dmgMul*buffMul;
+}
+// 部位の候補装備
+function candFor(si,cls){
+  let gears = si===0?[cls.mainWeapon] : si===1?[cls.subWeapon] : SLOT_GEAR[si].gears;
+  const cat=SLOT_GEAR[si].cat;
+  return DATA.equipment.filter(e=>gears.indexOf(e.gear)>=0 && e.cat===cat);
+}
+// 宝石プール（catの効果をDPSキー化、不確実は任意で除外）
+function gemPool(cat,unc){
+  const out=[];
+  DATA.gems.forEach(g=>{ if(g.uncertain&&!unc) return; const e=g[cat]; if(!e) return;
+    const k=dpsKey(e.stat,uOf(e.unit)); if(k) out.push({key:k,val:e.max,name:g.name,gem:g}); });
+  return out;
+}
+// 彫刻プール（cat別2効果のうちDPSに効く分）
+function engPool(cat){
+  const out=[];
+  DATA.engravings.forEach(g=>{ const arr=g[cat]; if(!arr) return; const lines=[];
+    arr.forEach(e=>{ const k=dpsKey(e.stat,uOf(e.unit)); if(k) lines.push({key:k,val:e.max}); });
+    if(lines.length) out.push({name:g.name,lines:lines}); });
+  return out;
+}
+// 刻印プール（最高グレード値）
+function inscPool(){
+  const out=[];
+  DATA.inscriptions.effects.forEach(e=>{ const k=dpsKey(e.stat,uOf(e.unit)); if(!k) return;
+    let best=0; for(const gn in e.byGrade){ if(e.byGrade[gn].max>best) best=e.byGrade[gn].max; }
+    if(best>0) out.push({key:k,val:best,name:e.stat+(e.unit==='%'?'%':'')}); });
+  return out;
+}
+// 1部位の装備をitemに固定したときの最良装飾込みDPS（ext=他部位の合計バケット）
+function bestGemsGreedy(cat,decoN,startB,base,dmgType,buffMul,unc){
+  const pool=gemPool(cat,unc); let cur=startB; const picked=[];
+  for(let i=0;i<decoN;i++){ let bd=-1,bg=null;
+    pool.forEach(ef=>{ const d=dpsCore(base,addB(cur,ef.key,ef.val),dmgType,buffMul); if(d>bd){bd=d;bg=ef;} });
+    if(bg){ cur=addB(cur,bg.key,bg.val); picked.push(bg); } }
+  return {bucket:cur,picked:picked};
+}
+// 1クラスを1つのdmgTypeで最適化
+function optimizeOne(ci,dmgType,opt){
+  const cls=DATA.classes[ci];
+  const priest = cls.name==='プリースト' || opt.party;
+  const buffLv = priest?90:0;
+  const buffMul = priest?(1+buffLv/100):1;
+  const classAtk=(cls.baseStats['攻撃力']||0);
+  const base={atk:classAtk, spd:(cls.baseStats['攻撃速度']||1), cc:(cls.baseStats['クリ率']||0), cd:(cls.baseStats['クリダメ']||100)};
+  // 候補（DPSに無関係な重複を間引かず全部見るが、部位ごとに上限を設けて高速化）
+  const cands=SLOT_GEAR.map((_,si)=>candFor(si,cls));
+  const chosen=new Array(10).fill(null);     // 各部位の選択装備
+  const bonus=new Array(10).fill(null).map(()=>({})); // 各部位のDPSバケット（装飾込み）
+  const wBase={v:0}; // 現在の武器ベース攻撃力
+  const itemBonusOf=(si,item)=>itemBonus(item,si===0);
+  // 部位siを今の他部位固定で最良化
+  function pickSlot(si){
+    const cat=SLOT_GEAR[si].cat;
+    let ext={}; for(let j=0;j<10;j++) if(j!==si) ext=mergeB(ext,bonus[j]);
+    let best=null,bestB=null,bd=-1,bw=wBase.v,bestRk=-1,bestLv=-1;
+    cands[si].forEach(item=>{
+      const ib=itemBonusOf(si,item);
+      const wb = si===0?ib.base:wBase.v;
+      const b={atk:base.atk+wb, spd:base.spd, cc:base.cc, cd:base.cd};
+      const startB=mergeB(ext,ib.bucket);
+      const decoN=RARITY_DECO[item.rarity]||0;
+      const g=bestGemsGreedy(cat,decoN,startB,b,dmgType,buffMul,opt.unc);
+      const d=dpsCore(b,g.bucket,dmgType,buffMul);
+      const rk=RARITY_IDX[item.rarity]||0, lv=item.lvl||0;
+      // DPS優先、同点なら高レア→高Lv（防具など寄与0部位でも最強装備を選ぶ）
+      if(d>bd+1e-6 || (Math.abs(d-bd)<=1e-6 && (rk>bestRk || (rk===bestRk && lv>bestLv)))){
+        bd=d; best=item; bestB=mergeB(ib.bucket,subB(g.bucket,startB)); bw=(si===0?ib.base:wBase.v); bestRk=rk; bestLv=lv;
+      }
+    });
+    if(best){ chosen[si]=best; bonus[si]=bestB; if(si===0) wBase.v=bw; }
+  }
+  function subB(a,b){ const o=Object.assign({},a); for(const k in b) o[k]=(o[k]||0)-b[k]; for(const k in o) if(Math.abs(o[k])<1e-9) delete o[k]; return o; }
+  // 初期化：武器→その他、座標上昇を数パス
+  pickSlot(0);
+  for(let si=1;si<10;si++) pickSlot(si);
+  for(let pass=0;pass<3;pass++){ for(let si=0;si<10;si++) pickSlot(si); }
+  // ---- 装飾の精密割当（宝石+彫刻+刻印）をグローバル貪欲で再構築 ----
+  const itemsBucket=(function(){ let b={}; chosen.forEach((it,si)=>{ b=mergeB(b,itemBonus(it,si===0).bucket); }); return b; })();
+  const fbase={atk:base.atk+wBase.v, spd:base.spd, cc:base.cc, cd:base.cd};
+  const positions=[]; // 各装飾枠
+  chosen.forEach((item,si)=>{
+    const cat=SLOT_GEAR[si].cat;
+    const decoN=RARITY_DECO[item.rarity]||0;
+    for(let g=0;g<decoN;g++) positions.push({si,cat,kind:'gem',opts:gemPool(cat,opt.unc),pick:null});
+    if(opt.eng){ const ep=engPool(cat); if(ep.length) positions.push({si,cat,kind:'eng',opts:ep,pick:null}); }
+    if(opt.insc && RARITY_IDX[item.rarity]>=ARCANA_IDX){ const ip=inscPool(); if(ip.length) positions.push({si,cat,kind:'insc',opts:ip,pick:null}); }
+  });
+  const posLines=p=>{ if(!p.pick) return []; return p.kind==='gem'?[{key:p.pick.key,val:p.pick.val}] : p.kind==='insc'?[{key:p.pick.key,val:p.pick.val}] : p.pick.lines; };
+  function decoBucket(except){ let b={}; positions.forEach(p=>{ if(p===except) return; posLines(p).forEach(l=>{ b=addB(b,l.key,l.val); }); }); return b; }
+  for(let pass=0;pass<2;pass++){
+    positions.forEach(p=>{
+      const baseB=mergeB(itemsBucket,decoBucket(p)); let bd=-1,bp=null;
+      p.opts.forEach(o=>{ const lines=o.lines?o.lines:[{key:o.key,val:o.val}]; let bb=baseB; lines.forEach(l=>bb=addB(bb,l.key,l.val));
+        const d=dpsCore(fbase,bb,dmgType,buffMul); if(d>bd){bd=d;bp=o;} });
+      p.pick=bp;
+    });
+  }
+  // ---- 結果バケット & 部位ごとの行・表示 ----
+  let finalB=Object.assign({},itemsBucket);
+  positions.forEach(p=>posLines(p).forEach(l=>{ finalB=addB(finalB,l.key,l.val); }));
+  const dps=dpsCore(fbase,finalB,dmgType,buffMul);
+  const slots=chosen.map((item,si)=>{
+    const cat=SLOT_GEAR[si].cat;
+    const ib=itemBonus(item,si===0);
+    const lines=[]; // UI（盛り欄）へ流す差分行
+    for(const k in ib.bucket){ const v=ib.bucket[k]; if(Math.abs(v)>1e-9) lines.push({stat:k,val:round2(v),cnt:1}); }
+    // 装飾を集計
+    const gemCnt={}; const decoNames=[];
+    positions.filter(p=>p.si===si&&p.pick).forEach(p=>{
+      if(p.kind==='gem'){ const nm=p.pick.name; gemCnt[nm]=(gemCnt[nm]||{n:0,key:p.pick.key,val:p.pick.val}); gemCnt[nm].n++; }
+      else if(p.kind==='eng'){ p.pick.lines.forEach(l=>lines.push({stat:l.key,val:round2(l.val),cnt:1})); decoNames.push('彫:'+p.pick.name); }
+      else if(p.kind==='insc'){ lines.push({stat:p.pick.key,val:round2(p.pick.val),cnt:1}); decoNames.push('刻:'+p.pick.name); }
+    });
+    for(const nm in gemCnt){ const g=gemCnt[nm]; lines.push({stat:g.key,val:round2(g.val),cnt:g.n}); decoNames.unshift('宝石:'+nm+(g.n>1?'×'+g.n:'')); }
+    return {si, itemName:item.name, rarityJa:RARITY_JA[item.rarity], lvl:item.lvl,
+            decoLabel: decoNames.length?decoNames.join(' / '):'<span class="none">装飾なし</span>', lines:lines};
+  });
+  return {ci, dmgType, dps, priest, buffLv, base:fbase, slots};
+}
+function round2(x){ return Math.round(x*100)/100; }
+// 1クラスの最良（属性クラスは属性ごとに試して最大）
+function optimizeClass(ci,opt){
+  const cls=DATA.classes[ci];
+  const dmgs = cls.attackElement==='elemental'?['火炎ダメージ','冷気ダメージ','雷ダメージ']:['物理ダメージ'];
+  let best=null; dmgs.forEach(dt=>{ const r=optimizeOne(ci,dt,opt); if(!best||r.dps>best.dps) best=r; });
+  return best;
+}
+let AUTO=null;
+function applyAuto(res){
+  state.cls=res.ci; state._userSetDmg=true;
+  $('ad').value=Math.round(res.base.atk); $('adc').value=0;
+  $('as').value=round2(res.base.spd); $('asc').value=0;
+  $('cc').value=round2(res.base.cc); $('ccc').value=0;
+  $('cd').value=round2(res.base.cd); $('cdc').value=0;
+  $('dmgType').value=res.dmgType;
+  if(res.priest){ $('buff').checked=true; $('buffLv').value=String(res.buffLv); } else { $('buff').checked=false; }
+  const ns={}; res.slots.forEach(s=>{ ns[s.si]=s.lines.map(l=>({stat:l.stat,val:l.val,cnt:l.cnt||1})); });
+  state.slotStats=ns;
+  buildClasses(); showClass(); buildSlots(); calc(); save();
+}
+function renderAutoPanel(){
+  const p=$('autoPanel'); if(!AUTO){ p.innerHTML=''; return; }
+  const rk=AUTO.ranking; const best=rk[0];
+  let h='<div class="autohead">最強候補: <b>'+DATA.classes[best.ci].name+'</b>（'+best.dmgType.replace('ダメージ','')+'）— 試算DPS <b>'+fmt(best.dps)+'</b></div>';
+  h+='<div class="autonote">全装備5760件＋宝石・彫刻・刻印を総当りで最適化した理論最大構成です。'+
+     '<b>武器のベース攻撃速度（レアリティで上昇）はゲームデータ未収録</b>のため各クラスの基礎攻撃速度で比較しています — 実機の攻撃速度を上の「攻撃速度(/秒)」に入れ直すと、その構成の正確なDPSになります。固有効果（武器の特殊スキル効果）はDPS式に乗らないため未計上。装飾は最大ロール値を使用。</div>';
+  h+='<table class="autorank"><tr><th>#</th><th>クラス</th><th>試算DPS</th><th></th></tr>';
+  rk.forEach((r,i)=>{ h+='<tr'+(r.ci===state.cls?' class="cur"':'')+'><td>'+(i+1)+'</td><td>'+DATA.classes[r.ci].name+'<span style="color:var(--muted);font-size:11px"> '+r.dmgType.replace('ダメージ','')+'</span></td><td>'+fmt(r.dps)+'</td><td><button class="applybtn" data-ci="'+r.ci+'">適用</button></td></tr>'; });
+  h+='</table>';
+  const cur=rk.find(r=>r.ci===state.cls)||best;
+  h+='<div class="autobuild">';
+  cur.slots.forEach(s=>{ h+='<div class="abrow"><span class="abslot">'+DATA.slots[s.si].name+'</span><span class="abitem">'+s.itemName+' <em>'+s.rarityJa+' L'+s.lvl+'</em></span><span class="abdec">'+s.decoLabel+'</span></div>'; });
+  h+='</div>';
+  p.innerHTML=h;
+  p.querySelectorAll('.applybtn').forEach(b=>b.onclick=()=>{ applyAuto(AUTO.ranking.find(r=>r.ci===+b.dataset.ci)); renderAutoPanel(); });
+}
+function runAuto(){
+  const btn=$('autoBtn'), old=btn.textContent; btn.disabled=true; btn.textContent='計算中…';
+  const opt={ eng:$('optEng').checked, insc:$('optInsc').checked, unc:$('optUnc').checked, party:$('optParty').checked };
+  setTimeout(()=>{
+    try{
+      const res=DATA.classes.map((c,ci)=>optimizeClass(ci,opt));
+      res.sort((a,b)=>b.dps-a.dps);
+      AUTO={ranking:res};
+      applyAuto(res[0]);
+      renderAutoPanel();
+      $('autoPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+    }catch(e){ $('autoPanel').innerHTML='<div class="autonote down">計算でエラー: '+aiEsc(e.message)+'</div>'; }
+    finally{ btn.disabled=false; btn.textContent=old; }
+  },30);
+}
+$('autoBtn').onclick=runAuto;
 
 // ---- init ----
 applySnapshot(load());

@@ -14,25 +14,49 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APPID = "3678970"
 
 
+GEM_SLOT_JA = {"weapon": "武器", "armor": "防具", "accessory": "装飾"}
+MATERIAL_TYPES = {"Crafting Material", "Offering Material", "Soulstone"}
+
+
 def build_payload():
     d = json.load(open(os.path.join(HERE, "tbh-data.json"), encoding="utf-8"))
     P = json.load(open(os.path.join(HERE, "tbh-prices.json"), encoding="utf-8"))
     prices = P["prices"]
 
-    # en -> ja ラベル & 全装備での (en|unit) 最大値（強さ正規化の分母）
-    en_ja, mx = {}, {}
+    # ja->en 正規化キー（装備=en、宝石/彫刻はja名→共通enへ寄せる）。en->ja ラベルも作る。
+    ja2en, label = {}, {}
     for e in d["equipment"]:
         for s in e.get("stats", []):
-            en_ja.setdefault(s["en"], s.get("ja", s["en"]))
-            k = s["en"] + "|" + (s.get("unit") or "")
-            v = abs(s.get("val") or 0)
-            if v > mx.get(k, 0):
-                mx[k] = v
+            ja2en.setdefault(s["ja"], s["en"])
+            label.setdefault(s["en"], s.get("ja", s["en"]))
+
+    def canon(ja):  # 共通の強さキー（装備にあればen、無ければja名そのまま）
+        k = ja2en.get(ja, ja)
+        label.setdefault(k, ja)
+        return k
+
+    def unit_n(u):  # flat と '' を同一視
+        return "" if (u in ("flat", None)) else u
+
+    mx = {}  # (key|unit) -> 全アイテム中の最大値（強さ正規化の分母）
+
+    def bump(key, unit, val):
+        k = key + "|" + unit
+        v = abs(val or 0)
+        if v > mx.get(k, 0):
+            mx[k] = v
 
     all_icons = d.get("icons", {})  # sha -> CDN相対パス
     used_icons = {}
+
+    def add_icon(ic):
+        if ic and ic in all_icons:
+            used_icons[ic] = all_icons[ic]
+
     slot_ja = {}  # gear(英) -> 日本語部位名 (gearJa)
     rows = []
+
+    # --- 装備 ---
     for e in d["equipment"]:
         if not e.get("market"):
             continue
@@ -41,23 +65,79 @@ def build_payload():
         if not pr or not pr.get("sell"):
             continue
         slot_ja[e.get("gear")] = e.get("gearJa") or e.get("gear")
-        ic = e.get("icon")
-        if ic and ic in all_icons:
-            used_icons[ic] = all_icons[ic]
-        st = [[s["en"], (s.get("unit") or ""), s.get("val") or 0] for s in e.get("stats", [])]
-        rows.append({
-            "n": e.get("name"), "e": e["nameEn"],
-            "g": e.get("gear"), "cat": e.get("cat"),
-            "lvl": e.get("lvl"), "r": e.get("rarity"),
-            "v": e.get("variant", "A"), "icon": e.get("icon"),
-            "st": st,
-            "sell": pr.get("sell"), "med": pr.get("median"),
-            "lst": pr.get("listings"), "vol": pr.get("volume"),
-        })
+        add_icon(e.get("icon"))
+        st = []
+        for s in e.get("stats", []):
+            u = unit_n(s.get("unit"))
+            st.append([s["en"], u, s.get("val") or 0])
+            bump(s["en"], u, s.get("val") or 0)
+        rows.append({"k": "equip", "n": e.get("name"), "e": e["nameEn"],
+                     "g": e.get("gear"), "lvl": e.get("lvl"), "r": e.get("rarity"),
+                     "v": e.get("variant", "A"), "icon": e.get("icon"), "st": st,
+                     "sell": pr.get("sell"), "med": pr.get("median"),
+                     "lst": pr.get("listings"), "vol": pr.get("volume")})
+
+    # --- 宝石(装飾) / 彫刻：装着部位ごとに効果が変わる。最大ロールで強さ評価 ---
+    def ctx_rows(get_slot_stats):
+        out = {}
+        for slot, ja in GEM_SLOT_JA.items():
+            arr = get_slot_stats(slot)
+            if not arr:
+                continue
+            lst = []
+            for s in arr:
+                k = canon(s["stat"]); u = unit_n(s.get("unit")); val = s.get("max") or 0
+                lst.append([k, u, val]); bump(k, u, val)
+            out[ja] = lst
+        return out
+
+    for g in d.get("gems", []):
+        pr = prices.get(g.get("nameEn"))
+        if not pr or not pr.get("sell"):
+            continue
+        add_icon(g.get("icon"))
+        ctx = ctx_rows(lambda slot: ([g[slot]] if g.get(slot) else []))
+        rows.append({"k": "gem", "n": g.get("name"), "e": g.get("nameEn"),
+                     "r": g.get("rarity"), "icon": g.get("icon"), "ctx": ctx,
+                     "sell": pr.get("sell"), "med": pr.get("median"),
+                     "lst": pr.get("listings"), "vol": pr.get("volume")})
+
+    for e in d.get("engravings", []):
+        pr = prices.get(e.get("nameEn"))
+        if not pr or not pr.get("sell"):
+            continue
+        add_icon(e.get("icon"))
+        ctx = ctx_rows(lambda slot: e.get(slot) or [])
+        rows.append({"k": "engraving", "n": e.get("name"), "e": e.get("nameEn"),
+                     "r": e.get("rarity"), "icon": e.get("icon"), "ctx": ctx,
+                     "sell": pr.get("sell"), "med": pr.get("median"),
+                     "lst": pr.get("listings"), "vol": pr.get("volume")})
+
+    # --- 刻印(碑文)の巻物：ランダム効果なので強さは付けない ---
+    for s in d.get("inscriptions", {}).get("scrolls", []):
+        pr = prices.get(s.get("nameEn"))
+        if not pr or not pr.get("sell"):
+            continue
+        add_icon(s.get("icon"))
+        rows.append({"k": "inscription", "n": s.get("name"), "e": s.get("nameEn"),
+                     "r": s.get("rarity"), "icon": s.get("icon"),
+                     "sell": pr.get("sell"), "med": pr.get("median"),
+                     "lst": pr.get("listings"), "vol": pr.get("volume")})
+
+    # --- 素材(クラフト/供物/ソウルストーン)：強さなし。完全網羅のため掲載 ---
+    seen = {r["e"] for r in rows}
+    for hn, pr in prices.items():
+        if hn in seen or not pr.get("sell"):
+            continue
+        if pr.get("type") not in MATERIAL_TYPES:
+            continue
+        rows.append({"k": "material", "n": pr.get("name_ja") or hn, "e": hn,
+                     "typ": pr.get("type"), "sell": pr.get("sell"), "med": pr.get("median"),
+                     "lst": pr.get("listings"), "vol": pr.get("volume")})
 
     return {
         "rows": rows,
-        "enJa": en_ja,
+        "enJa": label,
         "max": mx,
         "icons": used_icons,
         "slotJa": slot_ja,
@@ -134,10 +214,11 @@ HTML = r"""<!DOCTYPE html>
 <body>
 <a class="back" href="index.html">← TBHツール</a>
 <h1>💰 お買い得ファインダー</h1>
-<div class="sub">市場に出ている装備を「強さ÷今の最安値」で並べ、相場割れ（普段より安い出品）を見つけます。</div>
+<div class="sub">市場の装備・宝石・彫刻・刻印を「強さ÷今の最安値」で並べ、相場割れ（普段より安い出品）を見つけます。</div>
 
 <div class="panel">
   <div class="row"><span class="lab">並べ替え</span><div id="modes"></div></div>
+  <div class="row"><span class="lab">種別</span><div id="cats"></div></div>
   <div class="row"><span class="lab">重視</span><div id="presets"></div>
     <label class="tgl">最低強さ <input type="number" id="minStr" value="0" min="0" step="10" style="width:62px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;font-size:12px;text-align:right;"></label>
     <label class="tgl"><input type="checkbox" id="liqOnly" checked>取引のあるものだけ</label>
@@ -151,7 +232,7 @@ HTML = r"""<!DOCTYPE html>
 <div class="count" id="count"></div>
 <table>
   <thead><tr>
-    <th class="rank"></th><th class="l">装備</th><th class="l">ステータス</th>
+    <th class="rank"></th><th class="l">アイテム</th><th class="l">効果</th>
     <th>強さ</th><th>最安値</th><th>相場差</th><th>コスパ</th><th>出品/取引</th><th></th>
   </tr></thead>
   <tbody id="tb"></tbody>
@@ -163,10 +244,10 @@ const D = /*PAYLOAD_START*/{}/*PAYLOAD_END*/;
 const CDN=D.iconCdn, APPID=D.appid;
 const RC={Common:'#9a8f7a',Uncommon:'#6fcf6f',Rare:'#6f9fe0',Legendary:'#d8a657',Immortal:'#d05b5b',Arcana:'#c07ad0',Beyond:'#e0c060',Celestial:'#7fd0d0',Divine:'#e0b0e0',Cosmic:'#ff9d5c'};
 
-// 強さ重みプリセット（statごとの優先度 0..3）
+// 強さ重みプリセット（statごとの優先度 0..3）。宝石固有ステ(属性ダメージ/耐性)も含む。
 const PRESETS={
-  'DPS':{AttackDamage:3,AttackSpeed:3,CriticalDamage:3,CriticalChance:3,Multistrike:3,AreaOfEffect:2,CooldownReduction:2,IncreaseProjectileDamage:2,ProjectileCount:2,AddAllSkillLevel:2,CastSpeed:1,BaseAttackCountReduction:1,SkillDurationIncrease:1,SkillRangeExpansion:1,HpLeech:1},
-  '耐久':{MaxHp:3,Armor:3,DamageReduction:3,DamageAbsorption:3,BlockChance:2,DodgeChance:2,AllElementalResistance:2,HpRegenPerSec:2,HpLeech:2,AddHpPerHit:1,AddHpPerKill:1,MovementSpeed:1},
+  'DPS':{AttackDamage:3,AttackSpeed:3,CriticalDamage:3,CriticalChance:3,Multistrike:3,AreaOfEffect:2,CooldownReduction:2,IncreaseProjectileDamage:2,ProjectileCount:2,AddAllSkillLevel:2,CastSpeed:1,BaseAttackCountReduction:1,SkillDurationIncrease:1,SkillRangeExpansion:1,HpLeech:1,'火炎ダメージ':3,'冷気ダメージ':3,'雷ダメージ':3,'物理ダメージ':3,'攻撃力係数':3},
+  '耐久':{MaxHp:3,Armor:3,DamageReduction:3,DamageAbsorption:3,BlockChance:2,DodgeChance:2,AllElementalResistance:2,HpRegenPerSec:2,HpLeech:2,AddHpPerHit:1,AddHpPerKill:1,MovementSpeed:1,'火炎耐性':2,'冷気耐性':2,'雷耐性':2,'カオス耐性':2},
   '均等':null  // null=全statを1
 };
 // 全statキー
@@ -180,7 +261,8 @@ function presetWeights(name){
 const LS='tbh-deals-state';
 function loadState(){try{return JSON.parse(localStorage.getItem(LS))||{};}catch(e){return {};}}
 function saveState(){try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){}}
-let state=Object.assign({mode:'value',preset:'DPS',slot:'all',rar:'all',liqOnly:true,minStr:0,weights:presetWeights('DPS')},loadState());
+const DEFAULTS={mode:'value',preset:'DPS',cat:'all',slot:'all',rar:'all',liqOnly:true,minStr:0,weights:presetWeights('DPS')};
+let state=Object.assign({},DEFAULTS,loadState());
 
 // ---- UI 構築 ----
 function seg(host,items,getOn,onClick,cls){
@@ -188,13 +270,16 @@ function seg(host,items,getOn,onClick,cls){
   for(const it of items){const b=document.createElement('button');b.className=cls+(getOn(it.k)?' on':'');b.textContent=it.t;b.onclick=()=>onClick(it.k);
     if(it.c){b.style.borderColor=it.c;if(getOn(it.k)){b.style.background=it.c;b.style.color='#15120d';}}el.appendChild(b);} }
 
+const CATJA={equip:'装備',gem:'宝石',engraving:'彫刻',inscription:'刻印',material:'素材'};
 const MODES=[{k:'value',t:'コスパ'},{k:'deal',t:'相場割れ'},{k:'strength',t:'強さ'},{k:'cheap',t:'安い順'}];
+const CATS=[{k:'all',t:'すべて'}].concat(['equip','gem','engraving','inscription','material'].filter(c=>D.rows.some(x=>x.k===c)).map(c=>({k:c,t:CATJA[c]})));
 const SLOTS=[{k:'all',t:'すべて'}].concat(Object.keys(D.slotJa).map(g=>({k:g,t:D.slotJa[g]})));
 const RARS=[{k:'all',t:'すべて'}].concat(D.rarityOrder.filter(r=>D.rows.some(x=>x.r===r)).map(r=>({k:r,t:r,c:RC[r]})));
 const PRES=Object.keys(PRESETS).map(p=>({k:p,t:p}));
 
 function renderUI(){
   seg('modes',MODES,k=>state.mode===k,k=>{state.mode=k;renderUI();render();},'mode');
+  seg('cats',CATS,k=>state.cat===k,k=>{state.cat=k;renderUI();render();},'chip');
   seg('presets',PRES,k=>state.preset===k,k=>{state.preset=k;state.weights=presetWeights(k);renderUI();render();},'chip');
   seg('slots',SLOTS,k=>state.slot===k,k=>{state.slot=k;renderUI();render();},'chip');
   seg('rars',RARS,k=>state.rar===k,k=>{state.rar=k;renderUI();render();},'chip');
@@ -209,17 +294,33 @@ function renderUI(){
     wg.appendChild(r);} }
 document.getElementById('liqOnly').onchange=e=>{state.liqOnly=e.target.checked;render();};
 document.getElementById('minStr').oninput=e=>{state.minStr=+e.target.value||0;render();};
-document.getElementById('reset').onclick=()=>{try{localStorage.removeItem(LS);}catch(e){}state={mode:'value',preset:'DPS',slot:'all',rar:'all',liqOnly:true,minStr:0,weights:presetWeights('DPS')};renderUI();render();};
+document.getElementById('reset').onclick=()=>{try{localStorage.removeItem(LS);}catch(e){}state=Object.assign({},DEFAULTS,{weights:presetWeights('DPS')});renderUI();render();};
 
 // ---- 計算 ----
-function strength(x){let s=0;for(const[en,u,val]of x.st){const w=state.weights[en]||0;if(!w)continue;const m=D.max[en+'|'+u]||1;s+=w*Math.abs(val)/m;}return s*100;}
+const SU=(val,u)=>(val>0?'+':'')+val+(u==='%'?'%':u==='/s'?'/s':'');  // ステ表記
+function wsum(list){let s=0;for(const[k,u,val]of list){const w=state.weights[k]||0;if(!w)continue;const m=D.max[k+'|'+u]||1;s+=w*Math.abs(val)/m;}return s*100;}
+function strength(x){
+  if(x.k==='gem'||x.k==='engraving'){let m=0;for(const sl in x.ctx)m=Math.max(m,wsum(x.ctx[sl]));return m;} // 最良スロットで評価
+  if(x.st)return wsum(x.st);
+  return 0;
+}
 function fmtUsd(c){return '$'+(c/100).toFixed(2);}
-function statText(x){return x.st.map(([en,u,val])=>D.enJa[en]+' '+(val>0?'+':'')+val+(u==='%'?'%':u==='/s'?'/s':'')).join(' · ');}
+function statText(x){
+  if(x.st)return x.st.map(([k,u,val])=>D.enJa[k]+' '+SU(val,u)).join(' · ');
+  if(x.ctx)return Object.keys(x.ctx).map(sl=>sl+'：'+x.ctx[sl].map(([k,u,val])=>D.enJa[k]+SU(val,u)).join('・')).join(' ／ ');
+  if(x.k==='inscription')return (x.r||'')+' 刻印巻物（装備にランダム効果を付与）';
+  return x.typ||'素材';
+}
+function steamUrl(x){
+  const hn=(x.k==='equip')?(x.e+' ('+x.r+') '+x.v):x.e;  // 装備のみグレード付き完全hash
+  return 'https://steamcommunity.com/market/listings/'+APPID+'/'+encodeURIComponent(hn);
+}
 
 function render(){
   saveState();
   let rows=D.rows.filter(x=>{
-    if(state.slot!=='all'&&x.g!==state.slot)return false;
+    if(state.cat!=='all'&&x.k!==state.cat)return false;
+    if(state.slot!=='all'&&(x.k!=='equip'||x.g!==state.slot))return false; // 部位は装備のみ
     if(state.rar!=='all'&&x.r!==state.rar)return false;
     if(state.liqOnly&&!(x.lst>0))return false;
     return true;
@@ -245,12 +346,14 @@ function render(){
     const ic=iu?'<img class="ic" src="'+CDN+iu+'" loading="lazy">':'<span class="ic"></span>';
     const dc=r.disc>2?'up':r.disc<-2?'dn':'flat';
     const ds=r.disc>0?'-'+r.disc.toFixed(0)+'%':r.disc<0?'+'+(-r.disc).toFixed(0)+'%':'±0';
-    const url='https://steamcommunity.com/market/listings/'+APPID+'/'+encodeURIComponent(x.e+' ('+x.r+') '+x.v);
+    const url=steamUrl(x);
+    const rr=x.r?'<span class="rr" style="background:'+(RC[x.r]||'#888')+'">'+x.r+'</span>':'';
+    const sub=(x.k==='equip')?(x.e+' · '+(D.slotJa[x.g]||x.g)+' · Lv'+x.lvl):(x.e+' · '+CATJA[x.k]);
     tr.innerHTML=
       '<td class="rank">'+(i+1)+'</td>'+
-      '<td class="l"><div class="nm">'+ic+'<div class="tx"><b>'+x.n+'</b> <span class="rr" style="background:'+(RC[x.r]||'#888')+'">'+x.r+'</span><br><span class="e">'+x.e+' · '+(D.slotJa[x.g]||x.g)+' · Lv'+x.lvl+'</span></div></div></td>'+
+      '<td class="l"><div class="nm">'+ic+'<div class="tx"><b>'+x.n+'</b> '+rr+'<br><span class="e">'+sub+'</span></div></div></td>'+
       '<td class="l"><span class="stats">'+statText(x)+'</span></td>'+
-      '<td class="str">'+r.str.toFixed(1)+'</td>'+
+      '<td class="str">'+(r.str>0?r.str.toFixed(1):'–')+'</td>'+
       '<td class="price">'+fmtUsd(x.sell)+'</td>'+
       '<td><span class="disc '+dc+'">'+ds+'</span><br><span class="med">中央'+fmtUsd(x.med||x.sell)+'</span></td>'+
       '<td class="val">'+r.val.toFixed(1)+'</td>'+
@@ -260,7 +363,7 @@ function render(){
   });
 }
 renderUI();render();
-document.getElementById('foot').innerHTML='強さ=Σ(重み×そのステの全装備中最大に対する割合)。コスパ=強さ÷最安値($)。相場差=中央値に対する最安値の割安率。<br>価格出典: <a class="back" href="'+(D.sourceUrl||'#')+'" target="_blank">'+(D.source||'')+'</a>（'+(D.fetchedAt||'')+' 取得 / 市場更新 '+(D.marketUpdated||'')+'）。Steam負荷対策でレジェンダリー未満は取引停止のため対象外。';
+document.getElementById('foot').innerHTML='強さ=Σ(重み×そのステの全アイテム中最大に対する割合)。コスパ=強さ÷最安値($)。相場差=中央値に対する最安値の割安率。宝石/彫刻は装着部位で効果が変わるため最良スロットの最大ロールで評価、刻印/素材は強さ対象外。<br>価格出典: <a class="back" href="'+(D.sourceUrl||'#')+'" target="_blank">'+(D.source||'')+'</a>（'+(D.fetchedAt||'')+' 取得 / 市場更新 '+(D.marketUpdated||'')+'）。Steam負荷対策でレジェンダリー未満の装備は取引停止のため対象外。';
 </script>
 </body>
 </html>

@@ -168,7 +168,7 @@ function rowsFor(boxKey){
 function availableGrades(){
   const set=new Set();
   for(const s of STAGES){
-    if(s.difficulty!==state.diff) continue;
+    if(state.diff!=null && s.difficulty!==state.diff) continue;
     for(const bk of [s.normalBox&&s.normalBox.box, s.bossBox&&s.bossBox.box]){
       const b=bk&&BOX[bk]; if(!b) continue;
       for(const c of b.contents) if(c.grade) set.add(c.grade);
@@ -183,6 +183,7 @@ function chip(label,on,onclick){
 }
 function renderChips(){
   const dc=$("diffChips"); dc.innerHTML="";
+  dc.appendChild(chip("すべて",state.diff==null,()=>{if(state.diff==null)return;state.diff=null;save();render();}));
   DIFFS.forEach(df=>dc.appendChild(chip(df.ja,state.diff===df.k,()=>{
     if(state.diff===df.k) return;
     const cur=STAGES.find(x=>x.stageKey===state.stage);
@@ -214,13 +215,14 @@ function renderChips(){
 
 function renderStages(){
   const wrap=$("stages"); wrap.innerHTML="";
-  const list=STAGES.filter(s=>s.difficulty===state.diff && (state.act==null||s.act===state.act));
+  const list=STAGES.filter(s=>(state.diff==null||s.difficulty===state.diff) && (state.act==null||s.act===state.act));
   for(const s of list){
     const boss=s.type==="ACTBOSS";
     const b=document.createElement("button");
     b.className="stg"+(boss?" boss":"")+(state.stage===s.stageKey?" on":"");
+    const dtag=state.diff==null?`${DIFF_JA[s.difficulty]||s.difficulty} `:"";
     b.innerHTML=`<span class="sno">${s.act}-${s.stageNo}${boss?" 👑":""}</span> `+
-      `<span class="snm">${esc(s.name||"?")}</span><span class="slv">Lv ${s.level}</span>`;
+      `<span class="snm">${esc(s.name||"?")}</span><span class="slv">${dtag}Lv ${s.level}</span>`;
     b.onclick=()=>{state.stage=s.stageKey;save();render();
       document.getElementById("view").scrollIntoView({behavior:"smooth",block:"start"});};
     wrap.appendChild(b);
@@ -239,11 +241,11 @@ function contentTable(boxKey){
   let rows=rowsFor(boxKey);
   if(state.hideTiny) rows=rows.filter(r=>r.pct>=0.5);
   if(!rows.length) return `<div class="empty">該当なし</div>`;
-  const max=rows[0].pct||1;
   let h=`<table><thead><tr><th class="l">アイテム</th><th class="l">種別</th><th>グレード</th><th>確率</th></tr></thead><tbody>`;
   for(const r of rows){
     const nm=r.name||{}; const tiny=r.pct<0.5;
-    const bw=Math.max(2,Math.round(40*r.pct/max));
+    // バーは絶対スケール（40px=100%）。相対だと同値で全部MAXに見えるため
+    const bw=Math.max(2,Math.round(40*Math.min(r.pct,100)/100));
     h+=`<tr class="r"><td class="l nm">${itemLink(nm)}</td>`+
        `<td class="l gear">${esc(r.gear||"")}${clsPill(r.heroClass)}</td>`+
        `<td>${gradePill(r.grade)}</td>`+
@@ -261,7 +263,7 @@ function boxSection(typeKey,boxKey,rate){
 }
 
 function renderDetail(){
-  const s=STAGES.find(x=>x.stageKey===state.stage && x.difficulty===state.diff);
+  const s=STAGES.find(x=>x.stageKey===state.stage && (state.diff==null||x.difficulty===state.diff));
   const v=$("view");
   if(!s){v.innerHTML=`<div class="empty">上のステージを選ぶと、その箱の中身と確率が表示されます。</div>`;return;}
   const boss=s.type==="ACTBOSS";
@@ -288,7 +290,7 @@ function renderSearch(){
   const v=$("view");
   const hits=[]; // {itemJa,itemEn,grade,gear,stage,typeKey,pct}
   for(const s of STAGES){
-    if(s.difficulty!==state.diff) continue;
+    if(state.diff!=null && s.difficulty!==state.diff) continue;
     if(state.act!=null && s.act!==state.act) continue;
     const boxes=[["normal",s.normalBox&&s.normalBox.box],
                  [s.type==="ACTBOSS"?"actBoss":"stageBoss", s.bossBox&&s.bossBox.box]];
@@ -309,7 +311,7 @@ function renderSearch(){
   const groups={};
   for(const h of hits){const key=(h.nm.ja||"?")+"|"+(h.grade||"");(groups[key]=groups[key]||[]).push(h);}
   const order=Object.keys(groups).sort((a,b)=>Math.max(...groups[b].map(x=>x.pct))-Math.max(...groups[a].map(x=>x.pct)));
-  let html=`<div class="hint">${DIFF_JA[state.diff]} ・ ${hits.length}件 / ${order.length}種のアイテム${state.cls?`（${CLS_JA[state.cls]}基準）`:""}</div>`;
+  let html=`<div class="hint">${state.diff==null?"全難易度":DIFF_JA[state.diff]} ・ ${hits.length}件 / ${order.length}種のアイテム${state.cls?`（${CLS_JA[state.cls]}基準）`:""}</div>`;
   for(const key of order){
     const arr=groups[key].sort((a,b)=>b.pct-a.pct);
     const f=arr[0];
@@ -318,7 +320,8 @@ function renderSearch(){
     html+=`<table><thead><tr><th class="l">ステージ</th><th class="l">箱</th><th>確率</th></tr></thead><tbody>`;
     for(const h of arr){
       const st=BOXSTYLE[h.typeKey];
-      html+=`<tr class="r"><td class="l"><b>${h.stage.act}-${h.stage.stageNo}</b> ${esc(h.stage.name||"")} `+
+      const dtag=state.diff==null?`<span class="slv" style="color:var(--muted)">${DIFF_JA[h.stage.difficulty]||h.stage.difficulty}</span> `:"";
+      html+=`<tr class="r"><td class="l">${dtag}<b>${h.stage.act}-${h.stage.stageNo}</b> ${esc(h.stage.name||"")} `+
         `<span class="slv" style="color:var(--muted)">Lv${h.stage.level}</span></td>`+
         `<td class="l"><span class="dot" style="background:${st.col};display:inline-block;vertical-align:middle;margin-right:5px"></span>${st.ja.split("（")[0]}</td>`+
         `<td><span class="pct${h.pct<0.5?" tiny":""}">${fmtPct(h.pct)}</span></td></tr>`;
@@ -330,7 +333,7 @@ function renderSearch(){
 
 // 現在の難易度・章で選択中ステージが無効なら、先頭ステージを自動選択（常にアイテムが見える状態に）
 function ensureStage(){
-  const list=STAGES.filter(s=>s.difficulty===state.diff && (state.act==null||s.act===state.act));
+  const list=STAGES.filter(s=>(state.diff==null||s.difficulty===state.diff) && (state.act==null||s.act===state.act));
   if(!list.some(s=>s.stageKey===state.stage)) state.stage = list.length?list[0].stageKey:null;
 }
 function render(){

@@ -156,8 +156,10 @@ function rowsFor(boxKey){
   const b=BOX[boxKey]; if(!b||!b.contents) return [];
   let cs=b.contents;
   if(state.cls) cs=cs.filter(c=>!c.heroClass || c.heroClass===state.cls);
+  // pctは常にweightからフル精度で再計算（保存値は2桁丸めで微小値が0.00になり<0.01%を判別できないため）。
+  // 分母tot=表示対象の重み合計：職未選択なら箱全体、職選択ならその職に出る枠だけ（実効確率）。
   const tot=cs.reduce((s,c)=>s+(c.weight||0),0)||1;
-  let rows=cs.map(c=>({...c, pct: state.cls ? 100*(c.weight||0)/tot : c.pct}));
+  let rows=cs.map(c=>({...c, pct: 100*(c.weight||0)/tot}));
   // レア度フィルタは「表示」のみ。確率(分母)は変えない＝箱から実際にそれが出る確率のまま。
   if(state.minGrade) rows=rows.filter(c=>gradeIdx(c.grade)>=gradeIdx(state.minGrade));
   return rows.sort((a,b)=>b.pct-a.pct);

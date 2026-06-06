@@ -236,9 +236,12 @@ function buildChips(){
   QUICK.forEach(s=>{const c=document.createElement("div");c.className="chip";c.dataset.stat=s;c.textContent=statLabel(s);
     c.onclick=()=>{state.stat=state.stat===s?null:s;el("q").value="";state.q="";render();};el("quickStats").appendChild(c);});
   el("typeChips").innerHTML="";
+  const ALL_TYPES=["equipment","gem","engraving","inscription"];
   [["equipment","tequip"],["gem","tgem"],["engraving","tengraving"],["inscription","tinscription"]].forEach(([k,cls])=>{
     const c=document.createElement("div");c.className="chip "+cls;c.dataset.type=k;c.textContent=L()[k];
-    c.onclick=()=>{state.types.has(k)?state.types.delete(k):state.types.add(k);if(!state.types.size)state.types.add(k);render();};el("typeChips").appendChild(c);});
+    // 排他選択: 押したらその種別だけに絞る。単独選択中の種別を再度押すと全表示に戻す
+    c.onclick=()=>{state.types=(state.types.size===1&&state.types.has(k))?new Set(ALL_TYPES):new Set([k]);render();};
+    el("typeChips").appendChild(c);});
   // 装備の絞り込み: 特殊ステータス付きの装備だけを表示
   el("equipSub").innerHTML="";
   const su=document.createElement("div");su.className="chip tunique";su.dataset.special="1";su.textContent=L().unique;

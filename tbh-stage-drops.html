@@ -63,6 +63,7 @@
   a.ilink{color:inherit;text-decoration:none;}
   a.ilink:hover b{color:var(--accent);text-decoration:underline;}
   a.ilink{color:var(--muted);font-size:10px;}
+  .sep{color:var(--border);margin:0 2px;}
   .gear{color:var(--muted);font-size:11px;}
   .rr{font-size:10px;padding:1px 6px;border-radius:4px;color:#15120d;font-weight:700;display:inline-block;}
   .cls{font-size:10px;padding:1px 6px;border-radius:10px;border:1px solid var(--border);color:var(--muted);display:inline-block;}
@@ -246,8 +247,12 @@ function contentTable(boxKey){
     const nm=r.name||{}; const tiny=r.pct<0.5;
     // バーは絶対スケール（40px=100%）。相対だと同値で全部MAXに見えるため
     const bw=Math.max(2,Math.round(40*Math.min(r.pct,100)/100));
-    h+=`<tr class="r"><td class="l nm">${itemLink(nm)}</td>`+
-       `<td class="l gear">${esc(r.gear||"")}${clsPill(r.heroClass)}</td>`+
+    // 基本4職の主武器などはグループ化されている→members全員を表示（弓=レンジャー等が隠れないように）
+    const mem=r.members;
+    const nameCell = mem ? mem.map(x=>itemLink({ja:x.ja,en:x.en})).join('<span class="sep"> / </span>') : itemLink(nm);
+    const gearCell = mem ? `${mem.map(x=>esc(x.gear)).join(" / ")}<span class="cls">職で変化</span>` : `${esc(r.gear||"")}${clsPill(r.heroClass)}`;
+    h+=`<tr class="r"><td class="l nm">${nameCell}</td>`+
+       `<td class="l gear">${gearCell}</td>`+
        `<td>${gradePill(r.grade)}</td>`+
        `<td><span class="bar" style="width:${bw}px"></span><span class="pct${tiny?" tiny":""}">${fmtPct(r.pct)}</span></td></tr>`;
   }
@@ -297,11 +302,14 @@ function renderSearch(){
     for(const [typeKey,bk] of boxes){
       if(!bk) continue;
       for(const r of rowsFor(bk)){
-        const nm=r.name||{};
-        const hay=((nm.ja||"")+" "+(nm.en||"")+" "+(r.gear||"")).toLowerCase();
-        if(hay.includes(q)){
-          if(state.hideTiny && r.pct<0.5) continue;
-          hits.push({nm,grade:r.grade,gear:r.gear,heroClass:r.heroClass,stage:s,typeKey,pct:r.pct});
+        if(state.hideTiny && r.pct<0.5) continue;
+        // グループ化された主武器等はmembersを個別に検索対象に（弓/シャドウボウで一致するように）
+        const variants = r.members ? r.members
+          : [{ja:r.name&&r.name.ja, en:r.name&&r.name.en, gear:r.gear, gearEn:r.gearEn}];
+        for(const vi of variants){
+          const hay=((vi.ja||"")+" "+(vi.en||"")+" "+(vi.gear||"")).toLowerCase();
+          if(hay.includes(q))
+            hits.push({nm:{ja:vi.ja,en:vi.en},grade:r.grade,gear:vi.gear,heroClass:r.heroClass,stage:s,typeKey,pct:r.pct});
         }
       }
     }

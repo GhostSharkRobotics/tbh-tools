@@ -221,7 +221,7 @@ const INSC=DATA.inscriptions||{scrolls:[],effects:[]};
 const COLORS=[...new Set(INDEX.filter(x=>x.color).map(x=>x.color))];
 
 // ---- state ----
-const state={lang:"ja",q:"",stat:null,types:new Set(["equipment"]),specialOnly:false,cats:new Set(),gears:new Set(),colors:new Set(),rarity:"",level:"",sortCol:"value",sortDir:"desc"};
+const state={lang:"ja",q:"",stat:null,types:new Set(["equipment","gem","engraving","inscription"]),specialOnly:false,cats:new Set(),gears:new Set(),colors:new Set(),rarity:"",level:"",sortCol:"value",sortDir:"desc"};
 const L=()=>T[state.lang];
 const lc=()=>state.lang==="ja"?"ja":"en";
 const statLabel=s=>state.lang==="ja"?s:(SM[s]||s);

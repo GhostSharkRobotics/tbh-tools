@@ -1,0 +1,43 @@
+{
+  "_note": "TBH 特殊ステータス(UniqueMod) の実効果テキストを Steam Community Market (appid 3678970) のリスティング・ツールチップ 'Unique Stats' から直接取得したもの。固有効果は (ベース装備 × グレード) ごとに固定で、同一リスティングの全出品が同じ効果を示すことを確認済み。低グレードでは汎用スキル系mod、高グレードで強力なスキル固有modが付く。",
+  "source": "Steam Community Market (appid 3678970) listing tooltips",
+  "fetchedAt": "2026-06-06",
+  "confirmedDefs": {
+    "SkillProjectileCountUp":       {"en": "Equipped skill's projectile count +1.",                         "ja": "装備スキルの発射体(弾)数 +1"},
+    "SkillMultiStrikeCountUp":      {"en": "Equipped skill's multistrike count +1.",                        "ja": "装備スキルの多段ヒット(マルチストライク)回数 +1"},
+    "SkillCooldownReduce":          {"en": "Equipped skill's cooldown is reduced.",                         "ja": "装備スキルのクールダウンを短縮"},
+    "SkillBaseAttackCountReduce":   {"en": "Equipped skill requires 1 less basic attack to trigger.",       "ja": "スキル発動に必要な通常攻撃回数 −1"},
+    "ExplosiveBoltHalf":            {"en": "Explosive Bolt damage and cooldown decrease by 50%.",           "ja": "エクスプローシブボルトのダメージとクールダウンが50%減少"},
+    "IceOrbFreezeToCold":           {"en": "Ice Orb has a 30% chance to freeze chilled enemies on hit.",    "ja": "アイスオーブがヒット時、冷気状態の敵を30%の確率で凍結"},
+    "SkewerShotBleedingStrike":     {"en": "Skewer Shot deals double damage to bleeding enemies.",          "ja": "スキュアショットが出血中の敵に2倍ダメージ"},
+    "FlameHydraBerserk":            {"en": "Hydra's attack speed increases by 200%.",                       "ja": "ハイドラの攻撃速度が200%上昇"},
+    "SlayerLowHpAttackSpeed":       {"en": "Attack Speed is amplified by 1% per 1% missing HP.",            "ja": "失ったHP1%につき攻撃速度+1%"},
+    "WaveMoveFastestPartyMember":   {"en": "Move between waves at the speed of the fastest party member.",   "ja": "ウェーブ間移動を最速パーティメンバーの速度で行う"},
+    "WaveMoveSlowestPartyExcludeSelf": {"en": "Move between waves at the speed of the fastest party member.","ja": "ウェーブ間移動を最速パーティメンバーの速度で行う"}
+  },
+  "verifiedItemMods": {
+    "Composite Bow|ARCANA": "SkillProjectileCountUp",
+    "Dusk Bow|ARCANA": "SkewerShotBleedingStrike",
+    "Exceptional Crossbow|ARCANA": "ExplosiveBoltHalf",
+    "Complete Crossbow|ARCANA": "SkillProjectileCountUp",
+    "Mystic Crossbow|ARCANA": "ExplosiveBoltHalf",
+    "Dimensional Crossbow|ARCANA": "ExplosiveBoltHalf",
+    "Comet Staff|ARCANA": "IceOrbFreezeToCold",
+    "Azure Staff|ARCANA": "SkillProjectileCountUp",
+    "Witch Staff|ARCANA": "FlameHydraBerserk",
+    "Steel Axe|ARCANA": "SlayerLowHpAttackSpeed",
+    "Heater Shield|ARCANA": "SkillMultiStrikeCountUp",
+    "War Shield|ARCANA": "SkillMultiStrikeCountUp",
+    "Dimensional Shield|ARCANA": "SkillCooldownReduce",
+    "Frozen Orb|ARCANA": "SkillCooldownReduce",
+    "Heavy Shield|ARCANA": "SkillBaseAttackCountReduce",
+    "Chain Helmet|ARCANA": "SkewerShotBleedingStrike",
+    "Fate Helmet|ARCANA": "SkewerShotBleedingStrike",
+    "Rune Helmet|ARCANA": "ExplosiveBoltHalf",
+    "Knight Boots|ARCANA": "WaveMoveSlowestPartyExcludeSelf"
+  },
+  "unconfirmed": {
+    "_note": "以下の mod は閾値グレードが高く(主にCELESTIAL/COSMIC)、現在その グレードの市場出品が無いため Steam で実テキスト未確認。説明は内部キー名からの推定で descConfirmed=false のまま。",
+    "keys": ["ArrowRainCriticalCooldown","AxeSpinBleedingChance","ChargeTrapExplosiveCooldown","CrossbowTurretAddAmount","CrossbowTurretCooldown","ShieldChargeKillCooldown","SkillElementChange","SnowstormEnhanceFrozenEnemy","SorcererLightningShock","WhirlwindFireIgnite","WrathOfHeavenHeal"]
+  }
+}

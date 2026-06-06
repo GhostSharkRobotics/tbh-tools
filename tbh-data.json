@@ -71393,8 +71393,8 @@
     }
   ],
   "uniqueMods": {
-    "_note": "装備の特殊ステータス（固有効果 / UniqueMod）。probonk.com 埋め込みデータ（ゲーム内部 GearKey/UniqueMod 由来）から抽出。レアリティ アルカナ以上の特定装備に付く。descJa は descConfirmed=false の場合キー名からの推定訳。COMMONのロングソード(300001)は stat 全0 の定義テンプレ。",
-    "source": "probonk.com/tbh-task-bar-hero (weapons/armor-shields/accessories) — embedded game data",
+    "_note": "特殊ステータス(固有効果/UniqueMod)。効果テキストは Steam Community Market のリスティング ツールチップ 'Unique Stats' で確認(descConfirmed=true)。固有効果は (ベース装備×グレード) で固定。低グレードは汎用スキルmod、高グレードでスキル固有mod。descConfirmed=false は内部キー名からの推定で未確認(該当グレードの市場出品が無く検証不可)。items.modConfirmed=true は市場で対応を直接確認した装備。",
+    "source": "Steam Community Market (appid 3678970) + probonk.com (内部キー)",
     "definitionCount": 22,
     "itemCount": 127,
     "definitions": [
@@ -71448,11 +71448,9 @@
           "ARCANA"
         ],
         "gearTypes": [
-          "オーブ",
-          "クロスボウ",
           "頭"
         ],
-        "itemCount": 6
+        "itemCount": 1
       },
       {
         "key": "CrossbowTurretAddAmount",
@@ -71488,16 +71486,16 @@
           "クロスボウ",
           "頭"
         ],
-        "itemCount": 5
+        "itemCount": 3
       },
       {
         "key": "ExplosiveBoltHalf",
         "numericKeys": [
           "50001"
         ],
-        "descJa": "エクスプローシブボルトのコスト/CD半減",
-        "descEn": "Explosive Bolt cost/cooldown halved",
-        "descConfirmed": false,
+        "descJa": "エクスプローシブボルトのダメージとクールダウンが50%減少",
+        "descEn": "Explosive Bolt damage and cooldown decrease by 50%.",
+        "descConfirmed": true,
         "descNote": "キー名由来の推定訳（効果倍率・正確な文言は要実機確認）",
         "grades": [
           "ARCANA"
@@ -71506,16 +71504,17 @@
           "クロスボウ",
           "頭"
         ],
-        "itemCount": 5
+        "itemCount": 8,
+        "descSource": "Steam Market"
       },
       {
         "key": "FlameHydraBerserk",
         "numericKeys": [
           "30001"
         ],
-        "descJa": "フレイムハイドラがバーサーク（強化）状態に",
-        "descEn": "Flame Hydra gains Berserk",
-        "descConfirmed": false,
+        "descJa": "ハイドラの攻撃速度が200%上昇",
+        "descEn": "Hydra's attack speed increases by 200%.",
+        "descConfirmed": true,
         "descNote": "キー名由来の推定訳（効果倍率・正確な文言は要実機確認）",
         "grades": [
           "ARCANA",
@@ -71526,16 +71525,17 @@
           "杖",
           "頭"
         ],
-        "itemCount": 5
+        "itemCount": 5,
+        "descSource": "Steam Market"
       },
       {
         "key": "IceOrbFreezeToCold",
         "numericKeys": [
           "30002"
         ],
-        "descJa": "アイスオーブの凍結を冷気（持続）に変換",
-        "descEn": "Ice Orb freeze converted to Cold",
-        "descConfirmed": false,
+        "descJa": "アイスオーブがヒット時、冷気状態の敵を30%の確率で凍結",
+        "descEn": "Ice Orb has a 30% chance to freeze chilled enemies on hit.",
+        "descConfirmed": true,
         "descNote": "キー名由来の推定訳（効果倍率・正確な文言は要実機確認）",
         "grades": [
           "ARCANA"
@@ -71544,7 +71544,8 @@
           "杖",
           "頭"
         ],
-        "itemCount": 5
+        "itemCount": 5,
+        "descSource": "Steam Market"
       },
       {
         "key": "ShieldChargeKillCooldown",
@@ -71571,9 +71572,9 @@
         "numericKeys": [
           "20001"
         ],
-        "descJa": "スキュアショットが出血を付与",
-        "descEn": "Skewer Shot inflicts bleeding",
-        "descConfirmed": false,
+        "descJa": "スキュアショットが出血中の敵に2倍ダメージ",
+        "descEn": "Skewer Shot deals double damage to bleeding enemies.",
+        "descConfirmed": true,
         "descNote": "キー名由来の推定訳（効果倍率・正確な文言は要実機確認）",
         "grades": [
           "ARCANA"
@@ -71582,7 +71583,8 @@
           "弓",
           "頭"
         ],
-        "itemCount": 6
+        "itemCount": 7,
+        "descSource": "Steam Market"
       },
       {
         "key": "SkillBaseAttackCountReduce",
@@ -71591,9 +71593,9 @@
           "10006",
           "20005"
         ],
-        "descJa": "スキル発動に必要な通常攻撃回数を減少",
-        "descEn": "Reduces basic-attack count needed to trigger skill",
-        "descConfirmed": false,
+        "descJa": "スキル発動に必要な通常攻撃回数 −1",
+        "descEn": "Equipped skill requires 1 less basic attack to trigger.",
+        "descConfirmed": true,
         "descNote": "キー名由来の推定訳（効果倍率・正確な文言は要実機確認）",
         "grades": [
           "ARCANA",
@@ -71603,7 +71605,8 @@
         "gearTypes": [
           "盾"
         ],
-        "itemCount": 10
+        "itemCount": 9,
+        "descSource": "Steam Market"
       },
       {
         "key": "SkillCooldownReduce",
@@ -71615,9 +71618,9 @@
           "20006",
           "30006"
         ],
-        "descJa": "装備スキルのクールダウン短縮",
-        "descEn": "Equipped skill cooldown reduction",
-        "descConfirmed": false,
+        "descJa": "装備スキルのクールダウンを短縮",
+        "descEn": "Equipped skill's cooldown is reduced.",
+        "descConfirmed": true,
         "descNote": "キー名由来の推定訳（効果倍率・正確な文言は要実機確認）",
         "grades": [
           "ARCANA",
@@ -71625,10 +71628,12 @@
           "COSMIC"
         ],
         "gearTypes": [
+          "オーブ",
           "盾",
           "矢"
         ],
-        "itemCount": 19
+        "itemCount": 19,
+        "descSource": "Steam Market"
       },
       {
         "key": "SkillElementChange",
@@ -71660,23 +71665,22 @@
           "20004",
           "60002"
         ],
-        "descJa": "装備スキルの連続ヒット回数 +1",
-        "descEn": "Skill multi-strike (consecutive hit) count +1",
+        "descJa": "装備スキルの多段ヒット(マルチストライク)回数 +1",
+        "descEn": "Equipped skill's multistrike count +1.",
         "descConfirmed": true,
         "descNote": "実機確認",
         "grades": [
           "ARCANA",
           "CELESTIAL",
-          "COMMON",
           "COSMIC"
         ],
         "gearTypes": [
-          "剣",
           "弓",
           "斧",
           "盾"
         ],
-        "itemCount": 11
+        "itemCount": 12,
+        "descSource": "Steam Market"
       },
       {
         "key": "SkillProjectileCountUp",
@@ -71685,37 +71689,43 @@
           "30004",
           "50005"
         ],
-        "descJa": "装備スキルの発射体（弾）数 +1",
-        "descEn": "Skill projectile count +1",
-        "descConfirmed": false,
+        "descJa": "装備スキルの発射体(弾)数 +1",
+        "descEn": "Equipped skill's projectile count +1.",
+        "descConfirmed": true,
         "descNote": "キー名由来の推定訳（効果倍率・正確な文言は要実機確認）",
         "grades": [
           "ARCANA",
           "COSMIC"
         ],
         "gearTypes": [
+          "クロスボウ",
           "セプター",
           "剣",
+          "弓",
           "杖"
         ],
-        "itemCount": 3
+        "itemCount": 6,
+        "descSource": "Steam Market"
       },
       {
         "key": "SlayerLowHpAttackSpeed",
         "numericKeys": [
           "1000008"
         ],
-        "descJa": "低HP時に攻撃速度上昇（スレイヤー）",
-        "descEn": "Attack speed up at low HP (Slayer)",
-        "descConfirmed": false,
+        "descJa": "失ったHP1%につき攻撃速度+1%",
+        "descEn": "Attack Speed is amplified by 1% per 1% missing HP.",
+        "descConfirmed": true,
         "descNote": "キー名由来の推定訳（効果倍率・正確な文言は要実機確認）",
         "grades": [
+          "ARCANA",
           "CELESTIAL"
         ],
         "gearTypes": [
-          "クロスボウ"
+          "クロスボウ",
+          "斧"
         ],
-        "itemCount": 1
+        "itemCount": 2,
+        "descSource": "Steam Market"
       },
       {
         "key": "SnowstormEnhanceFrozenEnemy",
@@ -71751,15 +71761,15 @@
         "gearTypes": [
           "杖"
         ],
-        "itemCount": 1
+        "itemCount": 0
       },
       {
         "key": "WaveMoveFastestPartyMember",
         "numericKeys": [
           "1000002"
         ],
-        "descJa": "ウェーブ間移動を「最速メンバーの移動速度」で行う（共有）",
-        "descEn": "Inter-wave move uses fastest party member’s speed",
+        "descJa": "ウェーブ間移動を最速パーティメンバーの速度で行う",
+        "descEn": "Move between waves at the speed of the fastest party member.",
         "descConfirmed": true,
         "descNote": "実機確認",
         "grades": [
@@ -71768,15 +71778,16 @@
         "gearTypes": [
           "頭"
         ],
-        "itemCount": 1
+        "itemCount": 1,
+        "descSource": "Steam Market"
       },
       {
         "key": "WaveMoveSlowestPartyExcludeSelf",
         "numericKeys": [
           "1000001"
         ],
-        "descJa": "ウェーブ間移動を「最速メンバーの移動速度」で行う（自分が最遅でも全体のボトルネックを解消）",
-        "descEn": "Move between waves at the speed of the fastest party member",
+        "descJa": "ウェーブ間移動を最速パーティメンバーの速度で行う",
+        "descEn": "Move between waves at the speed of the fastest party member.",
         "descConfirmed": true,
         "descNote": "実機/wiki(taskbarherowiki 535041, gamesignal)で確認。内部キー名は SlowestPartyExcludeSelf だが表示効果は最速メンバー速度。ナイトは最遅なので全体速度を引き上げる用途。",
         "grades": [
@@ -71785,7 +71796,8 @@
         "gearTypes": [
           "足"
         ],
-        "itemCount": 1
+        "itemCount": 1,
+        "descSource": "Steam Market"
       },
       {
         "key": "WhirlwindFireIgnite",
@@ -71802,7 +71814,7 @@
         "gearTypes": [
           "斧"
         ],
-        "itemCount": 1
+        "itemCount": 0
       },
       {
         "key": "WrathOfHeavenHeal",
@@ -71853,7 +71865,8 @@
             "mod": "ADDITIVE",
             "val": "653"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 309132,
@@ -71882,7 +71895,8 @@
             "mod": "MULTIPLICATIVE",
             "val": "276"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 309152,
@@ -71911,7 +71925,8 @@
             "mod": "FLAT",
             "val": "118"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 309172,
@@ -71941,7 +71956,8 @@
             "val": "120"
           }
         ],
-        "icon": "074b5bff97f832c1"
+        "icon": "074b5bff97f832c1",
+        "modConfirmed": false
       },
       {
         "id": 309192,
@@ -71970,7 +71986,8 @@
             "mod": "FLAT",
             "val": "500"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 315042,
@@ -71981,7 +71998,7 @@
         "gear": "弓",
         "gearEn": "BOW",
         "level": 15,
-        "uniqueMod": "SkewerShotBleedingStrike",
+        "uniqueMod": "SkillProjectileCountUp",
         "numericKey": "20001",
         "inherent": [
           {
@@ -72000,7 +72017,8 @@
             "val": "54"
           }
         ],
-        "icon": "8056b519f36e802b"
+        "icon": "8056b519f36e802b",
+        "modConfirmed": true
       },
       {
         "id": 315072,
@@ -72030,7 +72048,8 @@
             "val": "449"
           }
         ],
-        "icon": "c6b7b28993e09cde"
+        "icon": "c6b7b28993e09cde",
+        "modConfirmed": true
       },
       {
         "id": 315132,
@@ -72060,7 +72079,8 @@
             "val": "693"
           }
         ],
-        "icon": "3a9bc00e9a1a0881"
+        "icon": "3a9bc00e9a1a0881",
+        "modConfirmed": false
       },
       {
         "id": 315192,
@@ -72090,7 +72110,8 @@
             "val": "93"
           }
         ],
-        "icon": "df99909e6fba98af"
+        "icon": "df99909e6fba98af",
+        "modConfirmed": false
       },
       {
         "id": 317082,
@@ -72119,7 +72140,8 @@
             "mod": "FLAT",
             "val": "68"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 317112,
@@ -72148,7 +72170,8 @@
             "mod": "FLAT",
             "val": "823"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 317152,
@@ -72177,7 +72200,8 @@
             "mod": "ADDITIVE",
             "val": "1392"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 317192,
@@ -72206,7 +72230,8 @@
             "mod": "FLAT",
             "val": "116"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 325042,
@@ -72217,7 +72242,7 @@
         "gear": "杖",
         "gearEn": "STAFF",
         "level": 15,
-        "uniqueMod": "SorcererLightningShock",
+        "uniqueMod": "FlameHydraBerserk",
         "numericKey": "1000009",
         "inherent": [
           {
@@ -72236,7 +72261,8 @@
             "val": "101"
           }
         ],
-        "icon": "fe8ca48376a1a9e6"
+        "icon": "fe8ca48376a1a9e6",
+        "modConfirmed": true
       },
       {
         "id": 325051,
@@ -72266,7 +72292,8 @@
             "val": "14"
           }
         ],
-        "icon": "8fe5425188c35fdc"
+        "icon": "8fe5425188c35fdc",
+        "modConfirmed": true
       },
       {
         "id": 325052,
@@ -72277,7 +72304,7 @@
         "gear": "杖",
         "gearEn": "STAFF",
         "level": 20,
-        "uniqueMod": "IceOrbFreezeToCold",
+        "uniqueMod": "SkillProjectileCountUp",
         "numericKey": "30002",
         "inherent": [
           {
@@ -72296,7 +72323,8 @@
             "val": "14"
           }
         ],
-        "icon": "8fe5425188c35fdc"
+        "icon": "8fe5425188c35fdc",
+        "modConfirmed": true
       },
       {
         "id": 325092,
@@ -72307,7 +72335,7 @@
         "gear": "杖",
         "gearEn": "STAFF",
         "level": 40,
-        "uniqueMod": "FlameHydraBerserk",
+        "uniqueMod": "IceOrbFreezeToCold",
         "numericKey": "30001",
         "inherent": [
           {
@@ -72326,7 +72354,8 @@
             "val": "563"
           }
         ],
-        "icon": "c3af5753b6d3b102"
+        "icon": "c3af5753b6d3b102",
+        "modConfirmed": true
       },
       {
         "id": 325102,
@@ -72356,7 +72385,8 @@
             "val": "607"
           }
         ],
-        "icon": "dc3accc704ece367"
+        "icon": "dc3accc704ece367",
+        "modConfirmed": false
       },
       {
         "id": 325152,
@@ -72386,7 +72416,8 @@
             "val": "154"
           }
         ],
-        "icon": "8a466a8effc37b73"
+        "icon": "8a466a8effc37b73",
+        "modConfirmed": false
       },
       {
         "id": 325162,
@@ -72416,7 +72447,8 @@
             "val": "881"
           }
         ],
-        "icon": "0b88c572baa95585"
+        "icon": "0b88c572baa95585",
+        "modConfirmed": false
       },
       {
         "id": 327082,
@@ -72445,7 +72477,8 @@
             "mod": "ADDITIVE",
             "val": "653"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 327091,
@@ -72474,7 +72507,8 @@
             "mod": "FLAT",
             "val": "693"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 327122,
@@ -72503,7 +72537,8 @@
             "mod": "FLAT",
             "val": "169"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 327162,
@@ -72532,7 +72567,8 @@
             "mod": "MULTIPLICATIVE",
             "val": "390"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 339122,
@@ -72561,7 +72597,8 @@
             "mod": "FLAT",
             "val": "290"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 339142,
@@ -72590,7 +72627,8 @@
             "mod": "ADDITIVE",
             "val": "1732"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 339162,
@@ -72619,7 +72657,8 @@
             "mod": "FLAT",
             "val": "500"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 339182,
@@ -72648,7 +72687,8 @@
             "mod": "FLAT",
             "val": "500"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 345042,
@@ -72659,7 +72699,7 @@
         "gear": "クロスボウ",
         "gearEn": "CROSSBOW",
         "level": 15,
-        "uniqueMod": "ExplosiveBoltHalf",
+        "uniqueMod": "SkillProjectileCountUp",
         "numericKey": "50001",
         "inherent": [
           {
@@ -72678,7 +72718,8 @@
             "val": "9"
           }
         ],
-        "icon": "4fde2ec3a1dfbdb6"
+        "icon": "4fde2ec3a1dfbdb6",
+        "modConfirmed": true
       },
       {
         "id": 345052,
@@ -72689,7 +72730,7 @@
         "gear": "クロスボウ",
         "gearEn": "CROSSBOW",
         "level": 20,
-        "uniqueMod": "ChargeTrapExplosiveCooldown",
+        "uniqueMod": "ExplosiveBoltHalf",
         "numericKey": "50002",
         "inherent": [
           {
@@ -72708,7 +72749,8 @@
             "val": "14"
           }
         ],
-        "icon": "a941182eb21f3af6"
+        "icon": "a941182eb21f3af6",
+        "modConfirmed": true
       },
       {
         "id": 345062,
@@ -72738,7 +72780,8 @@
             "val": "380"
           }
         ],
-        "icon": "d0463799a1c741f2"
+        "icon": "d0463799a1c741f2",
+        "modConfirmed": false
       },
       {
         "id": 345082,
@@ -72768,7 +72811,8 @@
             "val": "503"
           }
         ],
-        "icon": "2505a08641ef8d69"
+        "icon": "2505a08641ef8d69",
+        "modConfirmed": false
       },
       {
         "id": 345112,
@@ -72779,7 +72823,7 @@
         "gear": "クロスボウ",
         "gearEn": "CROSSBOW",
         "level": 50,
-        "uniqueMod": "ChargeTrapExplosiveCooldown",
+        "uniqueMod": "ExplosiveBoltHalf",
         "numericKey": "50002",
         "inherent": [
           {
@@ -72798,7 +72842,8 @@
             "val": "722"
           }
         ],
-        "icon": "61ca3f48533d5a95"
+        "icon": "61ca3f48533d5a95",
+        "modConfirmed": true
       },
       {
         "id": 345122,
@@ -72827,7 +72872,8 @@
             "mod": "FLAT",
             "val": "19"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 345142,
@@ -72857,7 +72903,8 @@
             "val": "184"
           }
         ],
-        "icon": "fb8899437e7c1508"
+        "icon": "fb8899437e7c1508",
+        "modConfirmed": false
       },
       {
         "id": 345172,
@@ -72868,7 +72915,7 @@
         "gear": "クロスボウ",
         "gearEn": "CROSSBOW",
         "level": 80,
-        "uniqueMod": "ChargeTrapExplosiveCooldown",
+        "uniqueMod": "ExplosiveBoltHalf",
         "numericKey": "50002",
         "inherent": [
           {
@@ -72887,7 +72934,8 @@
             "val": "1154"
           }
         ],
-        "icon": "aad8faa2e36bf860"
+        "icon": "aad8faa2e36bf860",
+        "modConfirmed": true
       },
       {
         "id": 345182,
@@ -72917,7 +72965,8 @@
             "val": "227"
           }
         ],
-        "icon": "2c5d341253e2d5bf"
+        "icon": "2c5d341253e2d5bf",
+        "modConfirmed": false
       },
       {
         "id": 347082,
@@ -72946,7 +72995,8 @@
             "mod": "FLAT",
             "val": "602"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 347092,
@@ -72975,7 +73025,8 @@
             "mod": "FLAT",
             "val": "693"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 347132,
@@ -73004,7 +73055,8 @@
             "mod": "FLAT",
             "val": "184"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 347172,
@@ -73033,7 +73085,8 @@
             "mod": "MULTIPLICATIVE",
             "val": "299"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 355042,
@@ -73044,7 +73097,7 @@
         "gear": "斧",
         "gearEn": "AXE",
         "level": 15,
-        "uniqueMod": "WhirlwindFireIgnite",
+        "uniqueMod": "SlayerLowHpAttackSpeed",
         "numericKey": "1000010",
         "inherent": [
           {
@@ -73063,7 +73116,8 @@
             "val": "9"
           }
         ],
-        "icon": "46f9d411c64ca589"
+        "icon": "46f9d411c64ca589",
+        "modConfirmed": true
       },
       {
         "id": 355051,
@@ -73093,7 +73147,8 @@
             "val": "389"
           }
         ],
-        "icon": "6c6c37367aa2efc4"
+        "icon": "6c6c37367aa2efc4",
+        "modConfirmed": false
       },
       {
         "id": 357082,
@@ -73122,7 +73177,8 @@
             "mod": "FLAT",
             "val": "71"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 357091,
@@ -73151,7 +73207,8 @@
             "mod": "FLAT",
             "val": "103"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 357102,
@@ -73180,7 +73237,8 @@
             "mod": "ADDITIVE",
             "val": "890"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 357142,
@@ -73210,7 +73268,8 @@
             "val": "998"
           }
         ],
-        "icon": "19d8d9f27dc78553"
+        "icon": "19d8d9f27dc78553",
+        "modConfirmed": false
       },
       {
         "id": 357182,
@@ -73239,7 +73298,8 @@
             "mod": "FLAT",
             "val": "1358"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 405042,
@@ -73250,7 +73310,7 @@
         "gear": "盾",
         "gearEn": "SHIELD",
         "level": 15,
-        "uniqueMod": "SkillBaseAttackCountReduce",
+        "uniqueMod": "SkillMultiStrikeCountUp",
         "numericKey": "10003",
         "inherent": [
           {
@@ -73269,7 +73329,8 @@
             "val": "162"
           }
         ],
-        "icon": "07caf85e2af19c89"
+        "icon": "07caf85e2af19c89",
+        "modConfirmed": true
       },
       {
         "id": 405051,
@@ -73299,7 +73360,8 @@
             "val": "264"
           }
         ],
-        "icon": "f9652e02fdfa3184"
+        "icon": "f9652e02fdfa3184",
+        "modConfirmed": true
       },
       {
         "id": 405052,
@@ -73310,7 +73372,7 @@
         "gear": "盾",
         "gearEn": "SHIELD",
         "level": 20,
-        "uniqueMod": "SkillCooldownReduce",
+        "uniqueMod": "SkillBaseAttackCountReduce",
         "numericKey": "10004",
         "inherent": [
           {
@@ -73329,7 +73391,8 @@
             "val": "52"
           }
         ],
-        "icon": "f9652e02fdfa3184"
+        "icon": "f9652e02fdfa3184",
+        "modConfirmed": true
       },
       {
         "id": 405061,
@@ -73359,7 +73422,8 @@
             "val": "150"
           }
         ],
-        "icon": "5a1da491134dfef3"
+        "icon": "5a1da491134dfef3",
+        "modConfirmed": false
       },
       {
         "id": 405062,
@@ -73389,7 +73453,8 @@
             "val": "12"
           }
         ],
-        "icon": "5a1da491134dfef3"
+        "icon": "5a1da491134dfef3",
+        "modConfirmed": false
       },
       {
         "id": 405072,
@@ -73400,7 +73465,7 @@
         "gear": "盾",
         "gearEn": "SHIELD",
         "level": 30,
-        "uniqueMod": "SkillBaseAttackCountReduce",
+        "uniqueMod": "SkillMultiStrikeCountUp",
         "numericKey": "10006",
         "inherent": [
           {
@@ -73419,7 +73484,8 @@
             "val": "85"
           }
         ],
-        "icon": "c09b64e4eb6444d6"
+        "icon": "c09b64e4eb6444d6",
+        "modConfirmed": true
       },
       {
         "id": 405082,
@@ -73449,7 +73515,8 @@
             "val": "92"
           }
         ],
-        "icon": "fece08f4f0411771"
+        "icon": "fece08f4f0411771",
+        "modConfirmed": false
       },
       {
         "id": 405092,
@@ -73479,7 +73546,8 @@
             "val": "1163"
           }
         ],
-        "icon": "6ec8ceacb7b023fd"
+        "icon": "6ec8ceacb7b023fd",
+        "modConfirmed": false
       },
       {
         "id": 405102,
@@ -73509,7 +73577,8 @@
             "val": "114"
           }
         ],
-        "icon": "28fa8e3e31cd426a"
+        "icon": "28fa8e3e31cd426a",
+        "modConfirmed": false
       },
       {
         "id": 405112,
@@ -73539,7 +73608,8 @@
             "val": "1267"
           }
         ],
-        "icon": "bd6dff2aa20b422d"
+        "icon": "bd6dff2aa20b422d",
+        "modConfirmed": false
       },
       {
         "id": 405122,
@@ -73569,7 +73639,8 @@
             "val": "127"
           }
         ],
-        "icon": "1ee31a396ec0060a"
+        "icon": "1ee31a396ec0060a",
+        "modConfirmed": false
       },
       {
         "id": 405132,
@@ -73599,7 +73670,8 @@
             "val": "63"
           }
         ],
-        "icon": "0571354bd311647d"
+        "icon": "0571354bd311647d",
+        "modConfirmed": false
       },
       {
         "id": 405142,
@@ -73629,7 +73701,8 @@
             "val": "101"
           }
         ],
-        "icon": "406d16591ff94056"
+        "icon": "406d16591ff94056",
+        "modConfirmed": false
       },
       {
         "id": 405152,
@@ -73659,7 +73732,8 @@
             "val": "159"
           }
         ],
-        "icon": "850139715a4c862b"
+        "icon": "850139715a4c862b",
+        "modConfirmed": false
       },
       {
         "id": 405162,
@@ -73689,7 +73763,8 @@
             "val": "171"
           }
         ],
-        "icon": "14952e1f0ed91382"
+        "icon": "14952e1f0ed91382",
+        "modConfirmed": false
       },
       {
         "id": 405172,
@@ -73719,7 +73794,8 @@
             "val": "2190"
           }
         ],
-        "icon": "89e4ada6f89464c1"
+        "icon": "89e4ada6f89464c1",
+        "modConfirmed": true
       },
       {
         "id": 405182,
@@ -73749,7 +73825,8 @@
             "val": "26"
           }
         ],
-        "icon": "ac9130081156f4ac"
+        "icon": "ac9130081156f4ac",
+        "modConfirmed": false
       },
       {
         "id": 405192,
@@ -73779,7 +73856,8 @@
             "val": "204"
           }
         ],
-        "icon": "3787db2ce10e19de"
+        "icon": "3787db2ce10e19de",
+        "modConfirmed": false
       },
       {
         "id": 407082,
@@ -73808,7 +73886,8 @@
             "mod": "FLAT",
             "val": "113"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 407092,
@@ -73837,7 +73916,8 @@
             "mod": "FLAT",
             "val": "1411"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 407102,
@@ -73866,7 +73946,8 @@
             "mod": "FLAT",
             "val": "146"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 407112,
@@ -73895,7 +73976,8 @@
             "mod": "FLAT",
             "val": "3065"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 407122,
@@ -73924,7 +74006,8 @@
             "mod": "FLAT",
             "val": "1943"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 407132,
@@ -73953,7 +74036,8 @@
             "mod": "FLAT",
             "val": "174"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 407142,
@@ -73983,7 +74067,8 @@
             "val": "195"
           }
         ],
-        "icon": "406d16591ff94056"
+        "icon": "406d16591ff94056",
+        "modConfirmed": false
       },
       {
         "id": 407152,
@@ -74012,7 +74097,8 @@
             "mod": "FLAT",
             "val": "146"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 407162,
@@ -74041,7 +74127,8 @@
             "mod": "FLAT",
             "val": "32"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 407172,
@@ -74071,7 +74158,8 @@
             "val": "253"
           }
         ],
-        "icon": "89e4ada6f89464c1"
+        "icon": "89e4ada6f89464c1",
+        "modConfirmed": false
       },
       {
         "id": 407182,
@@ -74100,7 +74188,8 @@
             "mod": "FLAT",
             "val": "8353"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 407192,
@@ -74129,7 +74218,8 @@
             "mod": "FLAT",
             "val": "287"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 409122,
@@ -74158,7 +74248,8 @@
             "mod": "FLAT",
             "val": "220"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 409132,
@@ -74187,7 +74278,8 @@
             "mod": "FLAT",
             "val": "156"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 409142,
@@ -74217,7 +74309,8 @@
             "val": "263"
           }
         ],
-        "icon": "406d16591ff94056"
+        "icon": "406d16591ff94056",
+        "modConfirmed": false
       },
       {
         "id": 409152,
@@ -74246,7 +74339,8 @@
             "mod": "FLAT",
             "val": "292"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 409162,
@@ -74275,7 +74369,8 @@
             "mod": "FLAT",
             "val": "4000"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 409172,
@@ -74304,7 +74399,8 @@
             "mod": "FLAT",
             "val": "40"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 409182,
@@ -74333,7 +74429,8 @@
             "mod": "FLAT",
             "val": "10000"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 409192,
@@ -74362,7 +74459,8 @@
             "mod": "FLAT",
             "val": "200"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 415042,
@@ -74392,7 +74490,8 @@
             "val": "4"
           }
         ],
-        "icon": "095bcd6a5032df15"
+        "icon": "095bcd6a5032df15",
+        "modConfirmed": false
       },
       {
         "id": 415051,
@@ -74422,7 +74521,8 @@
             "val": "186"
           }
         ],
-        "icon": "5669a2cf1c77f5f5"
+        "icon": "5669a2cf1c77f5f5",
+        "modConfirmed": false
       },
       {
         "id": 425042,
@@ -74433,7 +74533,7 @@
         "gear": "オーブ",
         "gearEn": "ORB",
         "level": 15,
-        "uniqueMod": "ChargeTrapExplosiveCooldown",
+        "uniqueMod": "SkillCooldownReduce",
         "numericKey": "50002",
         "inherent": [
           {
@@ -74452,7 +74552,8 @@
             "val": "23"
           }
         ],
-        "icon": "8e29193283b618fb"
+        "icon": "8e29193283b618fb",
+        "modConfirmed": true
       },
       {
         "id": 505042,
@@ -74482,7 +74583,8 @@
             "val": "200"
           }
         ],
-        "icon": "710555f2cf40ad3f"
+        "icon": "710555f2cf40ad3f",
+        "modConfirmed": false
       },
       {
         "id": 505052,
@@ -74493,7 +74595,7 @@
         "gear": "頭",
         "gearEn": "HELMET",
         "level": 20,
-        "uniqueMod": "CrossbowTurretCooldown",
+        "uniqueMod": "SkewerShotBleedingStrike",
         "numericKey": "50003",
         "inherent": [
           {
@@ -74512,7 +74614,8 @@
             "val": "270"
           }
         ],
-        "icon": "e421507700523fd2"
+        "icon": "e421507700523fd2",
+        "modConfirmed": true
       },
       {
         "id": 505062,
@@ -74542,7 +74645,8 @@
             "val": "344"
           }
         ],
-        "icon": "b396546e425e63ff"
+        "icon": "b396546e425e63ff",
+        "modConfirmed": false
       },
       {
         "id": 505072,
@@ -74572,7 +74676,8 @@
             "val": "459"
           }
         ],
-        "icon": "b3dff55740dad806"
+        "icon": "b3dff55740dad806",
+        "modConfirmed": false
       },
       {
         "id": 505082,
@@ -74602,7 +74707,8 @@
             "val": "549"
           }
         ],
-        "icon": "adf22ebf91e1c350"
+        "icon": "adf22ebf91e1c350",
+        "modConfirmed": false
       },
       {
         "id": 505092,
@@ -74613,7 +74719,7 @@
         "gear": "頭",
         "gearEn": "HELMET",
         "level": 40,
-        "uniqueMod": "ChargeTrapExplosiveCooldown",
+        "uniqueMod": "ExplosiveBoltHalf",
         "numericKey": "50002",
         "inherent": [
           {
@@ -74632,7 +74738,8 @@
             "val": "697"
           }
         ],
-        "icon": "6cc5019be0120c7f"
+        "icon": "6cc5019be0120c7f",
+        "modConfirmed": true
       },
       {
         "id": 505102,
@@ -74662,7 +74769,8 @@
             "val": "805"
           }
         ],
-        "icon": "73862dc7ce4bac50"
+        "icon": "73862dc7ce4bac50",
+        "modConfirmed": false
       },
       {
         "id": 505112,
@@ -74673,7 +74781,7 @@
         "gear": "頭",
         "gearEn": "HELMET",
         "level": 50,
-        "uniqueMod": "CrossbowTurretCooldown",
+        "uniqueMod": "SkewerShotBleedingStrike",
         "numericKey": "50003",
         "inherent": [
           {
@@ -74692,7 +74800,8 @@
             "val": "516"
           }
         ],
-        "icon": "e5d86636d821f952"
+        "icon": "e5d86636d821f952",
+        "modConfirmed": true
       },
       {
         "id": 505122,
@@ -74722,7 +74831,8 @@
             "val": "962"
           }
         ],
-        "icon": "4fd761528183bcb1"
+        "icon": "4fd761528183bcb1",
+        "modConfirmed": false
       },
       {
         "id": 505132,
@@ -74752,7 +74862,8 @@
             "val": "1016"
           }
         ],
-        "icon": "8eacf0efe1a35206"
+        "icon": "8eacf0efe1a35206",
+        "modConfirmed": false
       },
       {
         "id": 505142,
@@ -74782,7 +74893,8 @@
             "val": "1181"
           }
         ],
-        "icon": "be85b2b9097aca23"
+        "icon": "be85b2b9097aca23",
+        "modConfirmed": false
       },
       {
         "id": 505152,
@@ -74812,7 +74924,8 @@
             "val": "1334"
           }
         ],
-        "icon": "d486e0ed4e0da755"
+        "icon": "d486e0ed4e0da755",
+        "modConfirmed": false
       },
       {
         "id": 505162,
@@ -74842,7 +74955,8 @@
             "val": "1478"
           }
         ],
-        "icon": "623a75f3b878e107"
+        "icon": "623a75f3b878e107",
+        "modConfirmed": false
       },
       {
         "id": 505172,
@@ -74872,7 +74986,8 @@
             "val": "1613"
           }
         ],
-        "icon": "c8e3a4935812da65"
+        "icon": "c8e3a4935812da65",
+        "modConfirmed": false
       },
       {
         "id": 505182,
@@ -74902,7 +75017,8 @@
             "val": "1359"
           }
         ],
-        "icon": "f8cfa7fa5742ade9"
+        "icon": "f8cfa7fa5742ade9",
+        "modConfirmed": false
       },
       {
         "id": 505192,
@@ -74932,7 +75048,8 @@
             "val": "1865"
           }
         ],
-        "icon": "4fa6f6c61cae5f7b"
+        "icon": "4fa6f6c61cae5f7b",
+        "modConfirmed": false
       },
       {
         "id": 507082,
@@ -74961,7 +75078,8 @@
             "mod": "FLAT",
             "val": "792"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 507092,
@@ -74990,7 +75108,8 @@
             "mod": "FLAT",
             "val": "613"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 507102,
@@ -75019,7 +75138,8 @@
             "mod": "FLAT",
             "val": "22"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 507112,
@@ -75048,7 +75168,8 @@
             "mod": "FLAT",
             "val": "919"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 507122,
@@ -75077,7 +75198,8 @@
             "mod": "FLAT",
             "val": "1424"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 507132,
@@ -75107,7 +75229,8 @@
             "val": "1102"
           }
         ],
-        "icon": "8eacf0efe1a35206"
+        "icon": "8eacf0efe1a35206",
+        "modConfirmed": false
       },
       {
         "id": 507142,
@@ -75137,7 +75260,8 @@
             "val": "1386"
           }
         ],
-        "icon": "be85b2b9097aca23"
+        "icon": "be85b2b9097aca23",
+        "modConfirmed": false
       },
       {
         "id": 507152,
@@ -75166,7 +75290,8 @@
             "mod": "FLAT",
             "val": "1667"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 507162,
@@ -75195,7 +75320,8 @@
             "mod": "ADDITIVE",
             "val": "2229"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 507172,
@@ -75225,7 +75351,8 @@
             "val": "2444"
           }
         ],
-        "icon": "c8e3a4935812da65"
+        "icon": "c8e3a4935812da65",
+        "modConfirmed": false
       },
       {
         "id": 507182,
@@ -75255,7 +75382,8 @@
             "val": "2650"
           }
         ],
-        "icon": "f8cfa7fa5742ade9"
+        "icon": "f8cfa7fa5742ade9",
+        "modConfirmed": false
       },
       {
         "id": 507192,
@@ -75284,7 +75412,8 @@
             "mod": "FLAT",
             "val": "2848"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 509122,
@@ -75313,7 +75442,8 @@
             "mod": "FLAT",
             "val": "1737"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 509132,
@@ -75342,7 +75472,8 @@
             "mod": "ADDITIVE",
             "val": "2188"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 509142,
@@ -75372,7 +75503,8 @@
             "val": "2560"
           }
         ],
-        "icon": "be85b2b9097aca23"
+        "icon": "be85b2b9097aca23",
+        "modConfirmed": false
       },
       {
         "id": 509152,
@@ -75401,7 +75533,8 @@
             "mod": "ADDITIVE",
             "val": "2908"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 509162,
@@ -75430,7 +75563,8 @@
             "mod": "FLAT",
             "val": "3000"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 509172,
@@ -75459,7 +75593,8 @@
             "mod": "FLAT",
             "val": "3000"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 509182,
@@ -75488,7 +75623,8 @@
             "mod": "FLAT",
             "val": "3000"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 509192,
@@ -75517,7 +75653,8 @@
             "mod": "FLAT",
             "val": "3000"
           }
-        ]
+        ],
+        "modConfirmed": false
       },
       {
         "id": 535042,
@@ -75547,9 +75684,12 @@
             "val": "149"
           }
         ],
-        "icon": "de7c83c617cb6310"
+        "icon": "de7c83c617cb6310",
+        "modConfirmed": true
       }
-    ]
+    ],
+    "confirmedDefCount": 11,
+    "confirmedItemCount": 21
   },
   "icons": {
     "2757f9a4e031f66f": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIN5YP1KTEw8yUehzqKcH8X1Pc4b",

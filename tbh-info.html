@@ -97,40 +97,28 @@ const CHART_DATA={
     rows:[['首飾り',34.5,'#a05fd0'],['ブレーサー',34.5,'#a05fd0'],['指輪',27.6,'#a05fd0'],['イヤリング',3.4,'#6a5a78']]},
   synthMaterialType:{title:'合成Material：出やすい種類。装飾(宝石)とクラフト素材が各40%、彫刻20%。',
     rows:[['装飾(宝石)',40,'#3fb6c0'],['クラフト素材',40,'#c98b2e'],['彫刻',20,'#5fb35f']]},
+  gradeUpgrade:{title:'合成で「1つ上のグレードへ昇格する確率」。レジェまで100%、イモータルから急落＝壁。',
+    rows:[['コモン',100,'#9aa0a6'],['アンコモン',100,'#5fb35f'],['レア',100,'#4f8fe0'],['レジェンダリー',100,'#c98b2e'],
+      ['イモータル',50,'#d05b5b'],['アルカナ',33,'#a05fd0'],['ビヨンド',23,'#d84f9a'],['セレスティアル',17,'#3fb6c0'],['ディバイン',9,'#e0c850']]},
 };
 function drawBarList(el,cd){
   let h='<div class="ct">'+cd.title+'</div>';
   cd.rows.forEach(r=>{h+=barRow(r[0],r[1],r[2]);});
   el.innerHTML=h;
 }
-function drawCharts(data){
+function drawCharts(){
   document.querySelectorAll('.chart').forEach(el=>{
-    const kind=el.dataset.chart;
-    if(CHART_DATA[kind]){drawBarList(el,CHART_DATA[kind]);return;}
-    if(kind==='gradeUpgrade'){
-      const grades={}; (data.grades||[]).forEach(g=>grades[g.GRADE]=g);
-      let h='<div class="ct">合成での「1つ上のグレードへ昇格する確率」（同グレ9個→上位）。レジェまでほぼ100%、イモータルから急落＝壁。</div>';
-      ORDER.forEach(gr=>{
-        const g=grades[gr]; if(!g) return;
-        const t=(g.Lower2GradeWeight||0)+(g.Lower1GradeWeight||0)+(g.SameGradeWeight||0)+(g.Higher1GradeWeight||0)+(g.Higher2GradeWeight||0);
-        if(!t||gr==='COSMIC') return;
-        const up=100*((g.Higher1GradeWeight||0)+(g.Higher2GradeWeight||0))/t;
-        h+=barRow(GJA[gr],up,GCOL[gr]);
-      });
-      el.innerHTML=h;
-    }
+    const cd=CHART_DATA[el.dataset.chart];
+    if(cd) drawBarList(el,cd);
   });
 }
-Promise.all([
-  fetch('TBH-解析メモ.md').then(r=>r.text()),
-  fetch('tbh-data.json').then(r=>r.json()).catch(()=>({}))
-]).then(([md,data])=>{
+fetch('TBH-解析メモ.md').then(r=>r.text()).then(md=>{
   const {html,toc}=render(md);
   document.getElementById('md').innerHTML=html;
-  drawCharts(data);
+  drawCharts();
   if(toc.length){const t=document.getElementById('toc');t.style.display='block';
     t.innerHTML=toc.map(x=>'<a href="#'+x.id+'">'+x.txt.replace(/[★]/g,'').slice(0,18)+'</a>').join('');}
-}).catch(e=>{document.getElementById('md').innerHTML='<div class="loading">読み込み失敗: '+e+'<br>(GitHub Pages 上で開いてください)</div>';});
+}).catch(e=>{document.getElementById('md').innerHTML='<div class="loading">読み込み失敗: '+e+'</div>';});
 </script>
 </body>
 </html>

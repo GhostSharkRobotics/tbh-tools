@@ -27,6 +27,13 @@
   .chip.tinscription.on{background:var(--t-inscription);border-color:var(--t-inscription);}
   .chip.tequip.on{background:var(--t-equip);border-color:var(--t-equip);}
   .chip.tunique.on{background:var(--t-unique);border-color:var(--t-unique);}
+  /* アイテム種別は「排他選択タブ」: 連結したセグメントバーにして複数選択チップと見分ける */
+  #typeChips{gap:0;}
+  #typeChips .chip{border-radius:0;border-left-width:0;padding:7px 16px;}
+  #typeChips .chip:first-child{border-top-left-radius:9px;border-bottom-left-radius:9px;border-left-width:1px;}
+  #typeChips .chip:last-child{border-top-right-radius:9px;border-bottom-right-radius:9px;}
+  #typeChips .chip.on{box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);}
+  .hint{font-size:10px;color:var(--muted);font-weight:400;opacity:.8;}
   #equipSub{margin-left:14px;padding-left:12px;border-left:2px solid var(--border);}
   #lblEquipSub{margin-left:14px;}
   #lblEquipSub b{color:var(--t-equip);font-weight:600;}
@@ -150,6 +157,7 @@ const CAT_KEYS=["weapon","armor","accessory"];
 const T={
  ja:{title:"TBH アイテム検索",sub:"装備（武器/防具/アクセ/オフハンド）と強化素材（装飾/彫刻/碑文）を検索 — ヘッダクリックで並べ替え・ドラッグで列幅調整、名前クリックでSteamマーケットのページを開く。",
    ph:"効果・名前で検索（攻撃速度 / エメラルド / Composite Bow / 指輪）",quick:"よく使う効果（DPS）",type:"アイテム種別",
+   typeHint:"タブ：1つ押すとその種別だけ・もう一度押すと全部",multiHint:"複数選択できます",
    part:"部位",gear:"種類（指輪・頭 など）",color:"色（宝石のみ）",gem:"装飾(宝石)",engraving:"彫刻",inscription:"碑文(刻印)",equipment:"装備",unique:"特殊",base:"本体",
    equipSub:`<b>装備</b>の絞り込み — ONで特殊ステータス（固有効果）付きの装備だけ表示`,
    weapon:"武器",armor:"防具",accessory:"アクセ",offhand:"オフハンド",any:"全部位",scroll:"巻物",allRar:"全レアリティ",allLevel:"全レベル",lvl:"Lv",hits:n=>`${n} 件`,
@@ -162,6 +170,7 @@ const T={
         `<span style="color:var(--warn)">⚠</span>=低信頼の数値、実機要確認。`},
  en:{title:"TBH Item Search",sub:"Search equipment (weapon/armor/accessory/offhand) and enhancement materials (gem/engraving/inscription). Click a header to sort, drag to resize columns, click a name to open its Steam Market page.",
    ph:"Search by effect or name (Attack Speed / Emerald / Composite Bow / Ring)",quick:"Common effects (DPS)",type:"Item type",
+   typeHint:"tabs: click one to show only that type, click again for all",multiHint:"multi-select",
    part:"Slot",gear:"Gear type (Ring, Helmet…)",color:"Color (gems only)",gem:"Decoration (Gem)",engraving:"Engraving",inscription:"Inscription (碑文)",equipment:"Equipment",unique:"Special",base:"Base",
    equipSub:`<b>Equipment</b> filter — ON shows only gear that has special stats (unique mods)`,
    weapon:"Weapon",armor:"Armor",accessory:"Accessory",offhand:"Offhand",any:"any slot",scroll:"Scroll",allRar:"All rarities",allLevel:"All levels",lvl:"Lv",hits:n=>`${n} results`,
@@ -262,7 +271,10 @@ function applyLangText(){
   document.documentElement.lang=state.lang;
   el("title").textContent=L().title;el("subtitle").textContent=L().sub;el("q").placeholder=L().ph;
   el("lang").textContent=state.lang==="ja"?"A":"あ";
-  el("lblQuick").textContent=L().quick;el("lblType").textContent=L().type;el("lblPart").textContent=L().part;el("lblColor").textContent=L().color;
+  el("lblQuick").textContent=L().quick;
+  el("lblType").innerHTML=`${L().type} <span class="hint">— ${L().typeHint}</span>`;
+  el("lblPart").innerHTML=`${L().part} <span class="hint">— ${L().multiHint}</span>`;
+  el("lblColor").textContent=L().color;
   const pinfo=PRICEDATA?`<br>価格: <a href="${PRICEDATA.sourceUrl}" target="_blank" style="color:var(--accent)">${PRICEDATA.source}</a> 経由（${PRICEDATA.currency} / Steam相場）｜取得: ${PRICEDATA.fetchedAt||"—"}。価格は更新スクリプト実行時点のスナップショット（再取得: <code>python3 tbh-fetch-prices.py</code>）。`
     :`<br><span style="color:var(--warn)">価格未取得</span> — <code>python3 tbh-fetch-prices.py</code> を実行すると tbh-market.com(Steam相場)の価格が表に入ります。`;
   el("note").innerHTML=L().note+`<br>${(DATA._meta&&DATA._meta.warning)||""}`+pinfo;

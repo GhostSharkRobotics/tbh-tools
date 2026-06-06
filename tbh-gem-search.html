@@ -225,7 +225,7 @@ const COLORS=[...new Set(INDEX.filter(x=>x.color).map(x=>x.color))];
 const ALL_TYPES=["equipment","gem","engraving","inscription"];
 const state={lang:"ja",q:"",stat:null,types:new Set(ALL_TYPES),specialOnly:false,cats:new Set(),gears:new Set(),colors:new Set(),rarity:"",level:"",sortCol:"value",sortDir:"desc"};
 const allTypesOn=()=>ALL_TYPES.every(t=>state.types.has(t));
-const soleEquipMode=()=>!allTypesOn()&&state.types.size===1&&state.types.has("equipment");
+const equipShown=()=>state.types.has("equipment");   // 装備が表示対象か(すべて/装備タブ)
 const L=()=>T[state.lang];
 const lc=()=>state.lang==="ja"?"ja":"en";
 const statLabel=s=>state.lang==="ja"?s:(SM[s]||s);
@@ -303,7 +303,7 @@ function inscMatch(e){
 }
 function equipMatch(e){
   if(!state.types.has("equipment"))return false;
-  if(state.specialOnly&&soleEquipMode())return false;           // 「特殊」ON時は本体を出さず固有効果付きのみ
+  if(state.specialOnly)return false;                            // 「特殊」ON時は本体を出さず固有効果付きのみ
   if(state.colors.size)return false;                            // 装備に色は無い
   if(state.cats.size&&!state.cats.has(e.cat))return false;
   if(state.gears.size&&!state.gears.has(e.gearJa))return false;  // 種類(指輪/頭 等)で絞り込み
@@ -313,7 +313,7 @@ function equipMatch(e){
   return qhit(state.q,[e.name,e.nameEn].concat((e.stats||[]).flatMap(s=>[s.ja,s.en])));
 }
 function uniqueMatch(u){
-  if(!(soleEquipMode()&&state.specialOnly))return false;   // 装備タブ単独＋「特殊」ON のときだけ
+  if(!(equipShown()&&state.specialOnly))return false;   // 装備が表示対象＋「特殊」ON のときだけ
   if(state.stat||state.colors.size)return false;               // 特殊効果は数値stat/色では絞らない（文字検索で対応）
   if(state.cats.size&&!state.cats.has(u.cat))return false;
   if(state.gears.size&&!state.gears.has(u.gear))return false;   // 種類で絞り込み(uniqueのgearはJP)
@@ -416,8 +416,7 @@ function render(){
   } else {el("lblGear").style.display="none";el("gearChips").style.display="none";el("gearChips").innerHTML="";}
 
   // 装備の絞り込みサブ行: 装備タブ単独選択時だけ表示。「特殊」=固有効果付きのみ
-  const seMode=soleEquipMode();
-  el("equipSub").style.display=seMode?"":"none";
+  el("equipSub").style.display=equipShown()?"":"none";
   document.querySelectorAll("#equipSub .chip").forEach(c=>c.classList.toggle("on",state.specialOnly));
 
   document.querySelectorAll("#quickStats .chip").forEach(c=>c.classList.toggle("on",c.dataset.stat===state.stat));

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TBH ステージ別ドロップ / Stage Drops</title>
+<style>
+  :root{--bg:#14110d;--surface:#1f1b15;--surface2:#262017;--accent:#d8a657;--text:#ece3d2;--muted:#9a8f7a;--border:#3a342a;
+    --good:#6fcf6f;--warn:#e0c060;--bad:#e07a7a;
+    --box-white:#d8d2c4;--box-blue:#6f9fe0;--box-gold:#d8a657;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.6;padding:24px;max-width:940px;margin:0 auto;}
+  h1{font-size:24px;color:var(--accent);margin-bottom:4px;}
+  .sub{font-size:13px;color:var(--muted);margin-bottom:16px;}
+  .back{font-size:13px;color:var(--muted);text-decoration:none;}
+  .back:hover{color:var(--accent);}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;}
+  .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:5px 0;}
+  .lab{font-size:11px;color:var(--muted);width:44px;flex:none;}
+
+  input.search{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:15px;width:100%;}
+  input.search:focus{outline:none;border-color:var(--accent);}
+
+  /* filter = 丸タブ(chip) で統一（単一選択・常に「すべて」あり） */
+  button.chip{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:4px 12px;font-size:13px;cursor:pointer;}
+  button.chip:hover{border-color:var(--accent);}
+  button.chip.on{background:var(--accent);color:#1a1610;border-color:var(--accent);font-weight:600;}
+  label.tgl{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer;}
+
+  /* stage grid */
+  .stages{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:4px;}
+  button.stg{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 9px;font-size:12px;cursor:pointer;text-align:left;line-height:1.35;}
+  button.stg:hover{border-color:var(--accent);}
+  button.stg.on{border-color:var(--accent);background:#322a1c;}
+  button.stg .sno{color:var(--accent);font-weight:700;}
+  button.stg.boss .sno{color:var(--box-gold);}
+  button.stg .snm{display:block;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  button.stg .slv{color:var(--muted);font-size:10px;}
+
+  /* detail */
+  .detail-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin:4px 0 2px;}
+  .detail-head .dh-no{color:var(--accent);font-weight:700;font-size:15px;}
+  .detail-head .dh-nm{font-size:18px;font-weight:600;}
+  .detail-head .dh-en{color:var(--muted);font-size:12px;}
+  .meta{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .meta b{color:var(--text);}
+
+  .box{margin-bottom:14px;}
+  .box-h{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:5px;}
+  .dot{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.3);}
+  .box-h .rate{margin-left:auto;font-size:12px;color:var(--muted);font-weight:400;}
+  .box-h .rate b{color:var(--good);font-weight:700;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{font-size:11px;color:var(--muted);font-weight:500;text-align:right;padding:5px 8px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  th.l{text-align:left;}
+  td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  td.l{text-align:left;white-space:normal;}
+  tr.r:hover{background:var(--surface2);}
+  .nm b{color:var(--text);font-weight:600;}
+  .nm .en{color:var(--muted);font-size:10px;margin-left:5px;}
+  .gear{color:var(--muted);font-size:11px;}
+  .rr{font-size:10px;padding:1px 6px;border-radius:4px;color:#15120d;font-weight:700;display:inline-block;}
+  .cls{font-size:10px;padding:1px 6px;border-radius:10px;border:1px solid var(--border);color:var(--muted);display:inline-block;}
+  .pct{font-weight:700;color:var(--accent);}
+  .pct.tiny{color:var(--muted);font-weight:400;}
+  .bar{display:inline-block;height:6px;border-radius:3px;background:var(--accent);vertical-align:middle;margin-right:6px;min-width:2px;opacity:.7;}
+
+  /* reverse search */
+  .rev-item{font-size:13px;margin:10px 0 4px;font-weight:600;color:var(--text);}
+  .rev-item .en{color:var(--muted);font-size:11px;margin-left:6px;font-weight:400;}
+  .empty{color:var(--muted);font-size:13px;padding:14px 2px;}
+  .hint{font-size:11px;color:var(--muted);margin:2px 0 0;}
+
+  .note{font-size:11px;color:var(--muted);margin-top:18px;border-top:1px solid var(--border);padding-top:10px;}
+  .note code{background:var(--surface2);padding:1px 5px;border-radius:4px;}
+  .loading{color:var(--muted);padding:20px 2px;}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← ツール一覧</a>
+<h1>📦 ステージ別ドロップ</h1>
+<div class="sub">どのステージのどの箱から何が出るか。出現確率つき。アイテム名で「どこで掘れる？」も検索できます。</div>
+
+<div class="panel">
+  <input class="search" id="search" type="search" placeholder="🔍 アイテム名で検索（例：ルビー / 兜 / Sword）— 空欄でステージ閲覧">
+  <div class="row" style="margin-top:8px;">
+    <span class="lab">章</span><span id="actChips"></span>
+  </div>
+  <div class="row">
+    <span class="lab">職</span><span id="classChips"></span>
+  </div>
+  <div class="row">
+    <label class="tgl"><input type="checkbox" id="hideTiny"> 0.5%未満を隠す</label>
+  </div>
+  <div class="hint" id="classHint"></div>
+</div>
+
+<div id="stagesWrap"><div class="stages" id="stages"></div></div>
+<div id="view"><div class="loading">読み込み中…</div></div>
+
+<div class="note" id="note"></div>
+
+<script>
+const GRADE_COL={COMMON:"#9a9a9a",UNCOMMON:"#6fcf6f",RARE:"#5b9bd5",LEGENDARY:"#d8a657",
+  IMMORTAL:"#e07a5b",ARCANA:"#b07ad0",BEYOND:"#e07ab5",CELESTIAL:"#6fd0d0",DIVINE:"#e8d488",COSMIC:"#c060e0"};
+const GRADE_JA={COMMON:"コモン",UNCOMMON:"アンコモン",RARE:"レア",LEGENDARY:"レジェ",IMMORTAL:"イモータル",
+  ARCANA:"アルカナ",BEYOND:"ビヨンド",CELESTIAL:"セレ",DIVINE:"ディバイン",COSMIC:"コズミック"};
+const CLASSES=[{k:"101",ja:"ナイト",en:"Knight"},{k:"201",ja:"レンジャー",en:"Ranger"},
+  {k:"301",ja:"ソーサラー",en:"Sorcerer"},{k:"401",ja:"プリースト",en:"Priest"},
+  {k:"501",ja:"ハンター",en:"Hunter"},{k:"601",ja:"スレイヤー",en:"Slayer"}];
+const CLS_JA=Object.fromEntries(CLASSES.map(c=>[c.k,c.ja]));
+const BOXSTYLE={normal:{ja:"白箱（通常モンスター）",en:"Normal monster",col:"var(--box-white)"},
+  stageBoss:{ja:"青箱（ステージボス）",en:"Stage boss",col:"var(--box-blue)"},
+  actBoss:{ja:"金箱（章ボス）",en:"Act boss",col:"var(--box-gold)"}};
+const LS="tbh-stagedrops-v1";
+
+let DATA=null, BOX={}, STAGES=[];
+let state={act:null, cls:null, hideTiny:false, stage:null, q:""};
+try{Object.assign(state,JSON.parse(localStorage.getItem(LS)||"{}"));}catch(e){}
+
+const $=id=>document.getElementById(id);
+const esc=s=>(s==null?"":String(s)).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function save(){try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){}}
+
+// 箱の中身を「選択クラスの実効ドロップ表」に変換。
+// 保存pctは全6職プール込み。1職に絞ると他職限定枠は実際には出ないので、共通＋自職だけで分母を取り直す。
+function rowsFor(boxKey){
+  const b=BOX[boxKey]; if(!b||!b.contents) return [];
+  let cs=b.contents;
+  if(state.cls) cs=cs.filter(c=>!c.heroClass || c.heroClass===state.cls);
+  const tot=cs.reduce((s,c)=>s+(c.weight||0),0)||1;
+  return cs.map(c=>({...c, pct: state.cls ? 100*(c.weight||0)/tot : c.pct}))
+           .sort((a,b)=>b.pct-a.pct);
+}
+
+function chip(label,on,onclick){
+  const b=document.createElement("button"); b.className="chip"+(on?" on":""); b.textContent=label;
+  b.onclick=onclick; return b;
+}
+function renderChips(){
+  const ac=$("actChips"); ac.innerHTML="";
+  ac.appendChild(chip("すべて",state.act==null,()=>{state.act=null;save();renderStages();}));
+  [1,2,3].forEach(a=>ac.appendChild(chip(a+"章",state.act===a,()=>{state.act=a;save();renderStages();})));
+  const cc=$("classChips"); cc.innerHTML="";
+  cc.appendChild(chip("すべて",state.cls==null,()=>{state.cls=null;save();render();}));
+  CLASSES.forEach(c=>cc.appendChild(chip(c.ja,state.cls===c.k,()=>{state.cls=c.k;save();render();})));
+  $("hideTiny").checked=state.hideTiny;
+  $("classHint").textContent = state.cls
+    ? `${CLS_JA[state.cls]}専用の枠だけを残し、出ない他職枠を除いて確率を取り直しています。`
+    : "「すべて」は全6職をプールした参考値。自分の職を選ぶと、その職の実際の確率で表示します。";
+}
+
+function renderStages(){
+  const wrap=$("stages"); wrap.innerHTML="";
+  const list=STAGES.filter(s=>state.act==null||s.act===state.act);
+  for(const s of list){
+    const boss=s.type==="ACTBOSS";
+    const b=document.createElement("button");
+    b.className="stg"+(boss?" boss":"")+(state.stage===s.stageKey?" on":"");
+    b.innerHTML=`<span class="sno">${s.act}-${s.stageNo}${boss?" 👑":""}</span> `+
+      `<span class="snm">${esc(s.name||"?")}</span><span class="slv">Lv ${s.level}</span>`;
+    b.onclick=()=>{state.stage=s.stageKey;save();render();
+      document.getElementById("view").scrollIntoView({behavior:"smooth",block:"start"});};
+    wrap.appendChild(b);
+  }
+}
+
+function gradePill(g){return g?`<span class="rr" style="background:${GRADE_COL[g]||"#888"}">${GRADE_JA[g]||g}</span>`:"";}
+function clsPill(hc){return hc?`<span class="cls">${CLS_JA[hc]||hc}専用</span>`:"";}
+
+function contentTable(boxKey){
+  let rows=rowsFor(boxKey);
+  if(state.hideTiny) rows=rows.filter(r=>r.pct>=0.5);
+  if(!rows.length) return `<div class="empty">該当なし</div>`;
+  const max=rows[0].pct||1;
+  let h=`<table><thead><tr><th class="l">アイテム</th><th class="l">種別</th><th>グレード</th><th>確率</th></tr></thead><tbody>`;
+  for(const r of rows){
+    const nm=r.name||{}; const tiny=r.pct<0.5;
+    const bw=Math.max(2,Math.round(40*r.pct/max));
+    h+=`<tr class="r"><td class="l nm"><b>${esc(nm.ja||r.items&&r.items[0]||"?")}</b>`+
+       (nm.en?`<span class="en">${esc(nm.en)}</span>`:"")+`</td>`+
+       `<td class="l gear">${esc(r.gear||"")}${clsPill(r.heroClass)}</td>`+
+       `<td>${gradePill(r.grade)}</td>`+
+       `<td><span class="bar" style="width:${bw}px"></span><span class="pct${tiny?" tiny":""}">${r.pct.toFixed(2)}%</span></td></tr>`;
+  }
+  return h+`</tbody></table>`;
+}
+
+function boxSection(typeKey,boxKey,rate){
+  if(!boxKey||!BOX[boxKey]) return "";
+  const st=BOXSTYLE[typeKey]||{ja:typeKey,en:"",col:"#888"};
+  const rateTxt = rate!=null ? `箱の出現率 <b>${(rate/10).toFixed(rate%10?1:0)}%</b>` : "ボス撃破で確定";
+  return `<div class="box"><div class="box-h"><span class="dot" style="background:${st.col}"></span>`+
+    `${st.ja}<span class="rate">${rateTxt}</span></div>${contentTable(boxKey)}</div>`;
+}
+
+function renderDetail(){
+  const s=STAGES.find(x=>x.stageKey===state.stage);
+  const v=$("view");
+  if(!s){v.innerHTML=`<div class="empty">上のステージを選ぶと、その箱の中身と確率が表示されます。</div>`;return;}
+  const boss=s.type==="ACTBOSS";
+  let meta=`<b>Lv ${s.level}</b>`;
+  if(s.waves) meta+=` ・ ${s.waves} Wave`;
+  if(boss) meta+=` ・ 章ボスステージ`;
+  const bm=s.boss||{};
+  if(!boss && (bm.hpMult||bm.damageMult)) meta+=` ・ 道中ボス HP×${((bm.hpMult||1000)/1000).toFixed(1)} / 攻×${((bm.damageMult||1000)/1000).toFixed(1)}`;
+  let h=`<div class="detail-head"><span class="dh-no">${s.act}-${s.stageNo}</span>`+
+    `<span class="dh-nm">${esc(s.name||"?")}</span></div><div class="meta">${meta}</div>`;
+  h+=boxSection("normal", s.normalBox&&s.normalBox.box, s.normalBox&&s.normalBox.rate);
+  const bt = boss ? "actBoss" : "stageBoss";
+  h+=boxSection(bt, s.bossBox&&s.bossBox.box, s.bossBox&&s.bossBox.rate);
+  if(s.soulstone&&s.soulstone.item)
+    h+=`<div class="box"><div class="box-h"><span class="dot" style="background:#b07ad0"></span>`+
+       `ソウルストーン<span class="rate">章ボス報酬 <b>×${s.soulstone.amount||1}</b></span></div></div>`;
+  v.innerHTML=h;
+}
+
+// 逆引き：アイテム名で全ステージの箱を検索
+function renderSearch(){
+  const q=state.q.trim().toLowerCase();
+  const v=$("view");
+  const hits=[]; // {itemJa,itemEn,grade,gear,stage,typeKey,pct}
+  for(const s of STAGES){
+    if(state.act!=null && s.act!==state.act) continue;
+    const boxes=[["normal",s.normalBox&&s.normalBox.box],
+                 [s.type==="ACTBOSS"?"actBoss":"stageBoss", s.bossBox&&s.bossBox.box]];
+    for(const [typeKey,bk] of boxes){
+      if(!bk) continue;
+      for(const r of rowsFor(bk)){
+        const nm=r.name||{};
+        const hay=((nm.ja||"")+" "+(nm.en||"")+" "+(r.gear||"")).toLowerCase();
+        if(hay.includes(q)){
+          if(state.hideTiny && r.pct<0.5) continue;
+          hits.push({nm,grade:r.grade,gear:r.gear,heroClass:r.heroClass,stage:s,typeKey,pct:r.pct});
+        }
+      }
+    }
+  }
+  if(!hits.length){v.innerHTML=`<div class="empty">「${esc(state.q)}」に一致するドロップは見つかりませんでした。</div>`;return;}
+  // group by item name(ja)
+  const groups={};
+  for(const h of hits){const key=(h.nm.ja||"?")+"|"+(h.grade||"");(groups[key]=groups[key]||[]).push(h);}
+  const order=Object.keys(groups).sort((a,b)=>Math.max(...groups[b].map(x=>x.pct))-Math.max(...groups[a].map(x=>x.pct)));
+  let html=`<div class="hint">${hits.length}件 / ${order.length}種のアイテム${state.cls?`（${CLS_JA[state.cls]}基準）`:""}</div>`;
+  for(const key of order){
+    const arr=groups[key].sort((a,b)=>b.pct-a.pct);
+    const f=arr[0];
+    html+=`<div class="rev-item">${gradePill(f.grade)} ${esc(f.nm.ja||"?")}`+
+      (f.nm.en?`<span class="en">${esc(f.nm.en)}</span>`:"")+
+      `<span class="gear" style="margin-left:8px">${esc(f.gear||"")}</span>${clsPill(f.heroClass)}</div>`;
+    html+=`<table><thead><tr><th class="l">ステージ</th><th class="l">箱</th><th>確率</th></tr></thead><tbody>`;
+    for(const h of arr){
+      const st=BOXSTYLE[h.typeKey];
+      html+=`<tr class="r"><td class="l"><b>${h.stage.act}-${h.stage.stageNo}</b> ${esc(h.stage.name||"")} `+
+        `<span class="slv" style="color:var(--muted)">Lv${h.stage.level}</span></td>`+
+        `<td class="l"><span class="dot" style="background:${st.col};display:inline-block;vertical-align:middle;margin-right:5px"></span>${st.ja.split("（")[0]}</td>`+
+        `<td><span class="pct${h.pct<0.5?" tiny":""}">${h.pct.toFixed(2)}%</span></td></tr>`;
+    }
+    html+=`</tbody></table>`;
+  }
+  v.innerHTML=html;
+}
+
+function render(){
+  renderChips();
+  renderStages();
+  const searching=state.q.trim().length>0;
+  $("stagesWrap").style.display=searching?"none":"";
+  if(searching) renderSearch(); else renderDetail();
+}
+
+$("search").addEventListener("input",e=>{state.q=e.target.value;render();});
+$("hideTiny").addEventListener("change",e=>{state.hideTiny=e.target.checked;save();render();});
+
+fetch('tbh-data.json').then(r=>r.json()).then(d=>{
+  DATA=d;
+  (d.boxes.items||[]).forEach(b=>BOX[b.itemKey]=b);
+  STAGES=(d.boxes.stageDrops||[]).slice().sort((a,b)=>a.act-b.act||a.stageNo-b.stageNo);
+  $("search").value=state.q||"";
+  $("note").innerHTML=`出典：<code>tbh-data.json</code>（ゲーム本体から抽出した <code>StageInfoData / DropInfoData</code> を解決）。`+
+    `中身は固定の重み付き抽選で、表示%はその抽選確率。<b>箱の出現率</b>は通常敵を倒したとき箱が落ちる確率の目安（ボス箱は撃破で確定）。`+
+    `職専用枠（クロスボウ＝ハンター等）は、職を選ぶとその職基準で確率を取り直します。`;
+  render();
+}).catch(e=>{$("view").innerHTML=`<div class="empty">データの読み込みに失敗しました。${esc(e.message)}</div>`;});
+</script>
+<script src="analytics.js"></script>
+</body>
+</html>

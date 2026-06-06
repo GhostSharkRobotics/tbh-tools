@@ -152,7 +152,7 @@ const CAT_KEYS=["weapon","armor","accessory"];
 
 const T={
  ja:{title:"TBH アイテム検索",sub:"装備（武器/防具/アクセ/オフハンド）と強化素材（装飾/彫刻/碑文）を検索 — ヘッダクリックで並べ替え・ドラッグで列幅調整、名前クリックでSteamマーケットのページを開く。",
-   ph:"効果・名前で検索（攻撃速度 / エメラルド / Composite Bow / 指輪）",quick:"よく使う効果（DPS）",type:"アイテム種別",all:"すべて",specialChip:"特殊ステータスのみ",
+   ph:"効果・名前で検索（攻撃速度 / エメラルド / Composite Bow / 指輪）",quick:"よく使う効果（DPS）",type:"アイテム種別",all:"すべて",
    part:"部位",gear:"種類（指輪・頭 など）",color:"色（宝石のみ）",gem:"装飾(宝石)",engraving:"彫刻",inscription:"碑文(刻印)",equipment:"装備",unique:"特殊",
    weapon:"武器",armor:"防具",accessory:"アクセ",offhand:"オフハンド",any:"全部位",scroll:"巻物",allRar:"全レアリティ",allLevel:"全レベル",lvl:"Lv",hits:n=>`${n} 件`,
    slot:s=>s,empty:"該当なし。検索ワードやフィルタを変えてください。",
@@ -163,7 +163,7 @@ const T={
         `<b style="color:var(--t-inscription)">碑文(刻印)</b>=巻物で大量プールから1効果をランダム付与（巻物グレードごとに出る効果と値が異なる）。★=その効果・部位での最大値。アイテム名クリックでSteamマーケットの該当ページを別タブで開く。`+
         `<span style="color:var(--warn)">⚠</span>=低信頼の数値、実機要確認。`},
  en:{title:"TBH Item Search",sub:"Search equipment (weapon/armor/accessory/offhand) and enhancement materials (gem/engraving/inscription). Click a header to sort, drag to resize columns, click a name to open its Steam Market page.",
-   ph:"Search by effect or name (Attack Speed / Emerald / Composite Bow / Ring)",quick:"Common effects (DPS)",type:"Item type",all:"All",specialChip:"Special stats only",
+   ph:"Search by effect or name (Attack Speed / Emerald / Composite Bow / Ring)",quick:"Common effects (DPS)",type:"Item type",all:"All",
    part:"Slot",gear:"Gear type (Ring, Helmet…)",color:"Color (gems only)",gem:"Decoration (Gem)",engraving:"Engraving",inscription:"Inscription (碑文)",equipment:"Equipment",unique:"Special",
    weapon:"Weapon",armor:"Armor",accessory:"Accessory",offhand:"Offhand",any:"any slot",scroll:"Scroll",allRar:"All rarities",allLevel:"All levels",lvl:"Lv",hits:n=>`${n} results`,
    slot:s=>s,empty:"No matches. Try a different term or filter.",
@@ -247,7 +247,7 @@ function buildChips(){
     el("typeChips").appendChild(c);});
   // 装備タブのときだけ出る絞り込み: 特殊ステータス付きの装備だけ表示
   el("equipSub").innerHTML="";
-  const su=document.createElement("div");su.className="chip tunique";su.dataset.special="1";su.textContent=L().specialChip;
+  const su=document.createElement("div");su.className="chip tunique";su.dataset.special="1";su.textContent=L().unique;
   su.onclick=()=>{state.specialOnly=!state.specialOnly;render();};el("equipSub").appendChild(su);
   el("catChips").innerHTML="";
   PART_KEYS.forEach(k=>{const c=document.createElement("div");c.className="chip";c.dataset.cat=k;c.textContent=L()[k];

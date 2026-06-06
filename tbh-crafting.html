@@ -94,7 +94,7 @@
     <p><b>用語</b>：</p>
     <ul>
       <li><b>素材コスト</b>＝素材を市場で買う最安合計。</li>
-      <li><b>期待販売額</b>＝完成品はランダムなグレード。各グレードが出る確率×その装備の市場中央値の合計（売れないレジェ未満は$0）。</li>
+      <li><b>期待販売額</b>＝完成品は産出タイプ・グレードごとに出やすさ（重み）が違う。各産出の重み×その装備の市場中央値の合計（売れないレジェ未満は$0）。重みグラフと同じ確率を使用。</li>
       <li><b>期待利益</b>＝期待販売額 − 素材コスト。「平均すると1回でこれだけ儲かる」目安。</li>
       <li><b>ROI</b>＝投資利益率＝利益÷コスト×100%。<b>+126%なら $1の素材→平均 +$1.26 の儲け</b>（$1が$2.26に）。金額は「利益」、効率は「ROI」で見る。</li>
       <li><b>キューブexp / exp/$</b>＝クラフト1回で入るキューブexp（＝投入素材のグレード基礎exp合計。各素材行に内訳）と、$1あたりのexp（レベル上げ効率）。</li>
@@ -110,7 +110,7 @@
 
 <div class="note">
   データは <code>tbh-data.json</code> の <code>crafting.recipes</code> 由来。価格は <code>tbh-prices.json</code>（Steam Community Market 相場）のスナップショットで、最安の販売価格（USD）を表示。<br>
-  <b>期待利益</b>＝Σ(各グレード確率 × 該当装備の市場中央値) − 素材コスト。クラフト結果はランダムなグレード・種類の装備で、レジェ未満は市場非対応のため $0 として外れ確率に算入。出来上がり確率の合計が100%未満なのはこの外れ分。手数料(Steam約15%)・売れ残りは未考慮の理論値。<br>
+  <b>期待利益</b>＝Σ(産出タイプ・グレード別の重み × 該当装備の市場中央値) − 素材コスト。重みは産出内訳グラフと同じ実機ドロップ確率。レジェ未満は市場非対応のため $0 として外れ確率に算入。出来上がり確率の合計が100%未満なのはこの外れ分。手数料(Steam約15%)・売れ残りは未考慮の理論値。<br>
   <b>キューブexp</b>＝投入素材のグレード基礎exp(BEYOND=1658, IMMORTAL=162, LEGENDARY=54…) × 個数の合計（probonk実機データ由来）。<b>exp/$</b>＝素材$1あたりのexpでレベル上げ効率の目安。期待利益がプラスのレシピは、売却でコストを回収できるため実質ノーコストでレベル上げ可能。<br>
   数値はコミュニティwiki由来でやや不確実、実機の値が優先。
 </div>
@@ -132,20 +132,39 @@ function median(a){if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y);c
 // レシピ部位 → 装備gearスロット（防具は部位指定、武器/オフ/アクセは同カテゴリ全種）
 const TYPE_GEAR={Helmet:"HELMET",Armor:"ARMOR",Gloves:"GLOVES",Boots:"BOOTS"};
 function eqSell(e){const v=PRICES[e.nameEn+" ("+e.rarity+") A"]||PRICES[e.nameEn+" ("+e.rarity+")"];return v&&v.sell!=null?v.sell:null;}
-// 完成品の収支: 素材コスト・グレード別の市場中央値・期待販売額・期待利益
+// 完成品の収支: 素材コスト・産出タイプ別の重み×市場中央値・期待販売額・期待利益
+// 重みグラフ(craftResults.results)と同じ確率を用い、各産出タイプの市場中央値を掛けて期待販売額を算出。
 function economy(r){
   const cost=r.materials.reduce((s,m)=>s+(priceOf(m.nameEn)||0)*m.count,0);
-  const gear=TYPE_GEAR[r.type]||null;
-  const rows=(r.gradeOdds||[]).map(o=>{
-    const ups=EQUIP.filter(e=>e.cat===r.category&&(!gear||e.gear===gear)&&e.lvl>=r.levelMin&&e.lvl<=r.levelMax&&e.rarity.toUpperCase()===o.grade);
-    const sells=ups.map(eqSell).filter(v=>v!=null);
-    const med=median(sells);                 // 売れない(レジェ未満=市場非対応)グレードは null=$0扱い
-    return {grade:o.grade,pct:o.pct,med,n:sells.length,contrib:med!=null?o.pct/100*med:0};
-  });
-  const ev=rows.reduce((s,x)=>s+x.contrib,0);
+  const cr=CRAFTRES[String(r.key)];
+  let detail;
+  if(cr&&cr.results&&cr.results.length){
+    // 重みベース: 産出タイプ(=装備gear)×グレード ごとの確率 × その市場中央値
+    detail=cr.results.map(x=>{
+      const ups=EQUIP.filter(e=>e.gear===x.type&&e.rarity.toUpperCase()===x.grade&&e.lvl>=r.levelMin&&e.lvl<=r.levelMax);
+      const sells=ups.map(eqSell).filter(v=>v!=null);
+      const med=median(sells);              // 売れない(レジェ未満=市場非対応)は null=$0扱い
+      return {grade:x.grade,pct:x.pct,med,contrib:med!=null?x.pct/100*med:0};
+    });
+  }else{
+    // フォールバック: 重みデータが無いレシピはグレード確率×グレード内中央値
+    const gear=TYPE_GEAR[r.type]||null;
+    detail=(r.gradeOdds||[]).map(o=>{
+      const ups=EQUIP.filter(e=>e.cat===r.category&&(!gear||e.gear===gear)&&e.lvl>=r.levelMin&&e.lvl<=r.levelMax&&e.rarity.toUpperCase()===o.grade);
+      const sells=ups.map(eqSell).filter(v=>v!=null);
+      const med=median(sells);
+      return {grade:o.grade,pct:o.pct,med,contrib:med!=null?o.pct/100*med:0};
+    });
+  }
+  const ev=detail.reduce((s,x)=>s+x.contrib,0);
+  const sellPct=detail.filter(x=>x.med!=null).reduce((s,x)=>s+x.pct,0);
+  // 表示用にグレード単位へ集約（pct=グレード合計、単価=売れる分の重み付き平均）
+  const byGrade={};
+  detail.forEach(x=>{const g=byGrade[x.grade]||(byGrade[x.grade]={pct:0,contrib:0,priced:0});g.pct+=x.pct;g.contrib+=x.contrib;if(x.med!=null)g.priced+=x.pct;});
+  const rows=GORDER.filter(g=>byGrade[g]).map(g=>{const b=byGrade[g];return {grade:g,pct:Math.round(b.pct*10)/10,med:b.priced>0?b.contrib/(b.priced/100):null};});
   const xp=r.craftExp||0;
   const xpPerUsd=cost>0?xp/(cost/100):null;   // 素材$あたりのキューブexp（レベル上げ効率）
-  return {cost,ev,profit:ev-cost,roi:cost>0?(ev-cost)/cost:null,rows,xp,xpPerUsd};
+  return {cost,ev,profit:ev-cost,roi:cost>0?(ev-cost)/cost:null,rows,sellPct,xp,xpPerUsd};
 }
 function steamUrl(m){
   if(PRICES[m.nameEn]) return "https://steamcommunity.com/market/listings/"+APPID+"/"+encodeURIComponent(m.nameEn);
@@ -187,16 +206,16 @@ function render(){
     const ec=economy(r);
     const odds=ec.rows.map(o=>{
       const col=gradeColor(o.grade);
-      const val=o.med!=null?`<span class="ogp">中央値 ${usd(o.med)}</span>`:`<span class="ogp gray">市場なし</span>`;
+      const val=o.med!=null?`<span class="ogp">想定単価 ${usd(o.med)}</span>`:`<span class="ogp gray">市場なし</span>`;
       return `<span class="og" style="border-color:${col}"><b style="color:${col}">${GJA[o.grade]||o.grade}</b> ${o.pct}% ${val}</span>`;
     }).join("");
-    const sellPct=ec.rows.filter(o=>o.med!=null).reduce((s,o)=>s+o.pct,0);
+    const sellPct=ec.sellPct;
     const pc=ec.profit>=0?"pos":"neg";
     const profitTxt=(ec.profit>=0?"+$":"−$")+(Math.abs(ec.profit)/100).toFixed(2);
     const roiTxt=ec.roi!=null?(ec.roi>=0?"+":"−")+Math.abs(Math.round(ec.roi*100))+"%":"—";
     const econBlock=`<div class="econ">
       <div class="econrow"><span>素材コスト</span><b>${usd(ec.cost)}</b></div>
-      <div class="econrow"><span>期待販売額 <small>(中央値ベース)</small></span><b>${usd(ec.ev)}</b></div>
+      <div class="econrow"><span>期待販売額 <small>(重み付き)</small></span><b>${usd(ec.ev)}</b></div>
       <div class="econrow big ${pc}"><span>期待利益 / 1回</span><b>${profitTxt} <small>ROI ${roiTxt}</small></b></div>
       <div class="econrow xp"><span>キューブexp / 1回</span><b>${ec.xp.toLocaleString()} exp <small>${ec.xpPerUsd!=null?Math.round(ec.xpPerUsd).toLocaleString()+" exp/$":""}</small></b></div>
       <div class="econnote">完成品が売れる確率 約${sellPct.toFixed(1).replace(/\.0$/,"")}%（残りはレジェ未満で市場価値ほぼ$0、外れも織込み済）${ec.profit>=0?" ／ 期待利益プラス＝レベル上げは実質タダ〜黒字":""}</div>

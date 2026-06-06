@@ -87,7 +87,7 @@
 <body>
 <a class="back" href="index.html">← ツール一覧</a>
 <h1>⚡ 経験値効率</h1>
-<div class="sub">ヒーローレベルを入れると、オーバーレベル補正をかけた経験値の高い順にステージを表示。各ステージのクリアタイムを入れると毎時経験値で並べ替えます。</div>
+<div class="sub">ヒーローレベルを入れると、実際に入る経験値（1回EXP）の高い順にステージを表示。クリアタイムを入れると毎時EXPで並べ替えます。</div>
 
 <details class="help">
   <summary>💡 使い方・仕組み（タップで開く）</summary>
@@ -128,7 +128,7 @@
   <span class="flabel">並び</span>
   <span class="seg" id="sortSeg">
     <button data-s="eph" class="on">毎時EXP順</button>
-    <button data-s="exp">補正EXP順</button>
+    <button data-s="exp">1回EXP順</button>
   </span>
 </div>
 <div class="count" id="count"></div>
@@ -239,18 +239,18 @@ function render(){
   if(sort==="eph") rs.sort((a,b)=>(b.eph??-1)-(a.eph??-1));
   else rs.sort((a,b)=>b.cexp-a.cexp);
 
-  document.getElementById('count').textContent=rs.length+" ステージ"+(hero>0?`（Lv${hero} の補正適用）`:"（レベル未入力＝補正なし）");
+  document.getElementById('count').textContent=rs.length+" ステージ"+(hero>0?`（Lv${hero}）`:"（レベル未入力）");
 
   // バナー
   const banner=document.getElementById('banner');
   if(hero<=0){
-    banner.innerHTML='<div class="banner">まず <b>ヒーローレベル</b> を入力してください。レベルに応じたオーバーレベル補正をかけて並べます。</div>';
+    banner.innerHTML='<div class="banner">まず <b>ヒーローレベル</b> を入力してください。</div>';
   }else if(!model){
-    banner.innerHTML='<div class="banner">いまは <b>補正EXP（1クリア）</b> の高い順です。<b>DPS</b> か各ステージの <b>実タイム</b> を入れると毎時EXP（M/h）で並べ替えます。</div>';
+    banner.innerHTML='<div class="banner">いまは <b>1回EXP</b>（1クリアで入る量）の高い順です。<b>DPS</b> か <b>クリア秒</b> を入れると <b>毎時EXP</b> で並べ替えます。</div>';
   }else if(model.kind==="dps"){
-    banner.innerHTML='<div class="banner">DPS から推定したタイムで毎時EXPを算出。実タイムを入れるほど精度が上がります（<span class="meas">緑＝実測</span>）。</div>';
+    banner.innerHTML='<div class="banner">DPS から推定したタイムで毎時EXPを算出。<span class="meas">緑＝実測</span>を入れるほど正確になります。</div>';
   }else{
-    banner.innerHTML=`<div class="banner">実測 <b>${model.n}</b> 件から残りステージのタイムを補正中（総HP×Wave数で外挿）。<span class="meas">緑＝実測</span>／グレー＝推定。</div>`;
+    banner.innerHTML=`<div class="banner">実測 <b>${model.n}</b> 件から残りのクリア秒を推定中。<span class="meas">緑＝実測</span>／グレー＝推定。</div>`;
   }
 
   if(!rs.length){list.innerHTML='<div class="loading">該当なし</div>';return;}
@@ -260,8 +260,8 @@ function render(){
     <th class="l"></th>
     <th class="l">ステージ</th>
     <th class="hide">Lv</th>
-    <th>補正</th>
-    <th>補正EXP ${arr('exp')}</th>
+    <th>EXP%</th>
+    <th>1回EXP ${arr('exp')}</th>
     <th>クリア秒</th>
     <th>毎時EXP ${arr('eph')}</th>
   </tr></thead><tbody>`;

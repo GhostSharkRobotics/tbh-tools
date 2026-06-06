@@ -86,6 +86,9 @@
 <div class="panel">
   <input class="search" id="search" type="search" placeholder="🔍 アイテム名で検索（例：ルビー / 兜 / Sword）— 空欄でステージ閲覧">
   <div class="row" style="margin-top:8px;">
+    <span class="lab">難易度</span><span id="diffChips"></span>
+  </div>
+  <div class="row">
     <span class="lab">章</span><span id="actChips"></span>
   </div>
   <div class="row">
@@ -111,13 +114,15 @@ const CLASSES=[{k:"101",ja:"ナイト",en:"Knight"},{k:"201",ja:"レンジャー
   {k:"301",ja:"ソーサラー",en:"Sorcerer"},{k:"401",ja:"プリースト",en:"Priest"},
   {k:"501",ja:"ハンター",en:"Hunter"},{k:"601",ja:"スレイヤー",en:"Slayer"}];
 const CLS_JA=Object.fromEntries(CLASSES.map(c=>[c.k,c.ja]));
+const DIFFS=[{k:"NORMAL",ja:"ノーマル"},{k:"NIGHTMARE",ja:"ナイトメア"},{k:"HELL",ja:"ヘル"},{k:"TORMENT",ja:"トーメント"}];
+const DIFF_JA=Object.fromEntries(DIFFS.map(d=>[d.k,d.ja]));
 const BOXSTYLE={normal:{ja:"白箱（通常モンスター）",en:"Normal monster",col:"var(--box-white)"},
   stageBoss:{ja:"青箱（ステージボス）",en:"Stage boss",col:"var(--box-blue)"},
   actBoss:{ja:"金箱（章ボス）",en:"Act boss",col:"var(--box-gold)"}};
 const LS="tbh-stagedrops-v1";
 
 let DATA=null, BOX={}, STAGES=[];
-let state={act:null, cls:null, hideTiny:false, stage:null, q:""};
+let state={diff:"NORMAL", act:null, cls:null, hideTiny:false, stage:null, q:""};
 try{Object.assign(state,JSON.parse(localStorage.getItem(LS)||"{}"));}catch(e){}
 
 const $=id=>document.getElementById(id);
@@ -140,6 +145,11 @@ function chip(label,on,onclick){
   b.onclick=onclick; return b;
 }
 function renderChips(){
+  const dc=$("diffChips"); dc.innerHTML="";
+  DIFFS.forEach(df=>dc.appendChild(chip(df.ja,state.diff===df.k,()=>{
+    if(state.diff===df.k) return;
+    state.diff=df.k; state.stage=null; save(); render();
+  })));
   const ac=$("actChips"); ac.innerHTML="";
   ac.appendChild(chip("すべて",state.act==null,()=>{state.act=null;save();renderStages();}));
   [1,2,3].forEach(a=>ac.appendChild(chip(a+"章",state.act===a,()=>{state.act=a;save();renderStages();})));
@@ -154,7 +164,7 @@ function renderChips(){
 
 function renderStages(){
   const wrap=$("stages"); wrap.innerHTML="";
-  const list=STAGES.filter(s=>state.act==null||s.act===state.act);
+  const list=STAGES.filter(s=>s.difficulty===state.diff && (state.act==null||s.act===state.act));
   for(const s of list){
     const boss=s.type==="ACTBOSS";
     const b=document.createElement("button");
@@ -197,7 +207,7 @@ function boxSection(typeKey,boxKey,rate){
 }
 
 function renderDetail(){
-  const s=STAGES.find(x=>x.stageKey===state.stage);
+  const s=STAGES.find(x=>x.stageKey===state.stage && x.difficulty===state.diff);
   const v=$("view");
   if(!s){v.innerHTML=`<div class="empty">上のステージを選ぶと、その箱の中身と確率が表示されます。</div>`;return;}
   const boss=s.type==="ACTBOSS";
@@ -207,7 +217,8 @@ function renderDetail(){
   const bm=s.boss||{};
   if(!boss && (bm.hpMult||bm.damageMult)) meta+=` ・ 道中ボス HP×${((bm.hpMult||1000)/1000).toFixed(1)} / 攻×${((bm.damageMult||1000)/1000).toFixed(1)}`;
   let h=`<div class="detail-head"><span class="dh-no">${s.act}-${s.stageNo}</span>`+
-    `<span class="dh-nm">${esc(s.name||"?")}</span></div><div class="meta">${meta}</div>`;
+    `<span class="dh-nm">${esc(s.name||"?")}</span>`+
+    `<span class="dh-en">${DIFF_JA[s.difficulty]||s.difficulty}</span></div><div class="meta">${meta}</div>`;
   h+=boxSection("normal", s.normalBox&&s.normalBox.box, s.normalBox&&s.normalBox.rate);
   const bt = boss ? "actBoss" : "stageBoss";
   h+=boxSection(bt, s.bossBox&&s.bossBox.box, s.bossBox&&s.bossBox.rate);
@@ -223,6 +234,7 @@ function renderSearch(){
   const v=$("view");
   const hits=[]; // {itemJa,itemEn,grade,gear,stage,typeKey,pct}
   for(const s of STAGES){
+    if(s.difficulty!==state.diff) continue;
     if(state.act!=null && s.act!==state.act) continue;
     const boxes=[["normal",s.normalBox&&s.normalBox.box],
                  [s.type==="ACTBOSS"?"actBoss":"stageBoss", s.bossBox&&s.bossBox.box]];
@@ -243,7 +255,7 @@ function renderSearch(){
   const groups={};
   for(const h of hits){const key=(h.nm.ja||"?")+"|"+(h.grade||"");(groups[key]=groups[key]||[]).push(h);}
   const order=Object.keys(groups).sort((a,b)=>Math.max(...groups[b].map(x=>x.pct))-Math.max(...groups[a].map(x=>x.pct)));
-  let html=`<div class="hint">${hits.length}件 / ${order.length}種のアイテム${state.cls?`（${CLS_JA[state.cls]}基準）`:""}</div>`;
+  let html=`<div class="hint">${DIFF_JA[state.diff]} ・ ${hits.length}件 / ${order.length}種のアイテム${state.cls?`（${CLS_JA[state.cls]}基準）`:""}</div>`;
   for(const key of order){
     const arr=groups[key].sort((a,b)=>b.pct-a.pct);
     const f=arr[0];
@@ -281,7 +293,8 @@ fetch('tbh-data.json').then(r=>r.json()).then(d=>{
   $("search").value=state.q||"";
   $("note").innerHTML=`出典：<code>tbh-data.json</code>（ゲーム本体から抽出した <code>StageInfoData / DropInfoData</code> を解決）。`+
     `中身は固定の重み付き抽選で、表示%はその抽選確率。<b>箱の出現率</b>は通常敵を倒したとき箱が落ちる確率の目安（ボス箱は撃破で確定）。`+
-    `職専用枠（クロスボウ＝ハンター等）は、職を選ぶとその職基準で確率を取り直します。`;
+    `職専用枠（クロスボウ＝ハンター等）は、職を選ぶとその職基準で確率を取り直します。`+
+    `<br>同じ「1-1」でも<b>難易度ごとに別ステージ・別の箱</b>（ノーマルはレアまで／トーメントはビヨンドまで）。難易度を切り替えて表示します。`;
   render();
 }).catch(e=>{$("view").innerHTML=`<div class="empty">データの読み込みに失敗しました。${esc(e.message)}</div>`;});
 </script>

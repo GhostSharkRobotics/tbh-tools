@@ -227,7 +227,7 @@ function render(){
   if(state.diff) rs=rs.filter(r=>r.st.difficulty===state.diff);
 
   // 並べ替え（列ヘッダーで選択。null/未算出は常に末尾）
-  const getv={level:r=>r.st.level, mult:r=>r.mult, cexp:r=>r.cexp, time:r=>r.t, eph:r=>r.eph}[state.sort] || (r=>r.cexp);
+  const getv={stage:r=>r.st.key, level:r=>r.st.level, mult:r=>r.mult, cexp:r=>r.cexp, time:r=>r.t, eph:r=>r.eph}[state.sort] || (r=>r.cexp);
   const dir=state.dir==="asc"?1:-1;
   rs.sort((a,b)=>{
     let va=getv(a), vb=getv(b);
@@ -259,7 +259,7 @@ function render(){
   const th=(k,label,cls)=>`<th class="${cls||''} sortable" data-sort="${k}">${label} ${ind(k)}</th>`;
   let html=`<table><thead><tr>
     <th class="l"></th>
-    <th class="l">ステージ</th>
+    ${th('stage','ステージ','l')}
     ${th('level','Lv','hide')}
     ${th('mult','EXP%')}
     ${th('cexp','1回EXP')}

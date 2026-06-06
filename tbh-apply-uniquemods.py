@@ -72,7 +72,7 @@ print(f"updated tbh-data.json | defs confirmed={len(confirmed_keys)} | item mod 
 
 # 5) HTMLツールに DATA を再注入
 dcompact = json.dumps(d, ensure_ascii=False, separators=(",", ":"))
-for fn in ("tbh-gem-search.html", "tbh-build-simulator.html"):
+for fn in ("tbh-gem-search.html", "tbh-build-simulator.html", "tbh-best-build.html"):
     fp = os.path.join(HERE, fn)
     if not os.path.exists(fp):
         continue

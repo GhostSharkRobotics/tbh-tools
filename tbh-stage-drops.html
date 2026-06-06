@@ -59,7 +59,10 @@
   td.l{text-align:left;white-space:normal;}
   tr.r:hover{background:var(--surface2);}
   .nm b{color:var(--text);font-weight:600;}
-  .nm .en{color:var(--muted);font-size:10px;margin-left:5px;}
+  .en{color:var(--muted);font-size:10px;margin-left:5px;}
+  a.ilink{color:inherit;text-decoration:none;}
+  a.ilink:hover b{color:var(--accent);text-decoration:underline;}
+  a.ilink{color:var(--muted);font-size:10px;}
   .gear{color:var(--muted);font-size:11px;}
   .rr{font-size:10px;padding:1px 6px;border-radius:4px;color:#15120d;font-weight:700;display:inline-block;}
   .cls{font-size:10px;padding:1px 6px;border-radius:10px;border:1px solid var(--border);color:var(--muted);display:inline-block;}
@@ -92,6 +95,9 @@
     <span class="lab">章</span><span id="actChips"></span>
   </div>
   <div class="row">
+    <span class="lab">レア度</span><span id="gradeChips"></span>
+  </div>
+  <div class="row">
     <span class="lab">職</span><span id="classChips"></span>
   </div>
   <div class="row">
@@ -119,15 +125,30 @@ const DIFF_JA=Object.fromEntries(DIFFS.map(d=>[d.k,d.ja]));
 const BOXSTYLE={normal:{ja:"白箱（通常モンスター）",en:"Normal monster",col:"var(--box-white)"},
   stageBoss:{ja:"青箱（ステージボス）",en:"Stage boss",col:"var(--box-blue)"},
   actBoss:{ja:"金箱（章ボス）",en:"Act boss",col:"var(--box-gold)"}};
+const GRADE_ORDER=["COMMON","UNCOMMON","RARE","LEGENDARY","IMMORTAL","ARCANA","BEYOND","CELESTIAL","DIVINE","COSMIC"];
+const gradeIdx=g=>{const i=GRADE_ORDER.indexOf(g);return i<0?99:i;};
+const APPID="3678970";
 const LS="tbh-stagedrops-v1";
 
 let DATA=null, BOX={}, STAGES=[];
-let state={diff:"NORMAL", act:null, cls:null, hideTiny:false, stage:null, q:""};
+let state={diff:"NORMAL", act:null, cls:null, minGrade:null, hideTiny:false, stage:null, q:""};
 try{Object.assign(state,JSON.parse(localStorage.getItem(LS)||"{}"));}catch(e){}
+// アイテム検索ツールからのリンク（?q=名前&diff=難易度）で逆引きを直接開く
+try{const u=new URLSearchParams(location.search);
+  if(u.has("q")) state.q=u.get("q");
+  if(u.has("diff")&&DIFFS.some(d=>d.k===u.get("diff"))) state.diff=u.get("diff");
+}catch(e){}
 
 const $=id=>document.getElementById(id);
 const esc=s=>(s==null?"":String(s)).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 function save(){try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){}}
+// 他ツールと同じく英名でSteamマーケット検索に飛ばす（変種/価格を持たないため検索が最も確実）
+function steamUrl(nameEn){return "https://steamcommunity.com/market/search?appid="+APPID+"&q="+encodeURIComponent(nameEn||"");}
+function itemLink(nm){
+  const ja=esc(nm&&nm.ja||"?"), en=nm&&nm.en;
+  if(!en) return `<b>${ja}</b>`;
+  return `<a class="ilink" href="${steamUrl(en)}" target="_blank" rel="noopener"><b>${ja}</b><span class="en">${esc(en)}</span> ↗</a>`;
+}
 
 // 箱の中身を「選択クラスの実効ドロップ表」に変換。
 // 保存pctは全6職プール込み。1職に絞ると他職限定枠は実際には出ないので、共通＋自職だけで分母を取り直す。
@@ -136,8 +157,22 @@ function rowsFor(boxKey){
   let cs=b.contents;
   if(state.cls) cs=cs.filter(c=>!c.heroClass || c.heroClass===state.cls);
   const tot=cs.reduce((s,c)=>s+(c.weight||0),0)||1;
-  return cs.map(c=>({...c, pct: state.cls ? 100*(c.weight||0)/tot : c.pct}))
-           .sort((a,b)=>b.pct-a.pct);
+  let rows=cs.map(c=>({...c, pct: state.cls ? 100*(c.weight||0)/tot : c.pct}));
+  // レア度フィルタは「表示」のみ。確率(分母)は変えない＝箱から実際にそれが出る確率のまま。
+  if(state.minGrade) rows=rows.filter(c=>gradeIdx(c.grade)>=gradeIdx(state.minGrade));
+  return rows.sort((a,b)=>b.pct-a.pct);
+}
+// 現在の難易度の全箱に実在するグレード（レア度チップを無効肢で埋めない）
+function availableGrades(){
+  const set=new Set();
+  for(const s of STAGES){
+    if(s.difficulty!==state.diff) continue;
+    for(const bk of [s.normalBox&&s.normalBox.box, s.bossBox&&s.bossBox.box]){
+      const b=bk&&BOX[bk]; if(!b) continue;
+      for(const c of b.contents) if(c.grade) set.add(c.grade);
+    }
+  }
+  return GRADE_ORDER.filter(g=>set.has(g));
 }
 
 function chip(label,on,onclick){
@@ -157,6 +192,15 @@ function renderChips(){
   const ac=$("actChips"); ac.innerHTML="";
   ac.appendChild(chip("すべて",state.act==null,()=>{state.act=null;save();render();}));
   [1,2,3].forEach(a=>ac.appendChild(chip(a+"章",state.act===a,()=>{state.act=a;save();render();})));
+  const gc=$("gradeChips"); gc.innerHTML="";
+  const avail=availableGrades();
+  if(state.minGrade && !avail.includes(state.minGrade)) state.minGrade=null; // 難易度変更で無効化された選択を解除
+  gc.appendChild(chip("すべて",state.minGrade==null,()=>{state.minGrade=null;save();render();}));
+  avail.forEach(g=>{
+    const b=chip("",state.minGrade===g,()=>{state.minGrade=g;save();render();});
+    b.innerHTML=`<span class="dot" style="background:${GRADE_COL[g]};display:inline-block;vertical-align:middle;width:9px;height:9px;margin-right:5px"></span>${GRADE_JA[g]}↑`;
+    gc.appendChild(b);
+  });
   const cc=$("classChips"); cc.innerHTML="";
   cc.appendChild(chip("すべて",state.cls==null,()=>{state.cls=null;save();render();}));
   CLASSES.forEach(c=>cc.appendChild(chip(c.ja,state.cls===c.k,()=>{state.cls=c.k;save();render();})));
@@ -183,6 +227,11 @@ function renderStages(){
 
 function gradePill(g){return g?`<span class="rr" style="background:${GRADE_COL[g]||"#888"}">${GRADE_JA[g]||g}</span>`:"";}
 function clsPill(hc){return hc?`<span class="cls">${CLS_JA[hc]||hc}専用</span>`:"";}
+// 重みが正なら必ず出る。2桁丸めで0.00になる微小値は「<0.01%」と明示（0ではない）。
+function fmtPct(p){
+  if(p>0 && p<0.005) return "&lt;0.01%";
+  return p.toFixed(2)+"%";
+}
 
 function contentTable(boxKey){
   let rows=rowsFor(boxKey);
@@ -193,11 +242,10 @@ function contentTable(boxKey){
   for(const r of rows){
     const nm=r.name||{}; const tiny=r.pct<0.5;
     const bw=Math.max(2,Math.round(40*r.pct/max));
-    h+=`<tr class="r"><td class="l nm"><b>${esc(nm.ja||r.items&&r.items[0]||"?")}</b>`+
-       (nm.en?`<span class="en">${esc(nm.en)}</span>`:"")+`</td>`+
+    h+=`<tr class="r"><td class="l nm">${itemLink(nm)}</td>`+
        `<td class="l gear">${esc(r.gear||"")}${clsPill(r.heroClass)}</td>`+
        `<td>${gradePill(r.grade)}</td>`+
-       `<td><span class="bar" style="width:${bw}px"></span><span class="pct${tiny?" tiny":""}">${r.pct.toFixed(2)}%</span></td></tr>`;
+       `<td><span class="bar" style="width:${bw}px"></span><span class="pct${tiny?" tiny":""}">${fmtPct(r.pct)}</span></td></tr>`;
   }
   return h+`</tbody></table>`;
 }
@@ -263,8 +311,7 @@ function renderSearch(){
   for(const key of order){
     const arr=groups[key].sort((a,b)=>b.pct-a.pct);
     const f=arr[0];
-    html+=`<div class="rev-item">${gradePill(f.grade)} ${esc(f.nm.ja||"?")}`+
-      (f.nm.en?`<span class="en">${esc(f.nm.en)}</span>`:"")+
+    html+=`<div class="rev-item">${gradePill(f.grade)} ${itemLink(f.nm)}`+
       `<span class="gear" style="margin-left:8px">${esc(f.gear||"")}</span>${clsPill(f.heroClass)}</div>`;
     html+=`<table><thead><tr><th class="l">ステージ</th><th class="l">箱</th><th>確率</th></tr></thead><tbody>`;
     for(const h of arr){
@@ -272,7 +319,7 @@ function renderSearch(){
       html+=`<tr class="r"><td class="l"><b>${h.stage.act}-${h.stage.stageNo}</b> ${esc(h.stage.name||"")} `+
         `<span class="slv" style="color:var(--muted)">Lv${h.stage.level}</span></td>`+
         `<td class="l"><span class="dot" style="background:${st.col};display:inline-block;vertical-align:middle;margin-right:5px"></span>${st.ja.split("（")[0]}</td>`+
-        `<td><span class="pct${h.pct<0.5?" tiny":""}">${h.pct.toFixed(2)}%</span></td></tr>`;
+        `<td><span class="pct${h.pct<0.5?" tiny":""}">${fmtPct(h.pct)}</span></td></tr>`;
     }
     html+=`</tbody></table>`;
   }
@@ -303,7 +350,9 @@ fetch('tbh-data.json').then(r=>r.json()).then(d=>{
   $("note").innerHTML=`出典：<code>tbh-data.json</code>（ゲーム本体から抽出した <code>StageInfoData / DropInfoData</code> を解決）。`+
     `中身は固定の重み付き抽選で、表示%はその抽選確率。<b>箱の出現率</b>は通常敵を倒したとき箱が落ちる確率の目安（ボス箱は撃破で確定）。`+
     `職専用枠（クロスボウ＝ハンター等）は、職を選ぶとその職基準で確率を取り直します。`+
-    `<br>同じ「1-1」でも<b>難易度ごとに別ステージ・別の箱</b>（ノーマルはレアまで／トーメントはビヨンドまで）。難易度を切り替えて表示します。`;
+    `<br>同じ「1-1」でも<b>難易度ごとに別ステージ・別の箱</b>（ノーマルはレアまで／トーメントはビヨンドまで）。難易度を切り替えて表示します。`+
+    `<br><b>レア度</b>フィルタは「選んだレア度以上のみ表示」（確率は箱から実際に出る値のまま・分母は変えません）。`+
+    `アイテム名クリックでSteamマーケット検索へ（レジェ未満は市場対象外で出品が無い場合あり）。<b>&lt;0.01%</b>＝0ではなく極小（重みが正なので必ず抽選対象）。`;
   render();
 }).catch(e=>{$("view").innerHTML=`<div class="empty">データの読み込みに失敗しました。${esc(e.message)}</div>`;});
 </script>

@@ -70,6 +70,7 @@
   <div class="row"><span class="lab">重視</span><div id="presets"></div>
     <label class="tgl">最低強さ <input type="number" id="minStr" value="0" min="0" step="10" style="width:62px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;font-size:12px;text-align:right;"></label>
     <label class="tgl"><input type="checkbox" id="liqOnly" checked>取引のあるものだけ</label>
+    <button class="chip" id="reset" style="margin-left:auto">リセット</button>
   </div>
   <div class="row"><span class="lab">部位</span><div id="slots"></div></div>
   <div class="row"><span class="lab">レア</span><div id="rars"></div></div>
@@ -105,7 +106,10 @@ function presetWeights(name){
   const p=PRESETS[name]||{}; for(const k in p) w[k]=p[k]; return w;
 }
 
-let state={mode:'value',preset:'DPS',slot:'all',rar:'all',liqOnly:true,minStr:0,weights:presetWeights('DPS')};
+const LS='tbh-deals-state';
+function loadState(){try{return JSON.parse(localStorage.getItem(LS))||{};}catch(e){return {};}}
+function saveState(){try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){}}
+let state=Object.assign({mode:'value',preset:'DPS',slot:'all',rar:'all',liqOnly:true,minStr:0,weights:presetWeights('DPS')},loadState());
 
 // ---- UI 構築 ----
 function seg(host,items,getOn,onClick,cls){
@@ -124,6 +128,7 @@ function renderUI(){
   seg('slots',SLOTS,k=>state.slot===k,k=>{state.slot=k;renderUI();render();},'chip');
   seg('rars',RARS,k=>state.rar===k,k=>{state.rar=k;renderUI();render();},'chip');
   document.getElementById('liqOnly').checked=state.liqOnly;
+  document.getElementById('minStr').value=state.minStr;
   // weights
   const wg=document.getElementById('weights'); wg.innerHTML='';
   for(const k of ALLST){const r=document.createElement('div');r.className='wrow';
@@ -133,6 +138,7 @@ function renderUI(){
     wg.appendChild(r);} }
 document.getElementById('liqOnly').onchange=e=>{state.liqOnly=e.target.checked;render();};
 document.getElementById('minStr').oninput=e=>{state.minStr=+e.target.value||0;render();};
+document.getElementById('reset').onclick=()=>{try{localStorage.removeItem(LS);}catch(e){}state={mode:'value',preset:'DPS',slot:'all',rar:'all',liqOnly:true,minStr:0,weights:presetWeights('DPS')};renderUI();render();};
 
 // ---- 計算 ----
 function strength(x){let s=0;for(const[en,u,val]of x.st){const w=state.weights[en]||0;if(!w)continue;const m=D.max[en+'|'+u]||1;s+=w*Math.abs(val)/m;}return s*100;}
@@ -140,6 +146,7 @@ function fmtUsd(c){return '$'+(c/100).toFixed(2);}
 function statText(x){return x.st.map(([en,u,val])=>D.enJa[en]+' '+(val>0?'+':'')+val+(u==='%'?'%':u==='/s'?'/s':'')).join(' · ');}
 
 function render(){
+  saveState();
   let rows=D.rows.filter(x=>{
     if(state.slot!=='all'&&x.g!==state.slot)return false;
     if(state.rar!=='all'&&x.r!==state.rar)return false;

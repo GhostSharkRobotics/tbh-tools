@@ -187,14 +187,17 @@ function buildTimeModel(){
     const a=pts.reduce((s,p)=>s+p.T,0)/pts.reduce((s,p)=>s+p.HP,0);
     return {kind:"fit",a,k:0,n:pts.length};
   }
-  if(pts.length===1){ const p=pts[0]; return {kind:"one",a:p.T/p.HP,k:0,n:1}; }
+  // 実測1件だけでは外挿しない（HP桁違いの序盤が0秒になり順位を壊すため）。DPSがあればそれで推定。
   const dps=+state.dps;
   if(dps>0) return {kind:"dps",a:1/dps,k:0,n:0};
   return null;
 }
 function estTime(st, model){
   if(state.times[st.key]>0) return {t:state.times[st.key], measured:true};
-  if(model && st.totalHP) return {t:model.a*st.totalHP + model.k*(st.waves||0), measured:false};
+  if(model && st.totalHP){
+    const t=model.a*st.totalHP + model.k*(st.waves||0);
+    if(t>=1) return {t, measured:false};   // 1秒未満の推定はクリア秒として非現実的→順位に入れない
+  }
   return {t:null, measured:false};
 }
 

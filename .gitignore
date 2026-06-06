@@ -2,3 +2,8 @@ file:/
 .DS_Store
 __pycache__/
 *.pyc
+
+# ゲーム本体ダンプ / データマイン作業物（巨大バイナリ・GitHub不可）
+TaskbarHero/
+tools/
+*.zip

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TBH 経験値効率 / EXP Farm Calculator</title>
+<style>
+  :root{--bg:#14110d;--surface:#1f1b15;--surface2:#262017;--accent:#d8a657;--text:#ece3d2;--muted:#9a8f7a;--border:#3a342a;
+    --good:#6fcf6f;--warn:#e0c060;--bad:#e07a7a;
+    --d-normal:#7fb37f;--d-nightmare:#6f9fe0;--d-hell:#d8a657;--d-torment:#d05b5b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.6;padding:24px;max-width:900px;margin:0 auto;}
+  h1{font-size:24px;color:var(--accent);margin-bottom:4px;}
+  .sub{font-size:13px;color:var(--muted);margin-bottom:18px;}
+  .back{font-size:13px;color:var(--muted);text-decoration:none;}
+  .back:hover{color:var(--accent);}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+  .inputs{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-end;}
+  .field{display:flex;flex-direction:column;gap:3px;}
+  .field label{font-size:12px;color:var(--muted);}
+  .field .hint{font-size:10px;color:var(--muted);}
+  input.num{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 10px;font-size:16px;width:110px;text-align:right;font-variant-numeric:tabular-nums;}
+  input.num:focus{outline:none;border-color:var(--accent);}
+  input.num.lvl{width:90px;}
+
+  .filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;}
+  .flabel{font-size:12px;color:var(--muted);margin-right:4px;}
+  button.chip{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:4px 12px;font-size:13px;cursor:pointer;}
+  button.chip:hover{border-color:var(--accent);}
+  button.chip.on{background:var(--accent);color:#1a1610;border-color:var(--accent);font-weight:600;}
+
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .seg button{background:var(--surface);border:none;border-left:1px solid var(--border);color:var(--text);padding:5px 14px;font-size:13px;cursor:pointer;}
+  .seg button:first-child{border-left:none;}
+  .seg button.on{background:var(--accent);color:#1a1610;font-weight:600;}
+
+  .count{font-size:12px;color:var(--muted);margin:6px 0 12px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{font-size:11px;color:var(--muted);font-weight:500;text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+  th.l{text-align:left;}
+  th .arr{color:var(--accent);}
+  td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  td.l{text-align:left;}
+  tr.row:hover{background:var(--surface2);}
+  tr.boss td{opacity:.65;}
+  .rank{color:var(--muted);font-size:12px;width:26px;}
+  .top1 .rank{color:var(--accent);font-weight:700;}
+  .stg{font-weight:600;}
+  .nm{color:var(--muted);font-size:11px;}
+  .dpill{display:inline-block;font-size:10px;padding:0 6px;border-radius:4px;color:#15120d;font-weight:700;vertical-align:1px;}
+  .lvl{color:var(--muted);}
+  .mult{font-variant-numeric:tabular-nums;}
+  .mult.full{color:var(--muted);}
+  .mult.cut{color:var(--bad);}
+  .eph{font-weight:700;color:var(--accent);}
+  .eph.dim{color:var(--muted);font-weight:400;}
+  .meas{color:var(--good);}
+  input.time{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 6px;font-size:13px;width:62px;text-align:right;font-variant-numeric:tabular-nums;}
+  input.time:focus{outline:none;border-color:var(--accent);}
+  input.time.has{border-color:var(--good);color:var(--good);}
+  .est{color:var(--muted);font-size:11px;}
+
+  details.help{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;}
+  details.help summary{cursor:pointer;color:var(--accent);font-size:14px;font-weight:600;}
+  .help .hb{font-size:13px;color:var(--text);margin-top:8px;}
+  .help p{margin:6px 0;}
+  .help ul{margin:4px 0;padding-left:18px;}
+  .help li{margin:3px 0;color:var(--muted);}
+  .help li b{color:var(--text);}
+  .help code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:12px;}
+
+  .banner{font-size:12px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:12px;}
+  .banner b{color:var(--text);}
+  .note{font-size:12px;color:var(--muted);margin-top:22px;border-top:1px solid var(--border);padding-top:12px;}
+  .loading{color:var(--muted);padding:30px 0;text-align:center;}
+  .reset{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;}
+  .reset:hover{color:var(--accent);}
+  @media(max-width:560px){
+    body{padding:16px;}
+    th.hide,td.hide{display:none;}
+    td,th{padding:6px 5px;}
+  }
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← ツール一覧</a>
+<h1>⚡ 経験値効率</h1>
+<div class="sub">ヒーローレベルを入れると、オーバーレベル補正をかけた経験値の高い順にステージを表示。各ステージのクリアタイムを入れると毎時経験値で並べ替えます。</div>
+
+<details class="help">
+  <summary>💡 使い方・仕組み（タップで開く）</summary>
+  <div class="hb">
+    <p><b>① レベルを入れる</b> → 各ステージで実際に入る経験値（＝ステージ基礎EXP × <b>オーバーレベル補正</b> × ボーナス）を計算し、高い順に並べます。</p>
+    <p><b>② DPS を入れる</b>（任意）→ 総HPからクリアタイムを推定し、最初から「毎時EXP（M/h）」を表示します。</p>
+    <p><b>③ 実タイムを入れる</b> → そのステージの推定を実測で上書き。2つ以上入れると総HP・Wave数から残りのステージのタイムも自動補正し、<b>毎時EXPで並べ替え</b>ます（緑＝実測）。</p>
+    <ul>
+      <li><b>オーバーレベル補正</b>＝自分のレベルがステージより高いほど貰えるEXPが減る隠し仕様。同レベル付近は100%、離れるほど急減（ゲーム内部コードを解析した式・実測±1%）。低レベル側（格上ステージ）はもっと緩やか。</li>
+      <li><b>補正EXP</b>＝1クリアで実際に入る経験値。<b>毎時EXP</b>＝補正EXP ÷ クリア秒 × 3600。</li>
+      <li>ボーナス%（ルーン/装備）は全ステージ一律なので順位は変わりません。</li>
+    </ul>
+    <p class="est">入力は端末に保存されます。<button class="reset" id="resetBtn">入力をリセット</button></p>
+  </div>
+</details>
+
+<div class="panel">
+  <div class="inputs">
+    <div class="field">
+      <label for="lvl">ヒーローレベル</label>
+      <input class="num lvl" id="lvl" type="number" inputmode="numeric" min="1" max="200" placeholder="例 60">
+    </div>
+    <div class="field">
+      <label for="dps">DPS（任意）</label>
+      <input class="num" id="dps" type="number" inputmode="numeric" min="1" placeholder="例 50000">
+      <span class="hint">タイム推定用。ビルドシミュ参照</span>
+    </div>
+    <div class="field">
+      <label for="bonus">EXPボーナス %（任意）</label>
+      <input class="num" id="bonus" type="number" inputmode="numeric" min="0" placeholder="0">
+      <span class="hint">順位は不変</span>
+    </div>
+  </div>
+</div>
+
+<div class="filters" id="diffFilter"></div>
+<div class="filters">
+  <span class="flabel">並び</span>
+  <span class="seg" id="sortSeg">
+    <button data-s="eph" class="on">毎時EXP順</button>
+    <button data-s="exp">補正EXP順</button>
+  </span>
+</div>
+<div class="count" id="count"></div>
+<div id="banner"></div>
+<div id="list"><div class="loading">読み込み中…</div></div>
+
+<div class="note">
+  ステージ基礎EXP・総HP・Wave数・ステージ名は <code>tbh-data.json</code>（tbh.city／taskbarherowiki.com 由来）。<b>オーバーレベル補正式</b>は taskbarherowiki.com がゲーム内部コードを解析したもの（実測±1%）。<br>
+  タイム推定＝実測タイムがあれば <code>クリア秒 = a×総HP + k×Wave数</code> を最小二乗で当てはめ未入力ステージに外挿、無ければ <code>総HP ÷ DPS</code>。あくまで目安で実測値が優先。GOLD補正は無し（EXPのみの隠し仕様）。
+</div>
+
+<script>
+const DIFFS=["NORMAL","NIGHTMARE","HELL","TORMENT"];
+const DIFF_JA={NORMAL:"ノーマル",NIGHTMARE:"ナイトメア",HELL:"ヘル",TORMENT:"トーメント"};
+const DIFF_COL={NORMAL:"--d-normal",NIGHTMARE:"--d-nightmare",HELL:"--d-hell",TORMENT:"--d-torment"};
+const LS="tbh-exp-v1";
+
+let STAGES=[];
+let state={lvl:"",dps:"",bonus:"",diff:null,sort:"eph",times:{}};
+
+// ── オーバーレベル経験値補正（taskbarherowiki.com がゲーム内部コードから解析した式）──
+function expMult(hero, stage){
+  const over = hero >= stage;
+  const a = over ? 0.5 : 0.4;
+  const s = Math.log(hero+1)/10 + 1;
+  const n = Math.trunc(s*(over?2:5));
+  const r = Math.trunc(s*(over?5:6));
+  const c = Math.abs(hero-stage);
+  if(c<=n) return 1;
+  if(c<=n+r){ const e=(c-n)/r; return Math.max(1-(1-a)*e*e, 0.01); }
+  return Math.max(Math.pow(0.01/a, (c-n-r)/Math.max(hero/3,1))*a, 0.01);
+}
+
+// ── クリアタイム推定モデル ──
+// 実測点 {HP,waves,T} から time = a·HP + k·waves を最小二乗で当てはめ。
+// 点が1つ: HP比例。0かつDPSあり: HP/DPS。
+function buildTimeModel(){
+  const pts=[];
+  for(const st of STAGES){
+    const T=state.times[st.key];
+    if(T>0 && st.totalHP) pts.push({HP:st.totalHP,waves:st.waves||0,T});
+  }
+  if(pts.length>=2){
+    let sHH=0,sHW=0,sWW=0,sHT=0,sWT=0;
+    for(const p of pts){sHH+=p.HP*p.HP;sHW+=p.HP*p.waves;sWW+=p.waves*p.waves;sHT+=p.HP*p.T;sWT+=p.waves*p.T;}
+    const det=sHH*sWW-sHW*sHW;
+    if(Math.abs(det)>1e-3){
+      let a=(sHT*sWW-sWT*sHW)/det, k=(sHH*sWT-sHW*sHT)/det;
+      if(k<0){k=0;a=sHT/sHH;}
+      if(a>0&&isFinite(a)) return {kind:"fit",a,k,n:pts.length};
+    }
+    // 退化時はHP比例フォールバック
+    const a=pts.reduce((s,p)=>s+p.T,0)/pts.reduce((s,p)=>s+p.HP,0);
+    return {kind:"fit",a,k:0,n:pts.length};
+  }
+  if(pts.length===1){ const p=pts[0]; return {kind:"one",a:p.T/p.HP,k:0,n:1}; }
+  const dps=+state.dps;
+  if(dps>0) return {kind:"dps",a:1/dps,k:0,n:0};
+  return null;
+}
+function estTime(st, model){
+  if(state.times[st.key]>0) return {t:state.times[st.key], measured:true};
+  if(model && st.totalHP) return {t:model.a*st.totalHP + model.k*(st.waves||0), measured:false};
+  return {t:null, measured:false};
+}
+
+function fmtEph(eph){
+  if(eph==null) return "—";
+  if(eph>=1e6) return (eph/1e6).toFixed(eph>=1e7?0:2)+" M/h";
+  if(eph>=1e3) return (eph/1e3).toFixed(0)+" k/h";
+  return Math.round(eph)+"/h";
+}
+function fmtExp(v){
+  if(v>=1e6) return (v/1e6).toFixed(2)+"M";
+  if(v>=1e3) return (v/1e3).toFixed(1)+"k";
+  return Math.round(v).toString();
+}
+function fmtTime(s){
+  if(s==null) return "—";
+  if(s>=60){const m=Math.floor(s/60);return m+":"+String(Math.round(s%60)).padStart(2,"0");}
+  return s.toFixed(s<10?1:0)+"s";
+}
+
+function compute(){
+  const hero=+state.lvl;
+  const bonus=(+state.bonus>0)?1+(+state.bonus)/100:1;
+  const model=buildTimeModel();
+  let rows=STAGES.map(st=>{
+    const mult=hero>0?expMult(hero,st.level):1;
+    const cexp=st.expectedExp*mult*bonus;
+    const {t,measured}=estTime(st,model);
+    const eph=(t>0)?cexp/t*3600:null;
+    return {st,mult,cexp,t,measured,eph};
+  });
+  return {rows,model,hero};
+}
+
+function render(){
+  const list=document.getElementById('list');
+  const {rows,model,hero}=compute();
+  let rs=rows.slice();
+  if(state.diff) rs=rs.filter(r=>r.st.difficulty===state.diff);
+
+  // 並べ替え
+  const haveEph=rs.some(r=>r.eph!=null);
+  let sort=state.sort;
+  if(sort==="eph"&&!haveEph) sort="exp"; // タイム情報ゼロなら補正EXPで
+  if(sort==="eph") rs.sort((a,b)=>(b.eph??-1)-(a.eph??-1));
+  else rs.sort((a,b)=>b.cexp-a.cexp);
+
+  document.getElementById('count').textContent=rs.length+" ステージ"+(hero>0?`（Lv${hero} の補正適用）`:"（レベル未入力＝補正なし）");
+
+  // バナー
+  const banner=document.getElementById('banner');
+  if(hero<=0){
+    banner.innerHTML='<div class="banner">まず <b>ヒーローレベル</b> を入力してください。レベルに応じたオーバーレベル補正をかけて並べます。</div>';
+  }else if(!model){
+    banner.innerHTML='<div class="banner">いまは <b>補正EXP（1クリア）</b> の高い順です。<b>DPS</b> か各ステージの <b>実タイム</b> を入れると毎時EXP（M/h）で並べ替えます。</div>';
+  }else if(model.kind==="dps"){
+    banner.innerHTML='<div class="banner">DPS から推定したタイムで毎時EXPを算出。実タイムを入れるほど精度が上がります（<span class="meas">緑＝実測</span>）。</div>';
+  }else{
+    banner.innerHTML=`<div class="banner">実測 <b>${model.n}</b> 件から残りステージのタイムを補正中（総HP×Wave数で外挿）。<span class="meas">緑＝実測</span>／グレー＝推定。</div>`;
+  }
+
+  if(!rs.length){list.innerHTML='<div class="loading">該当なし</div>';return;}
+
+  const arr=s=>state.sort===s?'<span class="arr">▾</span>':'';
+  let html=`<table><thead><tr>
+    <th class="l"></th>
+    <th class="l">ステージ</th>
+    <th class="hide">Lv</th>
+    <th>補正</th>
+    <th>補正EXP ${arr('exp')}</th>
+    <th>クリア秒</th>
+    <th>毎時EXP ${arr('eph')}</th>
+  </tr></thead><tbody>`;
+
+  rs.forEach((r,i)=>{
+    const st=r.st;
+    const dcol=`var(${DIFF_COL[st.difficulty]})`;
+    const multPct=Math.round(r.mult*100);
+    const multCls=r.mult>=0.999?"full":"cut";
+    const ephCls=r.eph==null?"eph dim":(r.measured?"eph":"eph");
+    const timeVal=state.times[st.key]!=null?state.times[st.key]:"";
+    const measuredCls=state.times[st.key]>0?"time has":"time";
+    const estTxt=(!(state.times[st.key]>0)&&r.t!=null)?`<div class="est">≈${fmtTime(r.t)}</div>`:"";
+    html+=`<tr class="row ${st.type==='ACTBOSS'?'boss':''} ${i===0?'top1':''}">
+      <td class="rank l">${i+1}</td>
+      <td class="l">
+        <span class="stg">${st.act}-${st.no}</span>
+        <span class="dpill" style="background:${dcol}">${DIFF_JA[st.difficulty]}</span>
+        ${st.type==='ACTBOSS'?'<span class="nm">BOSS</span>':''}
+        <div class="nm">${st.name||""}</div>
+      </td>
+      <td class="lvl hide">${st.level}</td>
+      <td class="mult ${multCls}">${hero>0?multPct+"%":"—"}</td>
+      <td>${fmtExp(r.cexp)}</td>
+      <td><input class="${measuredCls}" data-k="${st.key}" type="number" inputmode="decimal" min="0" step="0.1" placeholder="秒" value="${timeVal}">${estTxt}</td>
+      <td class="${ephCls}">${fmtEph(r.eph)}</td>
+    </tr>`;
+  });
+  html+="</tbody></table>";
+  list.innerHTML=html;
+
+  list.querySelectorAll('input.time').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const k=+e.target.dataset.k;
+      const v=parseFloat(e.target.value);
+      if(isFinite(v)&&v>0) state.times[k]=v;
+      else delete state.times[k];
+      save(); render();
+    });
+  });
+}
+
+function buildDiffFilter(){
+  const df=document.getElementById('diffFilter');
+  df.innerHTML='<span class="flabel">難易度</span>'+
+    '<button class="chip on" data-d="all">すべて</button>'+
+    DIFFS.map(d=>{
+      const rng=STAGES.filter(s=>s.difficulty===d);
+      const lo=Math.min(...rng.map(s=>s.level)), hi=Math.max(...rng.map(s=>s.level));
+      return `<button class="chip" data-d="${d}">${DIFF_JA[d]} <span style="opacity:.6">Lv${lo}–${hi}</span></button>`;
+    }).join("");
+  df.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    df.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    state.diff=b.dataset.d==="all"?null:b.dataset.d;save();render();
+  });
+}
+
+function bindInputs(){
+  const bind=(id,key)=>{
+    const el=document.getElementById(id);
+    el.value=state[key];
+    el.addEventListener('input',()=>{state[key]=el.value;save();render();});
+  };
+  bind('lvl','lvl'); bind('dps','dps'); bind('bonus','bonus');
+
+  const seg=document.getElementById('sortSeg');
+  seg.querySelectorAll('button').forEach(b=>{
+    b.classList.toggle('on',b.dataset.s===state.sort);
+    b.addEventListener('click',()=>{
+      state.sort=b.dataset.s;
+      seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.s===state.sort));
+      save();render();
+    });
+  });
+  document.getElementById('resetBtn').addEventListener('click',()=>{
+    state={lvl:"",dps:"",bonus:"",diff:null,sort:"eph",times:{}};
+    localStorage.removeItem(LS);location.reload();
+  });
+}
+
+function save(){try{localStorage.setItem(LS,JSON.stringify(state));}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(LS));if(s){state={...state,...s,times:s.times||{}};}}catch(e){}}
+
+load();
+fetch('tbh-data.json').then(r=>r.json()).then(data=>{
+  STAGES=(data.stages||[]).slice().sort((a,b)=>a.level-b.level||a.key-b.key);
+  buildDiffFilter();
+  // 復元: 難易度チップ
+  if(state.diff){
+    document.querySelectorAll('#diffFilter button').forEach(b=>b.classList.toggle('on',b.dataset.d===state.diff));
+  }
+  bindInputs();
+  render();
+}).catch(err=>{
+  document.getElementById('list').innerHTML='<div class="loading">データ読み込みに失敗しました: '+err+'</div>';
+});
+</script>
+<script src="analytics.js"></script>
+</body>
+</html>

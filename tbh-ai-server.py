@@ -99,6 +99,11 @@ tbh-data.json の主なキー:
 - passiveSkills[]: {passiveKey, class, nameJa, nameEn, statType, modType(FLAT/PERCENT), value} — クラス別パッシブのステ強化
 - stages[]: {key, act(章1-3), no, level, difficulty(NORMAL/NIGHTMARE/HELL/TORMENT), boss(敵key), enemies[](敵key配列), expectedGold, expectedExp}
 - enemies[]: {key, nameJa, nameEn, type, atk, atkSpeed, hp, moveSpeed, element(physical/fire/cold/lightning/chaos), gold, exp}
+- 【キューブ(Cube)】クラフト装置で、キャラとは別に『キューブ自身のレベル』を持つ。質問に「キューブ」とあれば必ずこのキューブの話（キャラレベルやステージ周回に読み替えない）。
+  - キューブEXPは『キューブにアイテムを投入する』ことで入る（錬金/合成/捧げ物等）。入るEXP量は投入アイテムの**グレード**で決まり、ステージや個数効率より桁で効く。
+  - progression.cubeLevelExp[] = キューブのLv別必要EXP（例 Lv51→52 = 967,250）。crafting.gradeExp = グレード別の獲得キューブEXP(cubeExp)とalchemyGold（COMMON2…ARCANA518…COSMIC71089）。crafting.cubeLevels = 累積EXPの節目。grades[].BaseCubeExp も同値。
+  - キューブレベルは高グレード合成の解放条件にもなる（イモータル合成=Lv10, セレスティアル合成=Lv50 等）。
+  - 既知の仕様だがデータに数式が無い点: 「キューブレベルより高いレベルの装備を投入してもキューブEXPが入らない（=自分のキューブLv帯までの装備でしかEXPは伸びない）」。この手の“データに式が無い仕様”は創作で補わず、分かる範囲＋ユーザー申告を前提に答える。
 クラス/スキルの質問（例「ナイトのおすすめスキルは？」「レンジャーで火力が上がるパッシブは？」）では classes/skills/passiveSkills を class 名で絞って答える。
 「このステージで死ぬ、どんな装備？」のような攻略質問では、該当 stage を特定し、その boss/enemies の key を enemies から引いて、敵の element（→対応する耐性を優先）・atk・hp を見て、防御/属性耐性/早期撃破(火力)の観点で具体的に助言する。stage は act・no・difficulty で指定されることが多い。
 データに無い最新情報や一般的な攻略は WebSearch/WebFetch で調べてよいが、tbh-data.json に数値があるものは必ずDB優先（ネット情報より実データを信頼）。情報源がネットの場合はその旨を明記。

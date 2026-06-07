@@ -22,10 +22,11 @@ from tkinter import font as tkfont
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応
 APPID         = "3678970"          # TBH の Steam appid（マーケットURL用）
-# 詳細パネルは左右どちらにも・横位置がズレて出るので、名前＋等級が出るY帯を横幅いっぱい撮る。
-# 辞書側で最長一致するのでノイズが混じっても名前を抽出できる。(左, 上, 右, 下) のウィンドウ比率。
+# 詳細パネルは左右どちらにも出る。名前＋等級が入る枠を左右それぞれ絞って撮る（中央windowは除外）。
+# 読取を短くして誤マッチを防ぐ。(左, 上, 右, 下) のウィンドウ比率。
 NAME_REGIONS = [
-    (0.0, 0.25, 1.0, 0.42),
+    (0.12, 0.27, 0.47, 0.35),   # 左パネル
+    (0.53, 0.27, 0.88, 0.35),   # 右パネル
 ]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
@@ -158,42 +159,49 @@ def ocr(img):
     return best
 
 
-_busy = threading.Lock()
+WORKQ = queue.Queue()    # 戻るボタン押下シグナル（常駐ワーカーが処理）
 
-def on_trigger():
-    """別スレッド: ゲームが前面の時だけ 撮影→OCR→照合 し、結果をキューに積む。"""
-    if foreground_exe() != GAME_EXE:
-        return                          # 他アプリでは何もしない＝「戻る」は普通に効く
-    if not _busy.acquire(blocking=False):
-        return                          # 処理中の連打は無視（OCR競合・古い結果表示を防ぐ）
+def ocr_worker():
+    """常駐1本のワーカー: OCRエンジンを一度だけ初期化(COM/winrtのスレッド親和性対策)し、
+    押下シグナルごとに 撮影→OCR→照合 を直列実行する。"""
     try:
-        xy = cursor_pos()
-        PQ.put(("__close__", None, None))      # ① 古いポップを消す（前の結果を撮らない＝stale防止）
-        time.sleep(0.12)
-        imgs = [grab(reg) for reg in NAME_REGIONS]   # ② ポップ無しの状態で先に撮影
-        PQ.put(("__processing__", xy, None))   # ③ 撮影後に「読み取り中」（写り込まない）
-        found, dbg = [], []
-        for i, img in enumerate(imgs):
-            if CALIBRATE:
-                try: img.save(os.path.join(HERE, f"cap{i}.png"))
-                except Exception: pass
-            t = ocr(img)
-            dbg.append(t)
-            r = matcher.match(t)
-            if r:
-                found = r
-                break
-        if CALIBRATE:
-            try:
-                with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
-                    f.write(" || ".join(dbg) or "(empty)")
-            except Exception:
-                pass
-        PQ.put((found, xy, " || ".join(dbg)))
+        winocr.recognize_pil_sync(Image.new("RGB", (48, 48)), "ja")   # ウォームアップ
     except Exception:
-        log_fatal("trigger error:\n" + traceback.format_exc())
-    finally:
-        _busy.release()
+        pass
+    while True:
+        WORKQ.get()
+        try:
+            while True: WORKQ.get_nowait()      # 連打はまとめて1回に
+        except queue.Empty:
+            pass
+        try:
+            if foreground_exe() != GAME_EXE:
+                continue                        # 他アプリでは何もしない＝「戻る」は普通に効く
+            xy = cursor_pos()
+            PQ.put(("__close__", None, None))   # ① 古いポップを消す（前の結果を撮らない＝stale防止）
+            time.sleep(0.12)
+            imgs = [grab(reg) for reg in NAME_REGIONS]   # ② ポップ無しで先に撮影
+            PQ.put(("__processing__", xy, None))         # ③ 撮影後に「読み取り中」
+            found, dbg = [], []
+            for i, img in enumerate(imgs):
+                if CALIBRATE:
+                    try: img.save(os.path.join(HERE, f"cap{i}.png"))
+                    except Exception: pass
+                t = ocr(img)
+                dbg.append(t)
+                r = matcher.match(t)
+                if r:
+                    found = r
+                    break
+            if CALIBRATE:
+                try:
+                    with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
+                        f.write(" || ".join(dbg) or "(empty)")
+                except Exception:
+                    pass
+            PQ.put((found, xy, " || ".join(dbg)))
+        except Exception:
+            log_fatal("worker error:\n" + traceback.format_exc())
 
 
 # ---- ポップ表示（メインスレッドで） --------------------------------------
@@ -300,21 +308,13 @@ def run_tray(root):
 
 
 # ---- main ----------------------------------------------------------------
-def warmup():
-    """起動時にOCRエンジンを温める（初回押下の遅延・失敗を防ぐ）。"""
-    try:
-        winocr.recognize_pil_sync(Image.new("RGB", (48, 48)), "ja")
-    except Exception:
-        pass
-
 def main():
     threading.Thread(target=fetch_rate, daemon=True).start()   # 円レート取得（非同期）
-    threading.Thread(target=warmup, daemon=True).start()       # OCRウォームアップ
     root = tk.Tk()
     root.withdraw()
-    # マウスの「戻る」サイドボタンで発動（ゲームが前面の時だけ on_trigger 内で判定）
-    mouse.on_button(lambda: threading.Thread(target=on_trigger, daemon=True).start(),
-                    buttons=(SIDE_BUTTON,), types=("down",))
+    threading.Thread(target=ocr_worker, daemon=True).start()    # OCR常駐ワーカー（初期化1回）
+    # マウスの「戻る」サイドボタンで発動（押下シグナルをワーカーへ。前面判定はワーカー内）
+    mouse.on_button(lambda: WORKQ.put(1), buttons=(SIDE_BUTTON,), types=("down",))
     threading.Thread(target=run_tray, args=(root,), daemon=True).start()
     poll(root)
     root.mainloop()

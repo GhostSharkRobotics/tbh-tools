@@ -30,24 +30,26 @@ class Matcher:
         for e in out: e["score"] = round(score, 3)
         return out
 
-    def match(self, ocr_text: str, min_score=0.6):
-        q = norm(ocr_text)
-        if not q: return []
-        # 1) 既知名が読取テキストに含まれる → 最長一致を採用（横帯OCRのノイズに強い）
-        for k in self.keys:                 # 長い順
-            if len(k) >= 4 and k in q:
-                return self._collect(k, 0.97)
-        # 2) 含まれない（OCR崩れ）→ 行ごとに曖昧マッチ
-        best = None
-        for probe in re.split(r"[\r\n]+", ocr_text):
-            nq = norm(probe)
-            if len(nq) < 3: continue
-            for k in difflib.get_close_matches(nq, list(self.index.keys()), n=1, cutoff=min_score):
-                sc = difflib.SequenceMatcher(None, nq, k).ratio()
-                if best is None or sc > best[0]: best = (sc, k)
-        if best and best[0] >= min_score:
-            return self._collect(best[1], best[0])
-        return []
+    def match(self, ocr_text: str, min_score=0.7):
+        # OCRの各行＋全体を候補に。部分一致(カバー率)と曖昧一致を総合スコアで比較し最良を採る。
+        # これで「サンダーストーン」が少し崩れても短い「ストーン」に化けない（長い正式名を優先）。
+        cands = []
+        probes = re.split(r"[\r\n]+", ocr_text) + [ocr_text]
+        for probe in probes:
+            q = norm(probe)
+            if len(q) < 2: continue
+            if q in self.index:
+                cands.append((1.0, q, len(q))); continue
+            for k in self.keys:
+                if len(k) >= 2 and k in q:            # 既知名が読取に含まれる
+                    cov = len(k) / max(len(k), len(q))   # 読取のうち名前が占める割合
+                    cands.append((0.6 + 0.4 * cov, k, len(k)))
+            for k in difflib.get_close_matches(q, self.keys, n=3, cutoff=min_score):
+                cands.append((difflib.SequenceMatcher(None, q, k).ratio(), k, len(k)))
+        if not cands: return []
+        score, key, _ = max(cands, key=lambda c: (round(c[0], 3), c[2]))   # 同点なら長い名前
+        if score < min_score: return []
+        return self._collect(key, score)
 
 if __name__ == "__main__":
     ROOT = os.path.dirname(os.path.abspath(__file__))

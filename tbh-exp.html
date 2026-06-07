@@ -150,7 +150,7 @@ function expMult(hero, stage){
   const c = Math.abs(hero-stage);
   if(c<=n) return 1;
   if(c<=n+r){ const e=(c-n)/r; return Math.max(1-(1-a)*e*e, 0.01); }
-  return Math.max(Math.pow(0.01/a, (c-n-r)/Math.max(hero/3,1))*a, 0.01);
+  return Math.max(Math.pow(0.01/a, (c-n-r)/Math.max(hero/3,3))*a, 0.01);
 }
 
 // ── クリアタイム推定モデル ──

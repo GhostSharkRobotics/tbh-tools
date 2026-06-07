@@ -22,11 +22,10 @@ from tkinter import font as tkfont
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応
 APPID         = "3678970"          # TBH の Steam appid（マーケットURL用）
-# 詳細パネルは左右どちらにも出る。名前＋等級が入る枠を左右それぞれ絞って撮る（中央windowは除外）。
-# 読取を短くして誤マッチを防ぐ。(左, 上, 右, 下) のウィンドウ比率。
+# 名前枠は位置が毎回変わる→上部ウィンドウ全体を撮り、OCRを行単位＋隣接行ペアで照合して
+# どこにあっても名前＋等級を拾う。(左, 上, 右, 下) のゲームウィンドウ比率。
 NAME_REGIONS = [
-    (0.12, 0.27, 0.47, 0.35),   # 左パネル
-    (0.53, 0.27, 0.88, 0.35),   # 右パネル
+    (0.0, 0.0, 1.0, 0.62),
 ]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
@@ -133,13 +132,21 @@ def grab(frac):
 
 
 def preprocess(img):
-    """色付き文字対策: 明度(V=max(R,G,B))チャンネル→3倍拡大→コントラスト強調。
-    マゼンタ/オレンジ等のレア色名でも白黒高コントラストになりOCR精度が大きく上がる。"""
+    """色付き文字対策: 明度(V=max(R,G,B))チャンネル＋コントラスト強調。
+    マゼンタ/オレンジ等のレア色名でも白黒高コントラストになりOCRが安定。小領域のみ拡大。"""
     v = img.convert("HSV").split()[2]
     w, h = v.size
-    v = v.resize((w * 3, h * 3), Image.LANCZOS)
+    if w < 700:                      # 小さい領域だけ拡大（大きい全体撮影は等倍で速度維持）
+        v = v.resize((w * 3, h * 3), Image.LANCZOS)
     v = ImageOps.autocontrast(v)
     return v.convert("RGB")
+
+
+def _lines(r):
+    if isinstance(r, dict):
+        ls = r.get("lines") or []
+        return "\n".join(ln.get("text", "") for ln in ls) or r.get("text", "")
+    return getattr(r, "text", "")
 
 
 def ocr(img):
@@ -150,12 +157,11 @@ def ocr(img):
     best = ""
     for lang in OCR_LANGS:
         try:
-            r = winocr.recognize_pil_sync(proc, lang)
-            t = r.text if hasattr(r, "text") else (r.get("text", "") if isinstance(r, dict) else "")
+            txt = _lines(winocr.recognize_pil_sync(proc, lang))
         except Exception:
-            t = ""
-        if len(t) > len(best):
-            best = t
+            txt = ""
+        if len(txt) > len(best):
+            best = txt
     return best
 
 

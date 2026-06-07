@@ -42,7 +42,9 @@ class Matcher:
         # OCRの各行＋全体を候補に。部分一致(カバー率)と曖昧一致を総合スコアで比較し最良を採る。
         # これで「サンダーストーン」が少し崩れても短い「ストーン」に化けない（長い正式名を優先）。
         cands = []
-        probes = re.split(r"[\r\n]+", ocr_text) + [ocr_text]
+        parts = [p for p in re.split(r"[\r\n]+", ocr_text) if norm(p)]
+        # 各行＋隣接行ペア（名前と等級が別行でも結合して判定）＋全体
+        probes = parts + [parts[i] + parts[i + 1] for i in range(len(parts) - 1)] + [ocr_text]
         for probe in probes:
             q = norm(probe)
             if len(q) < 2: continue

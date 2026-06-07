@@ -21,9 +21,12 @@ from tkinter import font as tkfont
 # ---- 設定 ----------------------------------------------------------------
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応
-# アイテム名はゲームウィンドウ左上の詳細パネルに固定表示される。ウィンドウに対する割合で撮る。
-# (左, 上, 右, 下) の比率。今は全体(1.0)＝採寸用。後で名前領域だけに絞る。
-NAME_FRAC = (0.0, 0.0, 1.0, 1.0)
+# アイテム詳細パネルの「名前＋等級」枠を撮る。パネルは左右どちらにも出るので両方撮る。
+# 各領域 = ゲームウィンドウに対する (左, 上, 右, 下) の比率。
+NAME_REGIONS = [
+    (0.17, 0.275, 0.39, 0.39),   # 左パネル
+    (0.61, 0.275, 0.83, 0.39),   # 右パネル（左右ミラー）
+]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
 CALIBRATE     = True               # Trueで撮影画像を tbh-ocr-capture.png に保存（調整用・一時ON）
@@ -101,24 +104,20 @@ def cursor_pos():
     return pt.x, pt.y
 
 
-def grab():
-    """ゲームウィンドウ基準で NAME_FRAC の領域を撮る。戻り値: (画像, カーソル座標)。"""
+def grab(frac):
+    """ゲームウィンドウ基準で frac=(左,上,右,下)比率の領域を撮る。"""
     import ctypes
     from ctypes import wintypes
     hwnd = ctypes.windll.user32.GetForegroundWindow()
     r = wintypes.RECT()
     ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(r))
     W, H = r.right - r.left, r.bottom - r.top
-    x0, y0, x1, y1 = NAME_FRAC
+    x0, y0, x1, y1 = frac
     region = {"left": r.left + int(W * x0), "top": r.top + int(H * y0),
               "width": max(1, int(W * (x1 - x0))), "height": max(1, int(H * (y1 - y0)))}
     with mss.mss() as sct:
         raw = sct.grab(region)
-    img = Image.frombytes("RGB", raw.size, raw.bgra, "raw", "BGRX")
-    if CALIBRATE:
-        try: img.save(os.path.join(HERE, "tbh-ocr-capture.png"))
-        except Exception: pass
-    return img, cursor_pos()
+    return Image.frombytes("RGB", raw.size, raw.bgra, "raw", "BGRX")
 
 
 def preprocess(img):
@@ -152,18 +151,27 @@ def on_trigger():
     try:
         if foreground_exe() != GAME_EXE:
             return                      # 他アプリでは何もしない＝「戻る」は普通に効く
-        PQ.put(("__close__", None, None))   # 撮影前に古いポップを消す（自分のポップを撮らない）
-        time.sleep(0.15)
-        img, xy = grab()
-        text = ocr(img)
+        xy = cursor_pos()
+        PQ.put(("__processing__", xy, None))   # 押した瞬間に「読み取り中…」を即表示
+        found, dbg = [], []
+        for i, reg in enumerate(NAME_REGIONS):
+            img = grab(reg)
+            if CALIBRATE:
+                try: img.save(os.path.join(HERE, f"cap{i}.png"))
+                except Exception: pass
+            t = ocr(img)
+            dbg.append(t)
+            r = matcher.match(t)
+            if r:
+                found = r
+                break                   # どちらかのパネルで当たれば確定
         if CALIBRATE:
             try:
                 with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
-                    f.write(text or "(empty)")
+                    f.write(" || ".join(dbg) or "(empty)")
             except Exception:
                 pass
-        results = matcher.match(text)
-        PQ.put((results, xy, text))
+        PQ.put((found, xy, " || ".join(dbg)))
     except Exception:
         log_fatal("trigger error:\n" + traceback.format_exc())
 
@@ -196,7 +204,9 @@ def show_popup(results, xy, text, root):
         tk.Label(card, text=txt, bg=C_CARD, fg=color, font=fnt,
                  anchor="w", justify="left").pack(fill="x", padx=20, pady=pady)
 
-    if not results:
+    if results == "__processing__":
+        row("🔍 読み取り中…", C_ACCENT, f_name, (16, 16))
+    elif not results:
         row("該当なし", C_ERR, f_name, (16, 4))
         snip = (text or "").strip().replace("\n", " ")[:36] or "(読取なし)"
         row(f"読取: {snip}", C_META, f_meta, (0, 16))

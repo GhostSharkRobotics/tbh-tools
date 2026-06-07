@@ -48,6 +48,7 @@ def log_fatal(msg):
 try:
     import mss
     from PIL import Image, ImageDraw
+    from PIL import ImageOps
     import winocr
     import mouse
     import pystray
@@ -107,11 +108,24 @@ def grab_box():
     return img, (cx, cy)
 
 
+def preprocess(img):
+    """ドット文字対策: グレースケール→3倍拡大→コントラスト強調。OCR精度を大きく上げる。"""
+    g = img.convert("L")
+    w, h = g.size
+    g = g.resize((w * 3, h * 3), Image.LANCZOS)
+    g = ImageOps.autocontrast(g)
+    return g.convert("RGB")
+
+
 def ocr(img):
+    proc = preprocess(img)
+    if CALIBRATE:
+        try: proc.save(os.path.join(HERE, "tbh-ocr-proc.png"))
+        except Exception: pass
     best = ""
     for lang in OCR_LANGS:
         try:
-            r = winocr.recognize_pil_sync(img, lang)
+            r = winocr.recognize_pil_sync(proc, lang)
             t = r.text if hasattr(r, "text") else (r.get("text", "") if isinstance(r, dict) else "")
         except Exception:
             t = ""

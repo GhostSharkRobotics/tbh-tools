@@ -25,7 +25,7 @@ def base_ja(ja: str):
     return re.sub(r"[ 　]+[A-C]$", "", ja.strip()).strip()
 
 def main():
-    src = json.load(open(os.path.join(ROOT, "tbh-prices.json")))
+    src = json.load(open(os.path.join(ROOT, "tbh-prices.json"), encoding="utf-8"))
     prices = src["prices"]
     entries = []
     for en, v in prices.items():
@@ -57,7 +57,7 @@ def main():
         "entries": entries, "index": index,
     }
     dst = os.path.join(ROOT, "tbh-price-lookup.json")
-    json.dump(out, open(dst, "w"), ensure_ascii=False)
+    json.dump(out, open(dst, "w", encoding="utf-8"), ensure_ascii=False)
     print(f"entries={len(entries)} index_keys={len(index)} -> {dst}")
 
 if __name__ == "__main__":

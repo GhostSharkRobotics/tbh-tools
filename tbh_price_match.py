@@ -10,7 +10,7 @@ def norm(s: str) -> str:
 
 class Matcher:
     def __init__(self, path):
-        d = json.load(open(path))
+        d = json.load(open(path, encoding="utf-8"))
         self.entries = d["entries"]; self.index = d["index"]
         self.keys = list(self.index.keys()); self.marketUpdated = d.get("marketUpdated")
 

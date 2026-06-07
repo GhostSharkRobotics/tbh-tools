@@ -170,7 +170,7 @@ function drawOverlevelExp(el){
     g+=`<text x="${(X0+X1)/2}" y="${Y1+34}" fill="#9a8f7a" font-size="11" text-anchor="middle">相手とのレベル差</text>`;
     svgBox.innerHTML=`<svg viewBox="0 0 ${X1+18} ${Y1+44}" style="width:100%;height:auto">${g}</svg>`;
     const p=d=>Math.round(olMult(A,d)*100)+'%';
-    note.innerHTML=`満額(100%)は <b style="color:var(--accent)">−${bNeg}〜+${bPos}</b> の範囲（格上ほど狭く感じる＝同じ差でも上に外すと損）。`
+    note.innerHTML=`満額(100%)は <b style="color:var(--accent)">−${bNeg}〜+${bPos}</b>（この幅はレベルでほぼ変わらない）。高Lvほど変わるのは“裾の緩さ”＝遠い差でも減りにくくなる。`
       +`<br>格上(＋)： +5→${p(5)} ／ +10→${p(10)} ／ +20→${p(20)} ／ +30→${p(30)} ／ +40→${p(40)}`
       +`<br>格下(−)： −5→${p(-5)} ／ −10→${p(-10)} ／ −20→${p(-20)} ／ −30→${p(-30)} ／ −40→${p(-40)}`;
   }

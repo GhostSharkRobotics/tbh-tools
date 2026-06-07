@@ -211,17 +211,23 @@ def ocr_worker():
                 for probe in probes:
                     r = matcher.match(probe)
                     if r:
-                        d = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
-                        cands.append((r[0]["score"], -d, r))   # スコア→近い順
+                        d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
+                        cands.append((r[0]["score"], d2, sx, sy, r))
             found = []
             if cands:
                 top = max(c[0] for c in cands)
-                near = [c for c in cands if c[0] >= top - 0.06]   # 高スコア帯は同等→
-                found = max(near, key=lambda c: c[1])[2]          # カーソル最近を採用
+                near = [c for c in cands if c[0] >= top - 0.06]   # 高スコア帯は同等扱い
+                best = min(near, key=lambda c: c[1])              # カーソル最近を採用
+                found = best[4]
             if CALIBRATE:
                 try:
                     with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
-                        f.write("\n".join(texts) or "(empty)")
+                        f.write(f"cursor={xy}  win_off=({ox},{oy})\n--CANDIDATES--\n")
+                        for sc, d2, sx, sy, r in sorted(cands, key=lambda c: c[1]):
+                            f.write(f"{r[0]['base_ja']}  score={sc} dist={int(d2**0.5)} @({int(sx)},{int(sy)})\n")
+                        f.write("--LINES--\n")
+                        for t, cx, cy in lines:
+                            f.write(f"({int(ox+cx)},{int(oy+cy)}) {t}\n")
                 except Exception:
                     pass
             PQ.put((found, xy, "\n".join(texts)))

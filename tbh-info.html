@@ -37,11 +37,21 @@
   .chrow .track{flex:1;height:16px;background:var(--surface2);border-radius:8px;overflow:hidden;}
   .chrow .fill{height:100%;border-radius:8px;}
   .chrow .pct{width:54px;text-align:right;flex:none;font-variant-numeric:tabular-nums;}
+  .memo{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin:18px 0 8px;}
+  .memo .mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .memo .mt{font-size:14px;color:var(--accent);font-weight:600;}
+  .memo .ms{font-size:12px;color:var(--muted);}
+  .memo textarea{width:100%;min-height:120px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:14px;line-height:1.6;resize:vertical;}
+  .memo textarea:focus{outline:none;border-color:var(--accent);}
 </style>
 </head>
 <body>
 <a class="back" href="index.html">← ツール一覧</a>
 <div id="toc" class="toc" style="display:none"></div>
+<div class="memo">
+  <div class="mh"><span class="mt">📝 マイメモ</span><span class="ms" id="memoStatus">この端末に自動保存</span></div>
+  <textarea id="memo" placeholder="自由にメモを書けます。入力すると自動保存され、リロードしても消えません。"></textarea>
+</div>
 <div id="md"><div class="loading">読み込み中…</div></div>
 <script>
 // minimal markdown renderer (headings/bold/code/hr/list/table/blockquote)
@@ -129,6 +139,17 @@ function drawCharts(){
     if(cd) drawBarList(el,cd);
   });
 }
+// 自分用メモ（localStorageに保存・リロードしても残る）
+(function(){
+  const KEY='tbh-info-memo', ta=document.getElementById('memo'), st=document.getElementById('memoStatus');
+  try{ta.value=localStorage.getItem(KEY)||'';}catch(e){}
+  let t;
+  ta.addEventListener('input',()=>{
+    try{localStorage.setItem(KEY,ta.value);st.textContent='保存しました ✓';
+      clearTimeout(t);t=setTimeout(()=>{st.textContent='この端末に自動保存';},1200);
+    }catch(e){st.textContent='保存できません（プライベートモード?）';}
+  });
+})();
 fetch('TBH-解析メモ.md?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(md=>{
   const {html,toc}=render(md);
   document.getElementById('md').innerHTML=html;

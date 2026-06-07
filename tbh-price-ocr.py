@@ -111,8 +111,8 @@ def ocr(img):
     best = ""
     for lang in OCR_LANGS:
         try:
-            r = winocr.recognize_pil(img, lang)
-            t = r.text if hasattr(r, "text") else str(r)
+            r = winocr.recognize_pil_sync(img, lang)
+            t = r.text if hasattr(r, "text") else (r.get("text", "") if isinstance(r, dict) else "")
         except Exception:
             t = ""
         if len(t) > len(best):

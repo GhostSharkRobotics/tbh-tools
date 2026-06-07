@@ -140,44 +140,64 @@ function olMult(A,delta){
   if(d<=b1+b2){const e=(d-b1)/b2; return Math.max(1-(1-fl)*e*e,0.01);}
   return Math.max(Math.pow(0.01/fl,(d-b1-b2)/Math.max(A/3,3))*fl,0.01);
 }
+// ベースキューブEXP（GradeInfoData）/ レベル倍率（ItemLevelScaleInfoData ÷1000）/ レベルアップ必要EXP（CubeLevelInfoData）：すべて逆アセンブル＆抽出で確定
+const OL_BASE={COMMON:2,UNCOMMON:6,RARE:18,LEGENDARY:54,IMMORTAL:162,ARCANA:518,BEYOND:1658,CELESTIAL:5803,DIVINE:20311,COSMIC:71089};
+const OL_LVS=[1,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,100];
+const OL_CSCALE={1:1000,5:10000,10:40000,15:120000,20:240000,25:408000,30:612000,35:816000,40:1020000,45:1224000,50:1428000,55:1632000,60:1836000,65:2040000,70:2244000,75:2448000,80:2652000,85:2856000,90:3060000};
+const OL_LVUP={1:15,2:40,3:100,4:250,5:400,6:600,7:850,8:1150,9:1550,10:2150,11:2950,12:4050,13:5450,14:7250,15:9450,16:12150,17:15350,18:19050,19:23250,20:27950,21:33250,22:39250,23:46050,24:53750,25:62450,26:72250,27:83250,28:95550,29:109250,30:124450,31:141250,32:159750,33:180050,34:202250,35:226450,36:252750,37:281250,38:312050,39:345250,40:380950,41:419250,42:460250,43:504050,44:550750,45:600450,46:653250,47:709250,48:768550,49:831250,50:897450,51:967250,52:1040750,53:1118050,54:1199250,55:1284450,56:1373750,57:1467250,58:1565050,59:1667250,60:1773950,61:1885250,62:2001250,63:2122050,64:2247750,65:2378450,66:2514250,67:2655250,68:2801550,69:2953250,70:3110450,71:3273250,72:3441750,73:3616050,74:3796250,75:3982450,76:4174750,77:4373250,78:4578050,79:4789250,80:5006950,81:5231250,82:5462250,83:5700050,84:5944750,85:6196450,86:6455250,87:6721250,88:6994550,89:7275250,90:7563450,91:7859250,92:8162750,93:8474050,94:8793250,95:9120450,96:9455750,97:9799250,98:10151050,99:10511250,100:999999999};
 function drawOverlevelExp(el){
   el.innerHTML='<div class="ct">レベル差でもらえるEXPがどれだけ減るか（マイナス＝格下／プラス＝格上）</div>'
-    +'<div style="display:flex;align-items:center;gap:10px;margin:2px 0 10px;font-size:13px;flex-wrap:wrap">'
-    +'<span style="color:var(--muted)">基準レベル（自分Lv／キューブLv）</span>'
-    +'<input id="olLv" type="range" min="2" max="100" value="60" style="flex:1;min-width:160px;accent-color:var(--accent)">'
-    +'<span id="olLvV" style="color:var(--accent);font-weight:700;width:34px;text-align:right">60</span></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin:2px 0 6px;font-size:13px;flex-wrap:wrap">'
+    +'<span style="color:var(--muted);width:118px">キューブLv／自分Lv</span>'
+    +'<input id="olLv" type="range" min="2" max="100" value="51" style="flex:1;min-width:130px;accent-color:var(--accent)">'
+    +'<span id="olLvV" style="color:var(--accent);font-weight:700;width:30px;text-align:right">51</span></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin:2px 0 4px;font-size:13px;flex-wrap:wrap">'
+    +'<span style="color:var(--muted);width:118px">入れる装備Lv</span>'
+    +'<input id="olItem" type="range" min="0" max="19" value="16" style="flex:1;min-width:130px;accent-color:var(--accent)">'
+    +'<span id="olItemV" style="color:var(--accent);font-weight:700;width:42px;text-align:right">Lv80</span></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin:2px 0 10px;font-size:13px;flex-wrap:wrap">'
+    +'<span style="color:var(--muted);width:118px">スロット倍率</span>'
+    +'<select id="olSlot" style="flex:1;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:12px">'
+    +'<option value="1">武器・鎧・矢筒 ×1</option><option value="0.8">兜 ×0.8</option><option value="0.75">手袋 ×0.75</option><option value="0.7">靴 ×0.7</option><option value="2">オフハンド(盾/オーブ等) ×2</option><option value="3">指輪・イヤ・ブレ ×3</option><option value="4">首飾り ×4</option><option value="12">素材 ×12</option></select></div>'
     +'<div id="olSvg"></div>'
+    +'<div id="olGrades" style="margin-top:10px"></div>'
     +'<div id="olNote" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.8"></div>';
-  const lv=el.querySelector('#olLv'), lvV=el.querySelector('#olLvV'), svgBox=el.querySelector('#olSvg'), note=el.querySelector('#olNote');
+  const lv=el.querySelector('#olLv'), lvV=el.querySelector('#olLvV'), it=el.querySelector('#olItem'), itV=el.querySelector('#olItemV'),
+    slot=el.querySelector('#olSlot'), svgBox=el.querySelector('#olSvg'), grades=el.querySelector('#olGrades'), note=el.querySelector('#olNote');
   const X0=44,X1=612,Y0=24,Y1=210,DMIN=-45,DMAX=45;
   const xs=d=>X0+(d-DMIN)/(DMAX-DMIN)*(X1-X0), ys=m=>Y1-m*(Y1-Y0);
-  function build(A){
+  function build(){
+    const A=+lv.value, itemLv=OL_LVS[+it.value], sm=+slot.value;
+    lvV.textContent=A; itV.textContent='Lv'+itemLv;
     let g='';
-    // 横グリッド（%）
     [0,.25,.5,.75,1].forEach(m=>{const y=ys(m);g+=`<line x1="${X0}" y1="${y}" x2="${X1}" y2="${y}" stroke="#3a342a" stroke-width="1"/>`+
       `<text x="${X0-6}" y="${y+4}" fill="#9a8f7a" font-size="11" text-anchor="end">${m*100}%</text>`;});
-    // 満額100%帯（格下=×2 / 格上=×5 で左右非対称）
     const w=1+Math.log(A+1)/10, bNeg=Math.trunc(w*2), bPos=Math.trunc(w*5);
     g+=`<rect x="${xs(-bNeg)}" y="${Y0}" width="${xs(bPos)-xs(-bNeg)}" height="${Y1-Y0}" fill="#d8a657" opacity="0.10"/>`;
-    // 縦グリッド（レベル差＋実レベル）
     [-40,-30,-20,-10,0,10,20,30,40].forEach(d=>{const x=xs(d),tl=A+d;g+=`<line x1="${x}" y1="${Y0}" x2="${x}" y2="${Y1}" stroke="${d===0?'#6a5f4a':'#2a2620'}" stroke-width="${d===0?1.5:1}"/>`+
       `<text x="${x}" y="${Y1+16}" fill="#9a8f7a" font-size="11" text-anchor="middle">${d>0?'+'+d:d}</text>`+
       ((tl>=1&&tl<=110)?`<text x="${x}" y="${Y1+30}" fill="#c9a86a" font-size="10.5" text-anchor="middle">Lv${tl}</text>`:'');});
-    // 曲線
     let pts='';for(let d=DMIN;d<=DMAX;d++){pts+=(d===DMIN?'M':'L')+xs(d).toFixed(1)+' '+ys(olMult(A,d)).toFixed(1)+' ';}
     g+=`<path d="${pts}" fill="none" stroke="#d8a657" stroke-width="2.6"/>`;
-    // 代表点
-    [-30,-20,-10,10,20,30].forEach(d=>{const m=olMult(A,d),x=xs(d),y=ys(m);g+=`<circle cx="${x}" cy="${y}" r="3" fill="#ece3d2"/>`;});
+    // 選択中の装備Lvマーカー
+    const dd=itemLv-A, mm=olMult(A,dd);
+    if(dd>=DMIN&&dd<=DMAX){const mx=xs(dd),my=ys(mm);g+=`<line x1="${mx}" y1="${Y0}" x2="${mx}" y2="${Y1}" stroke="#f0d98a" stroke-width="1.5" stroke-dasharray="4 3"/>`+
+      `<circle cx="${mx}" cy="${my}" r="5" fill="#fff" stroke="#d8a657" stroke-width="2"/>`+
+      `<text x="${mx}" y="${my-9}" fill="#f0d98a" font-size="11" font-weight="700" text-anchor="middle">${Math.round(mm*100)}%</text>`;}
     g+=`<text x="${(X0+X1)/2}" y="${Y1+46}" fill="#9a8f7a" font-size="11" text-anchor="middle">相手とのレベル差（下段＝相手の実レベル）</text>`;
     svgBox.innerHTML=`<svg viewBox="0 0 ${X1+18} ${Y1+56}" style="width:100%;height:auto">${g}</svg>`;
-    const p=d=>Math.round(olMult(A,d)*100)+'%', L=d=>A+d;
-    let dHalf=0,dTen=0;for(let d=0;d<=90;d++){if(olMult(A,d)>=0.5)dHalf=d;if(olMult(A,d)>=0.1)dTen=d;}
-    note.innerHTML=`<b style="color:var(--accent)">基準Lv${A}の目安</b>：満額(100%)は <b style="color:var(--accent)">Lv${L(bPos)}</b> まで／半分くらい(約50%)は <b style="color:var(--accent)">Lv${L(dHalf)}</b> まで／<b style="color:var(--accent)">Lv${L(dTen)}超</b>はほぼ0。`
-      +`<br>格上(＋)： +5(Lv${L(5)})→${p(5)} ／ +10(Lv${L(10)})→${p(10)} ／ +20(Lv${L(20)})→${p(20)} ／ +30(Lv${L(30)})→${p(30)}`
-      +`<br>格下(−)： −5(Lv${L(-5)})→${p(-5)} ／ −10(Lv${L(-10)})→${p(-10)} ／ −20(Lv${L(-20)})→${p(-20)} ／ −30(Lv${L(-30)})→${p(-30)}`;
+    // グレード別ゲージ進捗
+    const lr=OL_CSCALE[itemLv]?OL_CSCALE[itemLv]/1000:1, gauge=OL_LVUP[A]||OL_LVUP[100];
+    let gh=`<div class="ct">Lv${itemLv}装備を1個入れた時のゲージ進捗（キューブLv${A}→${A+1}、補正後）</div>`;
+    ORDER.forEach(k=>{const exp=OL_BASE[k]*lr*sm*mm, pct=exp/gauge*100, disp=pct>=100?(exp/gauge).toFixed(1)+'本':pct.toFixed(pct<1?2:1)+'%', bw=Math.min(pct,100);
+      gh+=`<div class="chrow"><div class="lbl" style="width:104px">${GJA[k]}</div><div class="track"><div class="fill" style="width:${bw.toFixed(1)}%;background:${GCOL[k]}"></div></div><div class="pct" style="width:60px">${disp}</div></div>`;});
+    grades.innerHTML=gh;
+    note.innerHTML=`補正 jwf(Lv${A},Lv${itemLv}) = <b style="color:var(--accent)">${(mm*100).toFixed(mm<0.1?2:0)}%</b>`
+      +(OL_CSCALE[itemLv]?'':'　※Lv100はレベル倍率テーブル外＝倍率1扱いで激減')
+      +`。満額(100%)はだいたい 相手Lv${A-bNeg}〜${A+bPos}。「本」＝1個でそのレベル数ぶん。`;
   }
-  build(+lv.value);
-  lv.addEventListener('input',()=>{lvV.textContent=lv.value;build(+lv.value);});
+  build();
+  [lv,it,slot].forEach(c=>c.addEventListener('input',build));
 }
 function drawCharts(){
   document.querySelectorAll('.chart').forEach(el=>{

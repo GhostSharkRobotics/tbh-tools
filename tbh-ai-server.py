@@ -18,12 +18,21 @@ TBH ローカルAIサーバ（このデバイス専用）
 """
 import json
 import os
+import re
 import subprocess
+import time
+import urllib.parse
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 PORT = 8765
+APPID = "3678970"  # Task Bar Hero on Steam
+
+# 1件だけライブ価格を取りに行く用の軽いキャッシュ（同じhashの連打でSteamを叩かない）
+_PRICE_CACHE = {}          # hash -> (epoch_sec, result_dict)
+_PRICE_TTL = 120           # 秒。これより新しければキャッシュを返す
 CLAUDE = next((p for p in [str(Path.home() / ".local/bin/claude"),
                            "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
                if Path(p).exists()), "claude")
@@ -197,6 +206,66 @@ def stream_claude(prompt, emit, resume=None):
     return result, session_id
 
 
+_MONEY = re.compile(r"[\d.,]+")
+
+
+def _money_to_cents(s):
+    """'$71.76' / '71,76€' などの価格文字列をUSDセント(int)に。失敗時 None。"""
+    if not s:
+        return None
+    m = _MONEY.search(s.replace(",", "."))
+    if not m:
+        return None
+    try:
+        return int(round(float(m.group(0)) * 100))
+    except ValueError:
+        return None
+
+
+def fetch_steam_price(hash_name):
+    """Steam公式 priceoverview から1アイテムだけライブ相場を取得。
+    全件は叩かず、ユーザーがクリックした1件だけを都度取得する（Steamに優しい）。
+    返り値: {ok, sell, median, volume, fetchedAt} （sell/medianはUSDセント）。"""
+    hn = (hash_name or "").strip()
+    if not hn:
+        return {"ok": False, "error": "empty hash"}
+    now = time.time()
+    hit = _PRICE_CACHE.get(hn)
+    if hit and now - hit[0] < _PRICE_TTL:
+        return hit[1]
+    url = ("https://steamcommunity.com/market/priceoverview/"
+           "?appid=" + APPID + "&currency=1&market_hash_name=" + urllib.parse.quote(hn))
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (TBH price refresh)"})
+    try:
+        with urllib.request.urlopen(req, timeout=12) as r:
+            d = json.load(r)
+    except urllib.error.HTTPError as e:
+        msg = "Steam混雑(429) — 少し待って再試行" if e.code == 429 else f"Steam {e.code}"
+        return {"ok": False, "error": msg}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "error": f"取得失敗: {e}"}
+    if not d.get("success"):
+        # success=false は「出品なし/相場なし」。市場ページは存在し得る。
+        out = {"ok": True, "sell": None, "median": None, "volume": 0,
+               "fetchedAt": int(now), "empty": True}
+        _PRICE_CACHE[hn] = (now, out)
+        return out
+    vol = 0
+    try:
+        vol = int(str(d.get("volume", "0")).replace(",", ""))
+    except ValueError:
+        vol = 0
+    out = {
+        "ok": True,
+        "sell": _money_to_cents(d.get("lowest_price")),
+        "median": _money_to_cents(d.get("median_price")),
+        "volume": vol,
+        "fetchedAt": int(now),
+    }
+    _PRICE_CACHE[hn] = (now, out)
+    return out
+
+
 class Handler(BaseHTTPRequestHandler):
     def _cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -210,8 +279,13 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path.split("?")[0] == "/health":
+        route = self.path.split("?")[0]
+        if route == "/health":
             return self._json({"ok": True})
+        if route == "/price":
+            q = urllib.parse.parse_qs(self.path.split("?", 1)[1] if "?" in self.path else "")
+            hn = (q.get("hash") or [""])[0]
+            return self._json(fetch_steam_price(hn))
         self._serve_static()
 
     def do_POST(self):

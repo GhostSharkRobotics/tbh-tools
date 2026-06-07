@@ -32,13 +32,18 @@ jobs:
       - name: Fetch prices and rebuild data
         run: python3 tbh-fetch-prices.py
 
+      # OCRヘルパー用の照合索引も最新化（tbh-prices.json から生成）
+      - name: Build price lookup for OCR helper
+        run: python3 tbh-build-price-lookup.py
+
       # 明示的に対象ファイルだけ add（git add -A は厳禁: 巨大バイナリ混入防止）
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add tbh-prices.json tbh-data.json tbh-deals.html \
-                  tbh-gem-search.html tbh-build-simulator.html tbh-best-build.html
+                  tbh-gem-search.html tbh-build-simulator.html tbh-best-build.html \
+                  tbh-price-lookup.json
           if git diff --cached --quiet; then
             echo "価格に変更なし — コミットしません"
           else

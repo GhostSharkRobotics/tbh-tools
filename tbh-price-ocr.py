@@ -116,7 +116,7 @@ def cursor_pos():
 
 
 def grab(frac):
-    """ゲームウィンドウ基準で frac=(左,上,右,下)比率の領域を撮る。"""
+    """ゲームウィンドウ基準で frac=(左,上,右,下)比率の領域を撮る。戻り: (画像, (画面左, 画面上))。"""
     import ctypes
     from ctypes import wintypes
     hwnd = ctypes.windll.user32.GetForegroundWindow()
@@ -124,11 +124,12 @@ def grab(frac):
     ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(r))
     W, H = r.right - r.left, r.bottom - r.top
     x0, y0, x1, y1 = frac
-    region = {"left": r.left + int(W * x0), "top": r.top + int(H * y0),
+    left, top = r.left + int(W * x0), r.top + int(H * y0)
+    region = {"left": left, "top": top,
               "width": max(1, int(W * (x1 - x0))), "height": max(1, int(H * (y1 - y0)))}
     with mss.mss() as sct:
         raw = sct.grab(region)
-    return Image.frombytes("RGB", raw.size, raw.bgra, "raw", "BGRX")
+    return Image.frombytes("RGB", raw.size, raw.bgra, "raw", "BGRX"), (left, top)
 
 
 def preprocess(img):
@@ -142,26 +143,33 @@ def preprocess(img):
     return v.convert("RGB")
 
 
-def _lines(r):
-    if isinstance(r, dict):
-        ls = r.get("lines") or []
-        return "\n".join(ln.get("text", "") for ln in ls) or r.get("text", "")
-    return getattr(r, "text", "")
-
-
-def ocr(img):
+def ocr_lines(img):
+    """各行の (テキスト, 中心x, 中心y) を返す。座標は撮影画像(=領域)のピクセル。"""
     proc = preprocess(img)
+    fx = proc.width / max(1, img.width)      # 拡大率（座標を元画像へ戻す用）
     if CALIBRATE:
         try: proc.save(os.path.join(HERE, "tbh-ocr-proc.png"))
         except Exception: pass
-    best = ""
+    best = []
     for lang in OCR_LANGS:
         try:
-            txt = _lines(winocr.recognize_pil_sync(proc, lang))
+            r = winocr.recognize_pil_sync(proc, lang)
+            lines = []
+            for ln in (r.get("lines") if isinstance(r, dict) else []) or []:
+                ws = ln.get("words") or []
+                if not ws:
+                    continue
+                xs = [w["bounding_rect"]["x"] for w in ws]
+                rs = [w["bounding_rect"]["x"] + w["bounding_rect"]["width"] for w in ws]
+                ys = [w["bounding_rect"]["y"] for w in ws]
+                bs = [w["bounding_rect"]["y"] + w["bounding_rect"]["height"] for w in ws]
+                cx = (min(xs) + max(rs)) / 2 / fx
+                cy = (min(ys) + max(bs)) / 2 / fx
+                lines.append((ln.get("text", ""), cx, cy))
+            if len(lines) > len(best):
+                best = lines
         except Exception:
-            txt = ""
-        if len(txt) > len(best):
-            best = txt
+            pass
     return best
 
 
@@ -186,26 +194,37 @@ def ocr_worker():
             xy = cursor_pos()
             PQ.put(("__close__", None, None))   # ① 古いポップを消す（前の結果を撮らない＝stale防止）
             time.sleep(0.12)
-            imgs = [grab(reg) for reg in NAME_REGIONS]   # ② ポップ無しで先に撮影
-            PQ.put(("__processing__", xy, None))         # ③ 撮影後に「読み取り中」
-            found, dbg = [], []
-            for i, img in enumerate(imgs):
-                if CALIBRATE:
-                    try: img.save(os.path.join(HERE, f"cap{i}.png"))
-                    except Exception: pass
-                t = ocr(img)
-                dbg.append(t)
-                r = matcher.match(t)
-                if r:
-                    found = r
-                    break
+            img, (ox, oy) = grab(NAME_REGIONS[0])   # ② ポップ無しで先に撮影（上部ウィンドウ全体）
+            PQ.put(("__processing__", xy, None))    # ③ 撮影後に「読み取り中」
+            if CALIBRATE:
+                try: img.save(os.path.join(HERE, "cap0.png"))
+                except Exception: pass
+            lines = ocr_lines(img)
+            texts = [t for t, _, _ in lines]
+            # 各行＋隣接行ペアで照合し、ヒットした候補に「名前行の画面座標」を付与
+            cands = []
+            for i, (t, cx, cy) in enumerate(lines):
+                sx, sy = ox + cx, oy + cy            # 画面座標
+                probes = [t]
+                if i + 1 < len(lines):
+                    probes.append(t + texts[i + 1])  # 名前＋次行(等級)
+                for probe in probes:
+                    r = matcher.match(probe)
+                    if r:
+                        d = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
+                        cands.append((r[0]["score"], -d, r))   # スコア→近い順
+            found = []
+            if cands:
+                top = max(c[0] for c in cands)
+                near = [c for c in cands if c[0] >= top - 0.06]   # 高スコア帯は同等→
+                found = max(near, key=lambda c: c[1])[2]          # カーソル最近を採用
             if CALIBRATE:
                 try:
                     with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
-                        f.write(" || ".join(dbg) or "(empty)")
+                        f.write("\n".join(texts) or "(empty)")
                 except Exception:
                     pass
-            PQ.put((found, xy, " || ".join(dbg)))
+            PQ.put((found, xy, "\n".join(texts)))
         except Exception:
             log_fatal("worker error:\n" + traceback.format_exc())
 

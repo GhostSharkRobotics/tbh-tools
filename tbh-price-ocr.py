@@ -21,8 +21,8 @@ from tkinter import font as tkfont
 # ---- 設定 ----------------------------------------------------------------
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応
-BOX_LEFT, BOX_RIGHT = -60, 460     # カーソル基準の撮影ボックス(px)。全画面は撮らない。
-BOX_UP,   BOX_DOWN  = -40, 300
+BOX_LEFT, BOX_RIGHT = -400, 520    # ★診断用に一時拡大（後で小さく戻す）
+BOX_UP,   BOX_DOWN  = -360, 320
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
 CALIBRATE     = True               # Trueで撮影画像を tbh-ocr-capture.png に保存（調整用・一時ON）

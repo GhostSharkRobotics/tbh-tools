@@ -132,8 +132,54 @@ function drawBarList(el,cd){
   cd.rows.forEach(r=>{h+=barRow(r[0],r[1],r[2]);});
   el.innerHTML=h;
 }
+// オーバーレベルEXP補正 jwf(基準Lv, 相手Lv)：ステージ討伐EXPもキューブEXPも共用（逆アセンブルで確定）
+function olMult(A,delta){
+  const d=Math.abs(delta), w=1+Math.log(A+1)/10, above=delta>0;
+  const b1=Math.trunc(w*(above?5:2)), b2=Math.trunc(w*(above?6:5)), fl=above?0.4:0.5;
+  if(d<=b1) return 1;
+  if(d<=b1+b2){const e=(d-b1)/b2; return Math.max(1-(1-fl)*e*e,0.01);}
+  return Math.max(Math.pow(0.01/fl,(d-b1-b2)/Math.max(A/3,3))*fl,0.01);
+}
+function drawOverlevelExp(el){
+  el.innerHTML='<div class="ct">レベル差でもらえるEXPがどれだけ減るか（マイナス＝格下／プラス＝格上）</div>'
+    +'<div style="display:flex;align-items:center;gap:10px;margin:2px 0 10px;font-size:13px;flex-wrap:wrap">'
+    +'<span style="color:var(--muted)">基準レベル（自分Lv／キューブLv）</span>'
+    +'<input id="olLv" type="range" min="2" max="100" value="60" style="flex:1;min-width:160px;accent-color:var(--accent)">'
+    +'<span id="olLvV" style="color:var(--accent);font-weight:700;width:34px;text-align:right">60</span></div>'
+    +'<div id="olSvg"></div>'
+    +'<div id="olNote" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.8"></div>';
+  const lv=el.querySelector('#olLv'), lvV=el.querySelector('#olLvV'), svgBox=el.querySelector('#olSvg'), note=el.querySelector('#olNote');
+  const X0=44,X1=612,Y0=24,Y1=210,DMIN=-45,DMAX=45;
+  const xs=d=>X0+(d-DMIN)/(DMAX-DMIN)*(X1-X0), ys=m=>Y1-m*(Y1-Y0);
+  function build(A){
+    let g='';
+    // 横グリッド（%）
+    [0,.25,.5,.75,1].forEach(m=>{const y=ys(m);g+=`<line x1="${X0}" y1="${y}" x2="${X1}" y2="${y}" stroke="#3a342a" stroke-width="1"/>`+
+      `<text x="${X0-6}" y="${y+4}" fill="#9a8f7a" font-size="11" text-anchor="end">${m*100}%</text>`;});
+    // 満額100%帯（格下=×2 / 格上=×5 で左右非対称）
+    const w=1+Math.log(A+1)/10, bNeg=Math.trunc(w*2), bPos=Math.trunc(w*5);
+    g+=`<rect x="${xs(-bNeg)}" y="${Y0}" width="${xs(bPos)-xs(-bNeg)}" height="${Y1-Y0}" fill="#d8a657" opacity="0.10"/>`;
+    // 縦グリッド（レベル差）
+    [-40,-30,-20,-10,0,10,20,30,40].forEach(d=>{const x=xs(d);g+=`<line x1="${x}" y1="${Y0}" x2="${x}" y2="${Y1}" stroke="${d===0?'#6a5f4a':'#2a2620'}" stroke-width="${d===0?1.5:1}"/>`+
+      `<text x="${x}" y="${Y1+16}" fill="#9a8f7a" font-size="11" text-anchor="middle">${d>0?'+'+d:d}</text>`;});
+    // 曲線
+    let pts='';for(let d=DMIN;d<=DMAX;d++){pts+=(d===DMIN?'M':'L')+xs(d).toFixed(1)+' '+ys(olMult(A,d)).toFixed(1)+' ';}
+    g+=`<path d="${pts}" fill="none" stroke="#d8a657" stroke-width="2.6"/>`;
+    // 代表点
+    [-30,-20,-10,10,20,30].forEach(d=>{const m=olMult(A,d),x=xs(d),y=ys(m);g+=`<circle cx="${x}" cy="${y}" r="3" fill="#ece3d2"/>`;});
+    g+=`<text x="${(X0+X1)/2}" y="${Y1+34}" fill="#9a8f7a" font-size="11" text-anchor="middle">相手とのレベル差</text>`;
+    svgBox.innerHTML=`<svg viewBox="0 0 ${X1+18} ${Y1+44}" style="width:100%;height:auto">${g}</svg>`;
+    const p=d=>Math.round(olMult(A,d)*100)+'%';
+    note.innerHTML=`満額(100%)は <b style="color:var(--accent)">−${bNeg}〜+${bPos}</b> の範囲（格上ほど狭く感じる＝同じ差でも上に外すと損）。`
+      +`<br>格上(＋)： +5→${p(5)} ／ +10→${p(10)} ／ +20→${p(20)} ／ +30→${p(30)} ／ +40→${p(40)}`
+      +`<br>格下(−)： −5→${p(-5)} ／ −10→${p(-10)} ／ −20→${p(-20)} ／ −30→${p(-30)} ／ −40→${p(-40)}`;
+  }
+  build(+lv.value);
+  lv.addEventListener('input',()=>{lvV.textContent=lv.value;build(+lv.value);});
+}
 function drawCharts(){
   document.querySelectorAll('.chart').forEach(el=>{
+    if(el.dataset.chart==='overlevelExp'){drawOverlevelExp(el);return;}
     const cd=CHART_DATA[el.dataset.chart];
     if(cd) drawBarList(el,cd);
   });

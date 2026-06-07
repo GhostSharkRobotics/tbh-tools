@@ -21,8 +21,9 @@ from tkinter import font as tkfont
 # ---- 設定 ----------------------------------------------------------------
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応
-BOX_LEFT, BOX_RIGHT = -400, 520    # ★診断用に一時拡大（後で小さく戻す）
-BOX_UP,   BOX_DOWN  = -360, 320
+# アイテム名はゲームウィンドウ左上の詳細パネルに固定表示される。ウィンドウに対する割合で撮る。
+# (左, 上, 右, 下) の比率。今は全体(1.0)＝採寸用。後で名前領域だけに絞る。
+NAME_FRAC = (0.0, 0.0, 1.0, 1.0)
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
 CALIBRATE     = True               # Trueで撮影画像を tbh-ocr-capture.png に保存（調整用・一時ON）
@@ -92,20 +93,32 @@ def foreground_exe():
 
 
 # ---- 撮影 & OCR ----------------------------------------------------------
-def grab_box():
+def cursor_pos():
     import ctypes
     from ctypes import wintypes
     pt = wintypes.POINT()
     ctypes.windll.user32.GetCursorPos(ctypes.byref(pt))
-    cx, cy = pt.x, pt.y
-    region = {"left": cx + BOX_LEFT, "top": cy + BOX_UP,
-              "width": BOX_RIGHT - BOX_LEFT, "height": BOX_DOWN - BOX_UP}
+    return pt.x, pt.y
+
+
+def grab():
+    """ゲームウィンドウ基準で NAME_FRAC の領域を撮る。戻り値: (画像, カーソル座標)。"""
+    import ctypes
+    from ctypes import wintypes
+    hwnd = ctypes.windll.user32.GetForegroundWindow()
+    r = wintypes.RECT()
+    ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(r))
+    W, H = r.right - r.left, r.bottom - r.top
+    x0, y0, x1, y1 = NAME_FRAC
+    region = {"left": r.left + int(W * x0), "top": r.top + int(H * y0),
+              "width": max(1, int(W * (x1 - x0))), "height": max(1, int(H * (y1 - y0)))}
     with mss.mss() as sct:
         raw = sct.grab(region)
     img = Image.frombytes("RGB", raw.size, raw.bgra, "raw", "BGRX")
     if CALIBRATE:
-        img.save(os.path.join(HERE, "tbh-ocr-capture.png"))
-    return img, (cx, cy)
+        try: img.save(os.path.join(HERE, "tbh-ocr-capture.png"))
+        except Exception: pass
+    return img, cursor_pos()
 
 
 def preprocess(img):
@@ -141,7 +154,7 @@ def on_trigger():
             return                      # 他アプリでは何もしない＝「戻る」は普通に効く
         PQ.put(("__close__", None, None))   # 撮影前に古いポップを消す（自分のポップを撮らない）
         time.sleep(0.15)
-        img, xy = grab_box()
+        img, xy = grab()
         text = ocr(img)
         if CALIBRATE:
             try:

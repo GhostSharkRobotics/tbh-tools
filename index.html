@@ -7,59 +7,78 @@
 <style>
   :root{--bg:#14110d;--surface:#1f1b15;--accent:#d8a657;--text:#ece3d2;--muted:#9a8f7a;--border:#3a342a;}
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.6;padding:24px;max-width:720px;margin:0 auto;}
+  body{background:var(--bg);color:var(--text);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.55;padding:24px;max-width:1040px;margin:0 auto;}
   h1{font-size:24px;color:var(--accent);margin-bottom:4px;}
-  .sub{font-size:13px;color:var(--muted);margin-bottom:22px;}
-  a.card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:12px;text-decoration:none;color:var(--text);}
-  a.card:hover{border-color:var(--accent);}
-  a.card .t{font-size:18px;font-weight:600;color:var(--accent);}
-  a.card .d{font-size:13px;color:var(--muted);margin-top:3px;}
-  .note{font-size:12px;color:var(--muted);margin-top:20px;border-top:1px solid var(--border);padding-top:12px;}
+  .sub{font-size:13px;color:var(--muted);margin-bottom:26px;}
+  .cat{font-size:13px;font-weight:600;color:var(--accent);letter-spacing:.04em;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+  .cat:first-of-type{margin-top:8px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
+  a.card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-decoration:none;color:var(--text);transition:border-color .12s,transform .12s;}
+  a.card:hover{border-color:var(--accent);transform:translateY(-2px);}
+  a.card .t{font-size:16px;font-weight:600;color:var(--accent);}
+  a.card .d{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5;}
+  .note{font-size:12px;color:var(--muted);margin-top:28px;border-top:1px solid var(--border);padding-top:12px;}
 </style>
 </head>
 <body>
 <h1>TBH ツール</h1>
+<div class="sub">Task Bar Hero 攻略ツール集</div>
 
-<a class="card" href="tbh-best-build.html">
-  <div class="t">最強ビルドメーカー / Best Build</div>
-  <div class="d">各部位の装備・宝石・彫刻・刻印をドロップダウンで選択してDPSを自動計算。「最強」ボタンで全クラス×全装備を総当りし、一番DPSが高い構成を自動セット。</div>
-</a>
-<a class="card" href="tbh-ai-chat.html">
-  <div class="t">AIチャット / Ask Anything</div>
-  <div class="d">アイテム・価格・ステージ・敵・クラス・スキルを横断でAIに相談。履歴保存・続きから会話。※ローカルAIサーバ起動が必要。</div>
-</a>
-<a class="card" href="tbh-deals.html">
-  <div class="t">💰 お買い得ファインダー / Deals</div>
-  <div class="d">市場の装備を「強さ÷今の最安値」で並べ、普段より安い相場割れ出品を発見。部位・レア・重視ステータスで絞り込み、Steamマーケットへ直リンク。</div>
-</a>
-<a class="card" href="tbh-gem-search.html">
-  <div class="t">アイテム検索 / Item Search</div>
-  <div class="d">装備・装飾(宝石)・彫刻・碑文(刻印)・特殊ステータスを効果や名前で検索。価格付き・日英対応。</div>
-</a>
-<a class="card" href="tbh-crafting.html">
-  <div class="t">🧱 クラフト素材 / Crafting</div>
-  <div class="d">装備クラフト（キューブ）のレシピと必要素材を tier・部位で検索。素材ごとに Steam マーケットへ直リンク・価格付き。</div>
-</a>
-<a class="card" href="tbh-exp.html">
-  <div class="t">⚡ 経験値効率 / EXP Farm</div>
-  <div class="d">ヒーローレベルからオーバーレベル補正済みの経験値でステージを順位付け。クリアタイムを入れると毎時EXP（M/h）で並べ替え。</div>
-</a>
-<a class="card" href="tbh-stage-drops.html">
-  <div class="t">📦 ステージ別ドロップ / Stage Drops</div>
-  <div class="d">どのステージのどの箱から何が出るかを確率つきで一覧。アイテム名で「どこで掘れる？」も逆引き検索。職を選ぶと職専用枠を実確率で再計算。</div>
-</a>
-<a class="card" href="tbh-build-simulator.html">
-  <div class="t">🛠 ビルドシミュレーター</div>
-  <div class="d">装備・宝石・バフからDPSを計算。</div>
-</a>
-<a class="card" href="tbh-dps.html">
-  <div class="t">📊 DPS計算機</div>
-  <div class="d">シンプルなDPS計算。</div>
-</a>
-<a class="card" href="tbh-info.html">
-  <div class="t">📖 仕様メモ / Specs</div>
-  <div class="d">合成・クラフトで出る種類と確率（グラフ）、DLC条件、箱ドロップ率。</div>
-</a>
+<div class="cat">⚔️ ビルド・DPS</div>
+<div class="grid">
+  <a class="card" href="tbh-best-build.html">
+    <div class="t">最強ビルドメーカー / Best Build</div>
+    <div class="d">各部位の装備・宝石・彫刻・刻印をドロップダウンで選択してDPSを自動計算。「最強」ボタンで全クラス×全装備を総当りし、一番DPSが高い構成を自動セット。</div>
+  </a>
+  <a class="card" href="tbh-build-simulator.html">
+    <div class="t">🛠 ビルドシミュレーター</div>
+    <div class="d">装備・宝石・バフからDPSを計算。</div>
+  </a>
+  <a class="card" href="tbh-dps.html">
+    <div class="t">📊 DPS計算機</div>
+    <div class="d">シンプルなDPS計算。</div>
+  </a>
+</div>
+
+<div class="cat">💰 市場・お得</div>
+<div class="grid">
+  <a class="card" href="tbh-deals.html">
+    <div class="t">💰 お買い得ファインダー / Deals</div>
+    <div class="d">市場の装備を「強さ÷今の最安値」で並べ、普段より安い相場割れ出品を発見。部位・レア・重視ステータスで絞り込み、Steamマーケットへ直リンク。</div>
+  </a>
+  <a class="card" href="tbh-crafting.html">
+    <div class="t">🧱 クラフト素材 / Crafting</div>
+    <div class="d">装備クラフト（キューブ）のレシピと必要素材を tier・部位で検索。素材ごとに Steam マーケットへ直リンク・価格付き。</div>
+  </a>
+</div>
+
+<div class="cat">🔍 データ検索</div>
+<div class="grid">
+  <a class="card" href="tbh-gem-search.html">
+    <div class="t">アイテム検索 / Item Search</div>
+    <div class="d">装備・装飾(宝石)・彫刻・碑文(刻印)・特殊ステータスを効果や名前で検索。価格付き・日英対応。</div>
+  </a>
+  <a class="card" href="tbh-stage-drops.html">
+    <div class="t">📦 ステージ別ドロップ / Stage Drops</div>
+    <div class="d">どのステージのどの箱から何が出るかを確率つきで一覧。アイテム名で「どこで掘れる？」も逆引き検索。職を選ぶと職専用枠を実確率で再計算。</div>
+  </a>
+  <a class="card" href="tbh-exp.html">
+    <div class="t">⚡ 経験値効率 / EXP Farm</div>
+    <div class="d">ヒーローレベルからオーバーレベル補正済みの経験値でステージを順位付け。クリアタイムを入れると毎時EXP（M/h）で並べ替え。</div>
+  </a>
+</div>
+
+<div class="cat">📖 その他</div>
+<div class="grid">
+  <a class="card" href="tbh-ai-chat.html">
+    <div class="t">AIチャット / Ask Anything</div>
+    <div class="d">アイテム・価格・ステージ・敵・クラス・スキルを横断でAIに相談。履歴保存・続きから会話。※ローカルAIサーバ起動が必要。</div>
+  </a>
+  <a class="card" href="tbh-info.html">
+    <div class="t">📖 仕様メモ / Specs</div>
+    <div class="d">合成・クラフトで出る種類と確率（グラフ）、DLC条件、箱ドロップ率。</div>
+  </a>
+</div>
 
 <script src="analytics.js"></script>
 <script src="tbh-analytics.js"></script>

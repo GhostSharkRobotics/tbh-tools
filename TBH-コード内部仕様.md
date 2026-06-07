@@ -179,6 +179,22 @@ a=経過（時間係数）, C/D/E=OfflineRewardInfoData の係数(bfoc/bfod/bfoe
 ### 被ダメ/抵抗の上限
 抵抗・各種軽減は **0.75(75%) ハードコード上限**（`Hero.goj` の `minss xmm,0.75`）。Max系ステで天井を押し上げる。別に2000.0上限のステあり。→ [tbh-mitigation-and-dmgreduction-bug] と整合（軽減のみ現行バグで100%可の件は別途）。
 
+### オーバーレベルEXP補正 `jwf(int A, int B) → float`【逆アセンブルで確定・ステージとキューブで共用】
+**ステージ討伐EXP(`ich(基礎EXP, EMonsterType, ステージLv)`→`jwf(ヒーローLv, ステージLv)`)と、キューブEXP(`iqp(item)`→`jwf(キューブLv, 装備Lv)`)が同一関数 `jwf`(VA 0x18093FB70)を呼ぶ**。A=基準側(ヒーロー/キューブ)、B=対象側(ステージ/装備)。実効EXP = 基礎EXP × jwf(A,B)。
+```
+d = |A − B|
+w = 1 + ln(A+1)/10                         # ln底は定数0.693115で確定
+above = (B > A)                            # 対象が基準より上か
+band1 = floor(w × (above?5:2))
+band2 = floor(w × (above?6:5))
+fl    =          (above?0.4:0.5)           # 下限フロア
+ d ≤ band1            → 1.0                                          # 満額帯
+ d ≤ band1+band2      → 1 − (1−fl)·((d−band1)/band2)²               # 二次減衰
+ それ以外            → fl · Mathf.Pow(0.01/fl, (d−band1−band2)/max(A/3, 3))  # 幾何減衰
+return max(倍率, 0.01)                      # 下限1%
+```
+最大化は B≈A（band1内＝満額）。例: A=51,B=50→×1.0／A=51,B=80→約×0.016。GOLDには無くEXPのみ。kcs()で別途 +CubeExpPercent% を加算。tbh-exp.html / [tbh-cube-exp-formula] と一致（旧tbh-exp.htmlは分母下限を1と誤記→3に修正済）。
+
 ---
 
 ## 11. まだ未抽出の領域

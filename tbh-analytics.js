@@ -2,7 +2,7 @@
 // 各ページ読み込み時に Cloudflare Worker を1回叩いて訪問を記録する。
 // ↓デプロイ後に取得した Worker の URL に書き換えるのはここ1か所だけ。
 //   例: 'https://tbh-stats.yourname.workers.dev'
-var TBH_STATS_WORKER = 'https://__REPLACE_WITH_YOUR_WORKER_URL__';
+var TBH_STATS_WORKER = 'https://tbh-stats.monoqulo.workers.dev';
 
 (function () {
   try {

@@ -25,7 +25,7 @@ BOX_LEFT, BOX_RIGHT = -60, 460     # カーソル基準の撮影ボックス(px)
 BOX_UP,   BOX_DOWN  = -40, 300
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
-CALIBRATE     = False              # Trueで撮影画像を tbh-ocr-capture.png に保存
+CALIBRATE     = True               # Trueで撮影画像を tbh-ocr-capture.png に保存（調整用・一時ON）
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 C_NAME, C_JA, C_PRICE, C_META, C_ERR = "#ffffff", "#8ab4f8", "#34d399", "#8b909a", "#f87171"
@@ -126,15 +126,22 @@ def on_trigger():
         if foreground_exe() != GAME_EXE:
             return                      # 他アプリでは何もしない＝「戻る」は普通に効く
         img, xy = grab_box()
-        results = matcher.match(ocr(img))
-        PQ.put((results, xy))
+        text = ocr(img)
+        if CALIBRATE:
+            try:
+                with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
+                    f.write(text or "(empty)")
+            except Exception:
+                pass
+        results = matcher.match(text)
+        PQ.put((results, xy, text))
     except Exception:
         log_fatal("trigger error:\n" + traceback.format_exc())
 
 
 # ---- ポップ表示（メインスレッドで） --------------------------------------
 _open = []
-def show_popup(results, xy, root):
+def show_popup(results, xy, text, root):
     for w in _open[:]:
         try: w.destroy()
         except Exception: pass
@@ -162,7 +169,8 @@ def show_popup(results, xy, root):
 
     if not results:
         row("該当なし", C_ERR, f_name, (10, 2))
-        row("アイテムにカーソルを合わせて 戻るボタン", C_META, f_meta, (0, 10))
+        snip = (text or "").strip().replace("\n", " ")[:36] or "(読取なし)"
+        row(f"読取: {snip}", C_META, f_meta, (0, 10))
     else:
         e = results[0]
         name = e["base_en"] + (f"  [{e['variant']}]" if e["variant"] else "")
@@ -187,8 +195,8 @@ def show_popup(results, xy, root):
 def poll(root):
     try:
         while True:
-            results, xy = PQ.get_nowait()
-            show_popup(results, xy, root)
+            results, xy, text = PQ.get_nowait()
+            show_popup(results, xy, text, root)
     except queue.Empty:
         pass
     root.after(80, lambda: poll(root))

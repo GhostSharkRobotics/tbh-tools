@@ -3,13 +3,21 @@ import json, re, unicodedata, os, difflib
 
 _SMALL = str.maketrans("ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ",
                        "あいうえおつやゆよわアイウエオツヤユヨワ")
+# 漢字↔カナの定番OCR誤読を寄せる（力→カ, 口→ロ 等）
+_LOOK = str.maketrans({"力": "カ", "口": "ロ", "工": "エ", "二": "ニ", "八": "ハ",
+                       "夕": "タ", "卜": "ト", "0": "o", "1": "l", "|": "l"})
+
+def _h2k(s):   # ひらがな→カタカナ統一
+    return "".join(chr(ord(c) + 0x60) if "ぁ" <= c <= "ゖ" else c for c in s)
 
 def norm(s: str) -> str:
     if not s: return ""
-    s = unicodedata.normalize("NFKC", s)
-    s = s.lower()
-    s = s.translate(_SMALL)          # 小書きカナ→大書き（OCRのョ/ヨ等の誤読を吸収）
-    s = re.sub(r"[\s　()\[\]（）【】・,.\-_/:：]+", "", s)
+    s = unicodedata.normalize("NFKC", s).lower()
+    s = _h2k(s)                       # ひら→カタ統一
+    s = s.translate(_SMALL)           # 小書き→大書き
+    s = unicodedata.normalize("NFD", s).replace("゙", "").replace("゚", "")  # 濁点/半濁点除去
+    s = s.translate(_LOOK)            # 漢字/類似字→カナ
+    s = re.sub(r"[\s　ー\-ｰ~一()\[\]（）【】・,._/:：]+", "", s)   # 記号・長音・空白除去
     return s
 
 class Matcher:

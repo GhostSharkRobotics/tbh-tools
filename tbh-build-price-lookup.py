@@ -9,13 +9,20 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 
 _SMALL = str.maketrans("ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ",
                        "あいうえおつやゆよわアイウエオツヤユヨワ")
+_LOOK = str.maketrans({"力": "カ", "口": "ロ", "工": "エ", "二": "ニ", "八": "ハ",
+                       "夕": "タ", "卜": "ト", "0": "o", "1": "l", "|": "l"})
+
+def _h2k(s):
+    return "".join(chr(ord(c) + 0x60) if "ぁ" <= c <= "ゖ" else c for c in s)
 
 def norm(s: str) -> str:
     if not s: return ""
-    s = unicodedata.normalize("NFKC", s)
-    s = s.lower()
-    s = s.translate(_SMALL)          # 小書きカナ→大書き（OCRのョ/ヨ等の誤読を吸収）
-    s = re.sub(r"[\s　()\[\]（）【】・,.\-_/:：]+", "", s)
+    s = unicodedata.normalize("NFKC", s).lower()
+    s = _h2k(s)
+    s = s.translate(_SMALL)
+    s = unicodedata.normalize("NFD", s).replace("゙", "").replace("゚", "")
+    s = s.translate(_LOOK)
+    s = re.sub(r"[\s　ー\-ｰ~一()\[\]（）【】・,._/:：]+", "", s)
     return s
 
 def split_variant(en: str):

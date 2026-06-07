@@ -227,5 +227,6 @@ fetch('TBH-解析メモ.md?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).
     t.innerHTML=toc.map(x=>'<a href="#'+x.id+'">'+x.txt.replace(/[★]/g,'').slice(0,18)+'</a>').join('');}
 }).catch(e=>{document.getElementById('md').innerHTML='<div class="loading">読み込み失敗: '+e+'</div>';});
 </script>
+<script src="tbh-analytics.js"></script>
 </body>
 </html>

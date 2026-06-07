@@ -1,71 +1,76 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-tbh-price-ocr.py  —  ゲーム内アイテムの相場を「ホットキー1発」で表示する常駐ヘルパー
-（ゲームには一切触れない＝メモリ読み/注入なし＝アンチチート監視外。Claude/API/課金も不使用）
+tbh-price-ocr.py — ゲーム内アイテムの相場をホットキーで表示する常駐ヘルパー
 
-しくみ:
-  ホットキー → カーソル周辺の小ボックスだけスクショ → Windows内蔵OCR
-  → 既知名へ曖昧スナップ(tbh_price_match) → カーソル横に価格をポップ表示
+★チート検出されない設計（毎回維持すること）:
+  - ゲームプロセスに一切触れない。メモリ読み書き/DLL注入/速度・時計操作を行わない。
+  - やるのは「自分の画面の小領域スクショ」+「OCR」+「ホットキー待ち」だけ＝別プロセスで完結。
+  - TBHのACTk検出器(ObscuredCheating/SpeedHack/TimeCheat)はどれもゲーム内部の事象しか見ない。
+    本ツールはその検出面に一切触れないため、原理的に検出対象外。
+  - 軽量・ホットキー押下時のみ稼働＝ゲームをフレーム飢餓させずスピードハック誤検出も誘発しない。
 
-★ Windows専用（ゲームが動くPCで実行）。全画面は撮らずカーソル周辺の小領域のみ。
-
-セットアップ（ゲームPC側 / 1回だけ）:
-  1) Python 3.10+ を入れる
-  2) pip install mss pillow winocr keyboard
-  3) 日本語表示で遊ぶなら Windows設定 > 時刻と言語 > 言語 で「日本語」のOCRが入っていること
-     （日本語版Windowsなら通常入っている）
-  4) tbh-price-lookup.json をこのスクリプトと同じ場所に置く
-     （Mac側で `python3 tools/tbh-build-price-lookup.py` を実行すると最新版が生成される）
-
-使い方:
-  python tbh-price-ocr.py
-  → ゲームでアイテムにカーソルを合わせ、Ctrl+Shift+P を押す → 価格がポップ
-  → 撮影範囲がズレてたら CALIBRATE（下の設定）で確認・調整
-  終了: Ctrl+Shift+Q
+見た目: コンソール無し(pythonw)・タスクトレイ常駐・カード型ポップ。
+操作  : アイテムにカーソル→ Ctrl+Shift+P で価格ポップ / Ctrl+Shift+Q かトレイから終了
 """
-import os, sys, json, threading, tkinter as tk
+import os, sys, json, threading, queue, traceback
+import tkinter as tk
+from tkinter import font as tkfont
 
-# ---- 設定 -------------------------------------------------------------
-HOTKEY        = "ctrl+shift+p"     # 価格を出すキー
-QUIT_KEY      = "ctrl+shift+q"     # 終了キー
-# カーソルを基準にした撮影ボックス(px)。全画面は撮らない。ツールチップが収まるよう少し広め。
-BOX_LEFT      = -60                # カーソルから左へ
-BOX_RIGHT     = 460               # 右へ
-BOX_UP        = -40                # 上へ
-BOX_DOWN      = 300               # 下へ
-OCR_LANGS     = ["ja", "en"]      # 試すOCR言語（上から順に良い方を採用）
-POPUP_SECONDS = 6                  # ポップの表示秒数
-CALIBRATE     = False              # Trueにすると撮影画像を tbh-ocr-capture.png に保存（範囲確認用）
-# ---------------------------------------------------------------------
+# ---- 設定 ----------------------------------------------------------------
+HOTKEY        = "ctrl+shift+p"
+QUIT_KEY      = "ctrl+shift+q"
+BOX_LEFT, BOX_RIGHT = -60, 460     # カーソル基準の撮影ボックス(px)。全画面は撮らない。
+BOX_UP,   BOX_DOWN  = -40, 300
+OCR_LANGS     = ["ja", "en"]
+POPUP_SECONDS = 6
+CALIBRATE     = False              # Trueで撮影画像を tbh-ocr-capture.png に保存
+# 配色
+C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
+C_NAME, C_JA, C_PRICE, C_META, C_ERR = "#ffffff", "#8ab4f8", "#34d399", "#8b909a", "#f87171"
+# -------------------------------------------------------------------------
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from tbh_price_match import Matcher  # noqa
+LOG = os.path.join(HERE, "error.log")
 
+
+def log_fatal(msg):
+    try:
+        with open(LOG, "a", encoding="utf-8") as f:
+            f.write(msg + "\n")
+    except Exception:
+        pass
+
+
+# ---- 依存 ----------------------------------------------------------------
 try:
     import mss
-    from PIL import Image
+    from PIL import Image, ImageDraw
     import winocr
     import keyboard
-except ImportError as e:
-    print("依存が不足:", e)
-    print("→ pip install mss pillow winocr keyboard を実行してください")
+    import pystray
+    from tbh_price_match import Matcher
+except Exception as e:
+    log_fatal("import error:\n" + traceback.format_exc())
+    try:
+        import tkinter.messagebox as mb
+        r = tk.Tk(); r.withdraw()
+        mb.showerror("TBH相場OCR", f"必要なライブラリが不足:\n{e}\n\npip install mss pillow winocr keyboard pystray")
+    except Exception:
+        pass
     sys.exit(1)
 
-LOOKUP = os.path.join(HERE, "tbh-price-lookup.json")
-if not os.path.exists(LOOKUP):
-    print("tbh-price-lookup.json が見つかりません。Mac側で tools/tbh-build-price-lookup.py を実行して生成し、ここに置いてください。")
-    sys.exit(1)
-matcher = Matcher(LOOKUP)
+matcher = Matcher(os.path.join(HERE, "tbh-price-lookup.json"))
+PQ = queue.Queue()          # ポップ要求キュー（別スレッド→メインスレッド）
 
 
 def cents(c):
-    return "-" if c is None else f"${c/100:.2f}"
+    return "—" if c is None else f"${c/100:.2f}"
 
 
+# ---- 撮影 & OCR ----------------------------------------------------------
 def grab_box():
-    """カーソル周辺の小領域をPIL画像で返す。"""
     import ctypes
     from ctypes import wintypes
     pt = wintypes.POINT()
@@ -78,12 +83,10 @@ def grab_box():
     img = Image.frombytes("RGB", raw.size, raw.bgra, "raw", "BGRX")
     if CALIBRATE:
         img.save(os.path.join(HERE, "tbh-ocr-capture.png"))
-        print("撮影範囲を tbh-ocr-capture.png に保存しました（範囲確認用）")
     return img, (cx, cy)
 
 
 def ocr(img):
-    """複数言語でOCRし、最も文字数の多い結果を返す。"""
     best = ""
     for lang in OCR_LANGS:
         try:
@@ -96,65 +99,119 @@ def ocr(img):
     return best
 
 
-# ---- ポップ表示（tkinter, 最前面・枠なし） ----------------------------
-_root = None
-def _ensure_root():
-    global _root
-    if _root is None:
-        _root = tk.Tk(); _root.withdraw()
-    return _root
+def on_hotkey():
+    """別スレッド: 撮影→OCR→照合し、結果をキューに積む。"""
+    try:
+        img, xy = grab_box()
+        results = matcher.match(ocr(img))
+        PQ.put((results, xy))
+    except Exception:
+        log_fatal("hotkey error:\n" + traceback.format_exc())
 
-def show_popup(lines, xy):
-    root = _ensure_root()
+
+# ---- ポップ表示（メインスレッドで） --------------------------------------
+_open = []
+def show_popup(results, xy, root):
+    for w in _open[:]:
+        try: w.destroy()
+        except Exception: pass
+        _open.remove(w)
+
     win = tk.Toplevel(root)
     win.overrideredirect(True)
     win.attributes("-topmost", True)
-    try: win.attributes("-alpha", 0.95)
+    try: win.attributes("-alpha", 0.97)
     except Exception: pass
-    frame = tk.Frame(win, bg="#1b1b1f", bd=1, relief="solid")
-    frame.pack()
-    for i, (txt, color, big) in enumerate(lines):
-        tk.Label(frame, text=txt, bg="#1b1b1f", fg=color,
-                 font=("Yu Gothic UI", 13 if big else 10, "bold" if big else "normal"),
-                 anchor="w", justify="left", padx=10, pady=(6 if i == 0 else 1)).pack(fill="x")
-    x = min(xy[0] + 24, win.winfo_screenwidth() - 360)
-    y = min(xy[1] + 24, win.winfo_screenheight() - 160)
-    win.geometry(f"+{x}+{y}")
-    win.after(int(POPUP_SECONDS * 1000), win.destroy)
 
+    border = tk.Frame(win, bg=C_ACCENT)
+    border.pack()
+    card = tk.Frame(border, bg=C_CARD)
+    card.pack(padx=(3, 1), pady=1)   # 左に細いアクセント帯
 
-def handle():
-    try:
-        img, xy = grab_box()
-        text = ocr(img)
-        results = matcher.match(text)
-        if not results:
-            snippet = (text or "").strip().replace("\n", " ")[:30]
-            show_popup([("該当なし", "#ff6b6b", True),
-                        (f"読取: {snippet or '(空)'}", "#aaaaaa", False)], xy)
-            return
+    f_name  = tkfont.Font(family="Yu Gothic UI", size=13, weight="bold")
+    f_price = tkfont.Font(family="Yu Gothic UI", size=15, weight="bold")
+    f_sub   = tkfont.Font(family="Yu Gothic UI", size=10)
+    f_meta  = tkfont.Font(family="Yu Gothic UI", size=9)
+
+    def row(txt, color, fnt, pady=(1, 1)):
+        tk.Label(card, text=txt, bg=C_CARD, fg=color, font=fnt,
+                 anchor="w", justify="left").pack(fill="x", padx=12, pady=pady)
+
+    if not results:
+        row("該当なし", C_ERR, f_name, (10, 2))
+        row("アイテムにカーソルを合わせて Ctrl+Shift+P", C_META, f_meta, (0, 10))
+    else:
         e = results[0]
-        name = e["base_en"] + (f" [{e['variant']}]" if e["variant"] else "")
-        lines = [(name, "#ffffff", True)]
-        if e.get("ja"): lines.append((e["ja"], "#9ecbff", False))
-        lines.append((f"最安 {cents(e['sell'])}   中央値 {cents(e['median'])}", "#7CFC7C", True))
-        lines.append((f"{e.get('type','')}   出品{e.get('listings','-')} / 売買{e.get('volume','-')}",
-                      "#aaaaaa", False))
-        lines.append((f"相場: {matcher.marketUpdated or '-'}", "#777777", False))
-        show_popup(lines, xy)
-    except Exception as ex:
-        print("エラー:", ex)
+        name = e["base_en"] + (f"  [{e['variant']}]" if e["variant"] else "")
+        row(name, C_NAME, f_name, (10, 0))
+        if e.get("ja"):
+            row(e["ja"], C_JA, f_sub, (0, 2))
+        row(f"最安 {cents(e['sell'])}    中央値 {cents(e['median'])}", C_PRICE, f_price, (2, 2))
+        row(f"{e.get('type','')}   出品 {e.get('listings','—')} / 売買 {e.get('volume','—')}",
+            C_META, f_meta, (0, 0))
+        row(f"相場 {matcher.marketUpdated or '—'}", C_META, f_meta, (0, 10))
+
+    win.update_idletasks()
+    sw, sh = win.winfo_screenwidth(), win.winfo_screenheight()
+    x = min(xy[0] + 22, sw - win.winfo_width() - 8)
+    y = min(xy[1] + 22, sh - win.winfo_height() - 8)
+    win.geometry(f"+{max(8, x)}+{max(8, y)}")
+    win.bind("<Button-1>", lambda ev: win.destroy())
+    win.after(int(POPUP_SECONDS * 1000), lambda: (win.winfo_exists() and win.destroy()))
+    _open.append(win)
 
 
+def poll(root):
+    try:
+        while True:
+            results, xy = PQ.get_nowait()
+            show_popup(results, xy, root)
+    except queue.Empty:
+        pass
+    root.after(80, lambda: poll(root))
+
+
+# ---- タスクトレイ --------------------------------------------------------
+def tray_image():
+    img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([4, 4, 60, 60], radius=14, fill=(26, 29, 36, 255),
+                        outline=(45, 212, 191, 255), width=3)
+    d.ellipse([20, 20, 44, 44], outline=(52, 211, 153, 255), width=4)
+    d.line([32, 16, 32, 48], fill=(52, 211, 153, 255), width=3)
+    return img
+
+
+def run_tray(root):
+    def _quit(icon, item):
+        icon.stop()
+        root.after(0, root.destroy)
+    menu = pystray.Menu(
+        pystray.MenuItem("TBH 相場OCR  ( Ctrl+Shift+P )", None, enabled=False),
+        pystray.MenuItem("終了", _quit),
+    )
+    pystray.Icon("tbh_price_ocr", tray_image(), "TBH 相場OCR", menu).run()
+
+
+# ---- main ----------------------------------------------------------------
 def main():
-    print(f"TBH 相場OCR 起動。{HOTKEY} で価格表示 / {QUIT_KEY} で終了。")
-    print(f"相場データ: {matcher.marketUpdated}")
-    keyboard.add_hotkey(HOTKEY, lambda: threading.Thread(target=handle, daemon=True).start())
-    keyboard.add_hotkey(QUIT_KEY, lambda: (print("終了"), os._exit(0)))
-    # tkはメインスレッドで回す
-    root = _ensure_root()
+    root = tk.Tk()
+    root.withdraw()
+    keyboard.add_hotkey(HOTKEY, lambda: threading.Thread(target=on_hotkey, daemon=True).start())
+    keyboard.add_hotkey(QUIT_KEY, lambda: root.after(0, root.destroy))
+    threading.Thread(target=run_tray, args=(root,), daemon=True).start()
+    poll(root)
     root.mainloop()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        log_fatal("fatal:\n" + traceback.format_exc())
+        try:
+            import tkinter.messagebox as mb
+            r = tk.Tk(); r.withdraw()
+            mb.showerror("TBH相場OCR", "起動に失敗しました。error.log を確認してください。")
+        except Exception:
+            pass

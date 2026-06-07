@@ -1,4 +1,3 @@
 @echo off
 cd /d "%~dp0"
-python tbh-price-ocr.py
-pause
+start "" "C:\Users\monoq\AppData\Local\Programs\Python\Python310\pythonw.exe" tbh-price-ocr.py

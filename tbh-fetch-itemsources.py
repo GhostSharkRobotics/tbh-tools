@@ -50,6 +50,28 @@ def main():
     # chests from existing tbh-data boxes
     data_path = os.path.join(ROOT, "tbh-data.json")
     data = json.load(open(data_path, encoding="utf-8"))
+
+    # 装備entryにitemKeyを逆引き付与: 市場「A」variantはitemKey欠落するので
+    # (GEARTYPE, GRADE, Level, variant) で ItemInfoData に一意結合(衝突0で検証済み)
+    def _variant(k):
+        return "A" if k.endswith("1") else ("B" if k.endswith("2") else None)
+    join = {}
+    for ik, r in item_info.items():
+        if r.get("ITEMTYPE") != "GEAR":
+            continue
+        join[(r.get("GEARTYPE"), r.get("GRADE"), r.get("Level"), _variant(ik))] = ik
+    backfilled = 0
+    for e in data.get("equipment", []):
+        if e.get("itemKey"):
+            continue
+        key = (e.get("gear"), str(e.get("rarity", "")).upper(),
+               str(e.get("lvl")), e.get("variant"))
+        ik = join.get(key)
+        if ik:
+            e["itemKey"] = ik
+            backfilled += 1
+    print("equipment itemKey backfilled:", backfilled)
+
     chest_dk = {}
     for b in data.get("boxes", {}).get("items", []):
         dk = b.get("dropKey")
@@ -111,8 +133,78 @@ def main():
                   "ITEMGROUP+DLCVariantは職に応じ群内の1種が出る(オーブ枠=ソーサラー等)。"),
         "items": out,
     }
+
+    # ---- 価格非依存の合成/クラフト要約 acq (Web UI用・軽量) ----
+    # 合成: 投入=1つ下グレード×9。昇格%(grades) × 枠%(itemSources synthesis pct) = 1回あたり%
+    rarity_order = [g.upper() for g in data["rarityOrder"]]   # COMMON..COSMIC
+    grade_w = {g["GRADE"]: g for g in data["grades"]}
+
+    def promote_pct(in_grade):
+        g = grade_w.get(in_grade)
+        if not g:
+            return None
+        tot = (g["Lower2GradeWeight"] + g["Lower1GradeWeight"] + g["SameGradeWeight"]
+               + g["Higher1GradeWeight"] + g["Higher2GradeWeight"]) or 1
+        return round(100.0 * g["Higher1GradeWeight"] / tot, 2)   # +1グレード昇格の確率
+
+    def grade_below(grade):
+        try:
+            i = rarity_order.index(grade)
+            return rarity_order[i - 1] if i > 0 else None
+        except ValueError:
+            return None
+
+    # cube: craftType/tier + そのグレードを引く確率(craftResults gradeOdds)
+    craft_grade_odds = {}   # (dropKey) -> {grade: pct}
+    cr_by_dropkey = {}
+    for r in data.get("craftResults", {}).get("rows", []):
+        cr_by_dropkey[r.get("dropKey")] = r
+    syn_type_of = {ik: item_info.get(ik, {}).get("ItemSynthesisType") for ik in out}
+
+    acq = {}
+    for ik, info in out.items():
+        grade = info["grade"]
+        entry = {}
+        # synthesis
+        syn_sources = [s for s in info["sources"] if s["via"] == "synthesis"]
+        if syn_sources:
+            in_grade = grade_below(grade)
+            # アイテム自身のLvに一致する合成枠を優先(無ければ最大pct)
+            lvl = info.get("lvl")
+            def syn_key(s):
+                ctx = s.get("ctx", [{}])[0]
+                return (0 if ctx.get("level") == lvl else 1, -s["pct"])
+            best_syn = sorted(syn_sources, key=syn_key)[0]
+            ctx = best_syn.get("ctx", [{}])[0]
+            pp = promote_pct(in_grade) if in_grade else None
+            pool = best_syn["pct"]
+            per = round(pp * pool / 100.0, 4) if pp is not None else None
+            entry["synth"] = {
+                "inGrade": in_grade, "synType": ctx.get("synType") or syn_type_of.get(ik),
+                "poolPct": pool, "promotePct": pp, "perAttemptPct": per,
+                "tier": ctx.get("tier"),
+            }
+        # cube craft
+        cube_sources = [s for s in info["sources"] if s["via"] == "cube"]
+        if cube_sources:
+            c = sorted(cube_sources, key=lambda s: -s["pct"])[0]
+            row = cr_by_dropkey.get(c["dropKey"], {})
+            go = {g["grade"]: g["pct"] for g in row.get("gradeOdds", [])}
+            entry["cube"] = {"craftType": c.get("craftType"), "tier": c.get("tier"),
+                             "gradePct": go.get(grade), "poolPct": c["pct"]}
+        if entry:
+            entry["grade"] = grade
+            entry["synType"] = syn_type_of.get(ik)
+            acq[ik] = entry
+    data["acq"] = {
+        "_note": ("Web UI用の軽量入手要約(価格非依存)。synth=合成1回の内訳(inGrade=投入グレード×9, "
+                  "promotePct=+1グレード昇格%, poolPct=結果プール内の枠%, perAttemptPct=1回あたり当選% (職一致時)). "
+                  "cube=キューブクラフト(gradePct=そのグレードを引く%, poolPct=テーブル内枠%). "
+                  "フォダー/直買い価格はPRICESから都度算出。重いitemSourcesはWebに埋め込まずtbh-data.json参照。"),
+        "items": acq,
+    }
     json.dump(data, open(data_path, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    print("itemSources items:", len(out))
+    print("itemSources items:", len(out), "| acq items:", len(acq))
     # sanity: Frozen Orb arcana
     fo = out.get("425041")
     print("\n[verify] Frozen Orb Arcana 425041:")

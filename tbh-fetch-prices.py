@@ -97,7 +97,11 @@ def main():
     print("equipment(kept):", len(d.get("equipment", [])), "| icons:", len(icons))
 
     # inject DATA + PRICES into HTML tools
-    dcompact = json.dumps(d, ensure_ascii=False, separators=(",", ":"))
+    # itemSources(逆引き全件)は重いのでWebには埋め込まない。軽量の acq(合成/クラフト要約)のみ残す。
+    d_web = {k: v for k, v in d.items() if k != "itemSources"}
+    if "itemSources" in d:
+        d_web["itemSources"] = {"_note": "Web版では省略。全件は tbh-data.json / acq を参照"}
+    dcompact = json.dumps(d_web, ensure_ascii=False, separators=(",", ":"))
     pcompact = json.dumps(out, ensure_ascii=False, separators=(",", ":"))
     for fn in ("tbh-gem-search.html", "tbh-build-simulator.html", "tbh-best-build.html"):
         fp = os.path.join(HERE, fn)

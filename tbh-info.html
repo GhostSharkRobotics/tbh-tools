@@ -43,17 +43,6 @@
   .memo .ms{font-size:12px;color:var(--muted);}
   .memo textarea{width:100%;min-height:120px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:14px;line-height:1.6;resize:vertical;}
   .memo textarea:focus{outline:none;border-color:var(--accent);}
-  .editbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0 4px;}
-  .btn{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-family:inherit;font-size:13px;cursor:pointer;}
-  .btn:hover{border-color:var(--accent);color:var(--accent);}
-  .btn.primary{background:var(--accent);color:#1a1208;border-color:var(--accent);font-weight:600;}
-  .btn.primary:hover{filter:brightness(1.08);color:#1a1208;}
-  .editbar .es{font-size:12px;color:var(--muted);margin-left:auto;}
-  .editbar .es.edited{color:var(--accent);}
-  #editor{display:none;}
-  #editor textarea{width:100%;min-height:460px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:ui-monospace,monospace;font-size:13px;line-height:1.65;resize:vertical;}
-  #editor textarea:focus{outline:none;border-color:var(--accent);}
-  #editor .hint{font-size:12px;color:var(--muted);margin:6px 2px 0;}
 </style>
 </head>
 <body>
@@ -62,19 +51,6 @@
 <div class="memo">
   <div class="mh"><span class="mt">📝 マイメモ</span><span class="ms" id="memoStatus">この端末に自動保存</span></div>
   <textarea id="memo" placeholder="自由にメモを書けます。入力すると自動保存され、リロードしても消えません。"></textarea>
-</div>
-<div class="editbar">
-  <button class="btn" id="editBtn">✏️ 本文を編集</button>
-  <span class="es" id="editStatus"></span>
-</div>
-<div id="editor">
-  <textarea id="editArea" placeholder="本文(Markdown)をここで自由に編集・削除できます。"></textarea>
-  <div class="hint">変更はこの端末に保存され、リロードしても残ります。元の配信内容には影響しません。</div>
-  <div class="editbar">
-    <button class="btn primary" id="saveBtn">保存して反映</button>
-    <button class="btn" id="cancelBtn">キャンセル</button>
-    <button class="btn" id="resetBtn">元の内容に戻す</button>
-  </div>
 </div>
 <div id="md"><div class="loading">読み込み中…</div></div>
 <script>
@@ -176,57 +152,15 @@ function drawCharts(){
     }catch(e){st.textContent='保存できません（プライベートモード?）';}
   });
 })();
-// 本文の表示＋ページ内編集（変更はlocalStorageに保存。元の.mdには影響しない）
-(function(){
-  const MDKEY='tbh-info-md-override';
-  let fileMd='';            // 配信ファイルの内容
-  const mdEl=document.getElementById('md');
-  const editor=document.getElementById('editor');
-  const area=document.getElementById('editArea');
-  const editBtn=document.getElementById('editBtn');
-  const saveBtn=document.getElementById('saveBtn');
-  const cancelBtn=document.getElementById('cancelBtn');
-  const resetBtn=document.getElementById('resetBtn');
-  const st=document.getElementById('editStatus');
-  function getOverride(){try{return localStorage.getItem(MDKEY);}catch(e){return null;}}
-  function currentMd(){const o=getOverride();return o!==null?o:fileMd;}
-  function setStatus(){const edited=getOverride()!==null;
-    st.textContent=edited?'✏️ 編集済み（この端末）':'';st.className='es'+(edited?' edited':'');}
-  function paint(md){
-    const {html,toc}=render(md);
-    mdEl.innerHTML=html;
-    drawCharts();
-    const t=document.getElementById('toc');
-    if(toc.length){t.style.display='block';
-      t.innerHTML=toc.map(x=>'<a href="#'+x.id+'">'+x.txt.replace(/[★]/g,'').slice(0,18)+'</a>').join('');}
-    else t.style.display='none';
-    setStatus();
-  }
-  function openEditor(){area.value=currentMd();editor.style.display='block';mdEl.style.display='none';editBtn.style.display='none';area.focus();}
-  function closeEditor(){editor.style.display='none';mdEl.style.display='block';editBtn.style.display='inline-block';}
-  editBtn.addEventListener('click',openEditor);
-  cancelBtn.addEventListener('click',closeEditor);
-  saveBtn.addEventListener('click',()=>{
-    try{
-      if(area.value===fileMd){localStorage.removeItem(MDKEY);}   // 元と同じなら保存解除
-      else{localStorage.setItem(MDKEY,area.value);}
-    }catch(e){alert('保存できませんでした（プライベートモード?）');return;}
-    paint(area.value);closeEditor();
-  });
-  resetBtn.addEventListener('click',()=>{
-    if(!confirm('この端末の編集を破棄して、元の内容に戻しますか？'))return;
-    try{localStorage.removeItem(MDKEY);}catch(e){}
-    area.value=fileMd;paint(fileMd);
-  });
-  fetch('TBH-解析メモ.md?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(md=>{
-    fileMd=md;paint(currentMd());
-  }).catch(e=>{
-    // ファイル取得失敗でも編集済みがあれば表示
-    const o=getOverride();
-    if(o!==null)paint(o);
-    else mdEl.innerHTML='<div class="loading">読み込み失敗: '+e+'</div>';
-  });
-})();
+// 旧「ページ内編集」機能の残骸を掃除（過去に保存した上書きデータを削除）
+try{localStorage.removeItem('tbh-info-md-override');}catch(e){}
+fetch('TBH-解析メモ.md?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(md=>{
+  const {html,toc}=render(md);
+  document.getElementById('md').innerHTML=html;
+  drawCharts();
+  if(toc.length){const t=document.getElementById('toc');t.style.display='block';
+    t.innerHTML=toc.map(x=>'<a href="#'+x.id+'">'+x.txt.replace(/[★]/g,'').slice(0,18)+'</a>').join('');}
+}).catch(e=>{document.getElementById('md').innerHTML='<div class="loading">読み込み失敗: '+e+'</div>';});
 </script>
 </body>
 </html>

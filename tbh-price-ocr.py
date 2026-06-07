@@ -21,11 +21,10 @@ from tkinter import font as tkfont
 # ---- 設定 ----------------------------------------------------------------
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応
-# アイテム詳細パネルの「名前＋等級」枠を撮る。パネルは左右どちらにも出るので両方撮る。
-# 各領域 = ゲームウィンドウに対する (左, 上, 右, 下) の比率。
+# 詳細パネルは左右どちらにも・横位置がズレて出るので、名前＋等級が出るY帯を横幅いっぱい撮る。
+# 辞書側で最長一致するのでノイズが混じっても名前を抽出できる。(左, 上, 右, 下) のウィンドウ比率。
 NAME_REGIONS = [
-    (0.17, 0.275, 0.39, 0.39),   # 左パネル
-    (0.61, 0.275, 0.83, 0.39),   # 右パネル（左右ミラー）
+    (0.0, 0.25, 1.0, 0.42),
 ]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
@@ -71,8 +70,19 @@ matcher = Matcher(os.path.join(HERE, "tbh-price-lookup.json"))
 PQ = queue.Queue()          # ポップ要求キュー（別スレッド→メインスレッド）
 
 
-def cents(c):
-    return "—" if c is None else f"${c/100:.2f}"
+JPY_RATE = 155.0     # USD→JPY。起動時に最新レートへ更新（失敗時はこの値）
+
+def fetch_rate():
+    global JPY_RATE
+    try:
+        import urllib.request
+        with urllib.request.urlopen("https://open.er-api.com/v6/latest/USD", timeout=5) as r:
+            JPY_RATE = float(json.load(r)["rates"]["JPY"])
+    except Exception:
+        pass
+
+def yen(c):
+    return "—" if c is None else f"¥{round(c / 100 * JPY_RATE):,}"
 
 
 # ---- 前面ウィンドウ判定（ゲームが前面の時だけ反応） ----------------------
@@ -216,7 +226,7 @@ def show_popup(results, xy, text, root):
         row(name, C_NAME, f_name, (16, 0))
         if e.get("ja"):
             row(e["ja"], C_JA, f_sub, (0, 4))
-        row(f"最安 {cents(e['sell'])}    中央値 {cents(e['median'])}", C_PRICE, f_price, (4, 4))
+        row(f"最安 {yen(e['sell'])}    中央値 {yen(e['median'])}", C_PRICE, f_price, (4, 4))
         row(f"{e.get('type','')}   出品 {e.get('listings','—')} / 売買 {e.get('volume','—')}",
             C_META, f_meta, (0, 2))
         row(f"相場 {matcher.marketUpdated or '—'}", C_META, f_meta, (0, 16))
@@ -272,6 +282,7 @@ def run_tray(root):
 
 # ---- main ----------------------------------------------------------------
 def main():
+    threading.Thread(target=fetch_rate, daemon=True).start()   # 円レート取得（非同期）
     root = tk.Tk()
     root.withdraw()
     # マウスの「戻る」サイドボタンで発動（ゲームが前面の時だけ on_trigger 内で判定）

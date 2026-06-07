@@ -7,10 +7,14 @@ import json, re, unicodedata, os
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
+_SMALL = str.maketrans("ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ",
+                       "あいうえおつやゆよわアイウエオツヤユヨワ")
+
 def norm(s: str) -> str:
     if not s: return ""
     s = unicodedata.normalize("NFKC", s)
     s = s.lower()
+    s = s.translate(_SMALL)          # 小書きカナ→大書き（OCRのョ/ヨ等の誤読を吸収）
     s = re.sub(r"[\s　()\[\]（）【】・,.\-_/:：]+", "", s)
     return s
 

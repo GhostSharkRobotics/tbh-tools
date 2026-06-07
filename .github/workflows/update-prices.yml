@@ -1,0 +1,47 @@
+name: Update Steam market prices
+
+# 毎日 22:00 UTC (= 翌07:00 JST) に Steam 市場価格を自動更新。
+# 手動実行もできる（Actions タブの "Run workflow"）。
+on:
+  schedule:
+    - cron: "0 22 * * *"
+  workflow_dispatch:
+
+# GITHUB_TOKEN に push 権限を付与（このリポジトリへのコミットに必要）
+permissions:
+  contents: write
+
+# 同時実行を防ぐ（前回が走っている間は待つ）
+concurrency:
+  group: update-prices
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # tbh-fetch-prices.py は標準ライブラリのみ使用（pip 不要）
+      - name: Fetch prices and rebuild data
+        run: python3 tbh-fetch-prices.py
+
+      # 明示的に対象ファイルだけ add（git add -A は厳禁: 巨大バイナリ混入防止）
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tbh-prices.json tbh-data.json tbh-deals.html \
+                  tbh-gem-search.html tbh-build-simulator.html tbh-best-build.html
+          if git diff --cached --quiet; then
+            echo "価格に変更なし — コミットしません"
+          else
+            git commit -m "chore(prices): auto refresh Steam market prices"
+            git push
+          fi

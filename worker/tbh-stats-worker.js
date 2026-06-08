@@ -25,10 +25,60 @@ export default {
 
     if (path === '/hit') return hit(req, env, url);
     if (path === '/stats') return stats(req, env, url);
+    if (path === '/feedback') return feedback(req, env, url);
 
     return new Response('TBH stats worker', { status: 200, headers: CORS });
   },
 };
+
+// MarketLens フィードバック受付。POST=受信(KV保存＋Slack転送), GET ?pw= でダッシュボード
+async function feedback(req, env, url) {
+  if (req.method === 'GET') {
+    if (url.searchParams.get('pw') !== env.DASH_PW) return new Response('unauthorized', { status: 401 });
+    const recs = [];
+    let cursor;
+    do {
+      const list = await env.STATS.list({ prefix: 'fb:', cursor });
+      for (const k of list.keys) { const r = await env.STATS.get(k.name, 'json'); if (r) recs.push(r); }
+      cursor = list.list_complete ? null : list.cursor;
+    } while (cursor);
+    recs.sort((a, b) => b.ts - a.ts);
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const fmt = (ts) => { const d = new Date(ts), p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+    const rows = recs.map((r) => `<tr><td>${fmt(r.ts)}</td><td>${esc(r.lang)}/${esc(r.ver)}/${esc(r.country)}</td><td>${esc(r.msg).replace(/\n/g, '<br>')}</td><td>${esc(r.contact)}</td></tr>`).join('');
+    const html = `<!doctype html><meta charset="utf-8"><title>MarketLens feedback</title>
+<style>body{background:#14161b;color:#e6e8ec;font:14px/1.6 system-ui;margin:0;padding:20px}h1{font-size:18px}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #262a33;padding:8px 10px;vertical-align:top;text-align:left}th{color:#9aa0a6}td:nth-child(3){max-width:560px}</style>
+<h1>MarketLens feedback (${recs.length})</h1>
+<table><thead><tr><th>時刻</th><th>環境</th><th>本文</th><th>連絡先</th></tr></thead><tbody>${rows || '<tr><td colspan=4 style="color:#9aa0a6">まだありません</td></tr>'}</tbody></table>`;
+    return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8' } });
+  }
+  // POST = 受信
+  try {
+    const ip = req.headers.get('CF-Connecting-IP') || '';
+    const country = req.headers.get('CF-IPCountry') || '';
+    // 簡易スパム防止：同一IPは20秒に1件まで
+    const tkey = 'fbip:' + ip;
+    if (await env.STATS.get(tkey)) return new Response('slow down', { status: 429, headers: CORS });
+    let b = {};
+    try { b = await req.json(); } catch (_) {}
+    const msg = String(b.msg || '').slice(0, 2000).trim();
+    if (!msg) return new Response('empty', { status: 400, headers: CORS });
+    const contact = String(b.contact || '').slice(0, 200).trim();
+    const ver = String(b.ver || '').slice(0, 20);
+    const lang = String(b.lang || '').slice(0, 10);
+    const now = Date.now();
+    const rec = { ts: now, msg, contact, ver, lang, ip, country };
+    await env.STATS.put('fb:' + now + ':' + Math.random().toString(36).slice(2, 7), JSON.stringify(rec), { expirationTtl: 60 * 60 * 24 * 180 });
+    await env.STATS.put(tkey, '1', { expirationTtl: 20 });
+    if (env.FEEDBACK_WEBHOOK) {                       // Slack等のIncoming Webhookへ転送（URLは秘密）
+      const text = `:speech_balloon: *MarketLens feedback*  (v${ver || '?'} · ${lang || '?'} · ${country || '?'})\n${msg}` + (contact ? `\n_reply to:_ ${contact}` : '');
+      try { await fetch(env.FEEDBACK_WEBHOOK, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }) }); } catch (_) {}
+    }
+    return new Response('ok', { headers: CORS });
+  } catch (e) {
+    return new Response('err', { status: 200, headers: CORS });
+  }
+}
 
 async function hit(req, env, url) {
   try {

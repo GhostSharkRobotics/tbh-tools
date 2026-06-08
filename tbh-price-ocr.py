@@ -25,6 +25,7 @@ APP_VERSION   = "1.1"
 APP_AUTHOR    = "Ghost Shark Robotics"
 KOFI_URL      = "https://ko-fi.com/ghostsharkrobotics"        # Ko-fi（空なら寄付ボタン非表示）
 APP_REPO      = "GhostSharkRobotics/tbh-marketlens"           # 更新通知の取得元（GitHub Releases）
+FEEDBACK_URL  = "https://tbh-stats.monoqulo.workers.dev/feedback"   # アプリ内フィードバック送信先（Worker→Slack）
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応
 APPID         = "3678970"          # TBH の Steam appid（マーケットURL用）
@@ -67,6 +68,9 @@ TR = {
         "capture_prompt": "キーかボタンを押す…",
         "capture_hint": "↑ クリックして、使いたいキー（Ctrl+Shift+P等の組み合わせ可）かマウスボタンを押す",
         "reset_default": "既定に戻す（マウス サイド戻る）", "howto": "使い方", "support": "☕ 応援",
+        "feedback": "フィードバック", "fb_title": "フィードバック / バグ報告", "send": "送信",
+        "fb_hint": "不具合・要望・気づいた点を書いて送ってください（匿名でOK）",
+        "fb_contact": "返信がほしい場合の連絡先（任意）", "fb_thanks": "送信しました。ありがとう！", "fb_fail": "送信に失敗しました",
         "disclaimer": "非公式ツール · Nugem Studio / Valve とは無関係",
         "help_main": "アイテムに合わせて発動キーを押すと、そのアイテムの\nSteamマーケット価格（最安値・中央値）が出ます。",
         "help_key": "発動キーの既定はマウスのサイドボタン（戻る）。「設定」で変更できます。",
@@ -100,6 +104,9 @@ TR = {
         "capture_prompt": "Press a key or button…",
         "capture_hint": "↑ Click above, then press a key (combos like Ctrl+Shift+P ok) or mouse button",
         "reset_default": "Reset to default", "howto": "How to use", "support": "☕ Support",
+        "feedback": "Feedback", "fb_title": "Feedback / Bug report", "send": "Send",
+        "fb_hint": "Tell us about bugs, ideas, or anything — anonymous is fine.",
+        "fb_contact": "Contact for a reply (optional)", "fb_thanks": "Sent. Thank you!", "fb_fail": "Failed to send",
         "disclaimer": "Unofficial tool · not affiliated with Nugem Studio or Valve",
         "help_main": "Point at an item and press your hotkey — its Steam Market\nprice (lowest + median) pops up.",
         "help_key": "Default hotkey is the mouse side (back) button. Change it in Settings.",
@@ -133,6 +140,9 @@ TR = {
         "capture_prompt": "请按下按键或鼠标按钮…",
         "capture_hint": "↑ 点击后，按下想用的按键（可组合，如 Ctrl+Shift+P）或鼠标按钮",
         "reset_default": "恢复默认（鼠标侧键·后退）", "howto": "使用方法", "support": "☕ 支持",
+        "feedback": "反馈", "fb_title": "反馈 / 报告问题", "send": "发送",
+        "fb_hint": "请填写问题、建议或任何想法，匿名也可。",
+        "fb_contact": "如需回复请留联系方式（可选）", "fb_thanks": "已发送，谢谢！", "fb_fail": "发送失败",
         "disclaimer": "非官方工具 · 与 Nugem Studio / Valve 无关",
         "help_main": "将光标对准物品并按下触发键，即可显示该物品的\nSteam 市场价格（最低价·中位价）。",
         "help_key": "触发键默认是鼠标侧键（后退）。可在「设置」中修改。",
@@ -616,6 +626,7 @@ _trigger = {"kind": "mouse", "value": SIDE_BUTTON}   # 既定：マウス戻る(
 _trig_hook = [None]                                  # (kind, handler) 解除用
 _set_win = [None]                                    # 設定ウィンドウ
 _help_win = [None]                                   # 使い方ウィンドウ
+_fb_win = [None]                                     # フィードバックウィンドウ
 _intro_seen = [False]                                # 初回起動の使い方を表示済みか
 
 def _trigger_label(kind=None, value=None):
@@ -1187,6 +1198,54 @@ def show_help(root):
     _keep_on_top(win)
 
 
+def show_feedback(root):
+    if _fb_win[0] and _fb_win[0].winfo_exists():
+        _fb_win[0].deiconify(); _fb_win[0].lift(); return
+    win = tk.Toplevel(root); win.config(bg=C_CARD); win.attributes("-topmost", True); win.resizable(False, False)
+    win.title(f"{APP_NAME} — " + T("fb_title")); win.protocol("WM_DELETE_WINDOW", win.withdraw)
+    fbf = tkfont.Font(family="Yu Gothic UI", size=11, weight="bold")
+    f = tkfont.Font(family="Yu Gothic UI", size=10)
+    tk.Label(win, text=T("fb_title"), bg=C_CARD, fg=C_NAME, font=fbf, anchor="w").pack(fill="x", padx=18, pady=(16, 2))
+    tk.Label(win, text=T("fb_hint"), bg=C_CARD, fg=C_META, font=f, anchor="w", justify="left",
+             wraplength=360).pack(fill="x", padx=18, pady=(0, 8))
+    txt = tk.Text(win, width=42, height=6, bg="#0d1016", fg=C_NAME, insertbackground=C_NAME,
+                  relief="flat", font=f, wrap="word"); txt.pack(padx=18)
+    tk.Label(win, text=T("fb_contact"), bg=C_CARD, fg=C_META, font=f, anchor="w").pack(fill="x", padx=18, pady=(8, 2))
+    cvar = tk.StringVar()
+    tk.Entry(win, textvariable=cvar, bg="#0d1016", fg=C_NAME, insertbackground=C_NAME,
+             relief="flat", font=f).pack(fill="x", padx=18, ipady=4, ipadx=4)
+    status = tk.Label(win, text="", bg=C_CARD, fg=C_ACCENT, font=f, anchor="w")
+    status.pack(fill="x", padx=18, pady=(6, 2))
+    def send():
+        msg = txt.get("1.0", "end").strip()
+        if not msg: return
+        status.config(text="…", fg=C_META)
+        payload = json.dumps({"msg": msg, "contact": cvar.get().strip(),
+                              "ver": APP_VERSION, "lang": _ui_lang}).encode("utf-8")
+        def work():
+            ok = False
+            try:
+                req = urllib.request.Request(FEEDBACK_URL, data=payload,
+                                             headers={"content-type": "application/json", "User-Agent": "MarketLens"})
+                urllib.request.urlopen(req, timeout=10).read(); ok = True
+            except Exception: ok = False
+            def done():
+                if not win.winfo_exists(): return
+                if ok:
+                    status.config(text=T("fb_thanks"), fg=C_ACCENT)
+                    txt.delete("1.0", "end"); cvar.set("")
+                    win.after(1500, win.withdraw)
+                else:
+                    status.config(text=T("fb_fail"), fg=C_ERR)
+            win.after(0, done)
+        threading.Thread(target=work, daemon=True).start()
+    bf = tk.Frame(win, bg=C_CARD); bf.pack(fill="x", padx=18, pady=(4, 16))
+    round_pill(bf, T("send"), C_ACCENT, "#0c0c0c", send, fbf).pack(side="right")
+    _fb_win[0] = win
+    win.update_idletasks(); win.geometry(f"{win.winfo_reqwidth()}x{win.winfo_reqheight()}")
+    _grab_foreground(win); txt.focus_set()           # 入力できるよう前面フォーカス（NOACTIVATEは付けない）
+
+
 def show_settings(root):
     if _set_win[0] and _set_win[0].winfo_exists():
         _set_win[0].deiconify(); _set_win[0].lift(); return
@@ -1261,6 +1320,8 @@ def show_settings(root):
     hf = tk.Frame(win, bg=C_CARD); hf.pack(fill="x", padx=18, pady=(6, 0))
     round_pill(hf, "❓ " + T("howto"), "#2a2f3a", C_NAME,
                lambda: show_help(root), fs).pack(side="left")
+    round_pill(hf, "💬 " + T("feedback"), "#2a2f3a", C_NAME,
+               lambda: show_feedback(root), fs).pack(side="left", padx=(6, 0))
 
     foot = tk.Frame(win, bg=C_CARD); foot.pack(fill="x", padx=18, pady=(10, 2))
     tk.Label(foot, text=f"{APP_NAME} v{APP_VERSION} · by {APP_AUTHOR}",

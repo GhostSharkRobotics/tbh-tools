@@ -201,18 +201,21 @@ def ocr_worker():
                 except Exception: pass
             lines = ocr_lines(img)
             texts = [t for t, _, _ in lines]
-            # 各行＋隣接行ペアで照合し、ヒットした候補に「名前行の画面座標」を付与
+            # 照合プローブ: 各行単独＋「真下にある行」を空間的に結合（名前＋等級）。
+            # winocrの行順は画面順でないので、座標で“直下の行”を探して結合する。
+            probes = []
+            for (t, cx, cy) in lines:
+                probes.append((t, cx, cy))
+                for (tt, xx, yy) in lines:
+                    if 6 < yy - cy < 90 and abs(xx - cx) < 240:   # 直下＆横位置が近い＝等級行
+                        probes.append((t + tt, cx, cy))
             cands = []
-            for i, (t, cx, cy) in enumerate(lines):
-                sx, sy = ox + cx, oy + cy            # 画面座標
-                probes = [t]
-                if i + 1 < len(lines):
-                    probes.append(t + texts[i + 1])  # 名前＋次行(等級)
-                for probe in probes:
-                    r = matcher.match(probe)
-                    if r:
-                        d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
-                        cands.append((r[0]["score"], d2, sx, sy, r))
+            for (text, cx, cy) in probes:
+                r = matcher.match(text)
+                if r:
+                    sx, sy = ox + cx, oy + cy
+                    d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
+                    cands.append((r[0]["score"], d2, sx, sy, r))
             found = []
             conf = [c for c in cands if c[0] >= 0.85]   # 確信できる一致のみ
             if conf:

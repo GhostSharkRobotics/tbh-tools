@@ -23,7 +23,7 @@ from tkinter import ttk
 APP_NAME      = "TBH MarketLens"
 APP_VERSION   = "1.0"
 APP_AUTHOR    = "Ghost Shark Robotics"
-KOFI_URL      = "https://ko-fi.com/ghostsharkrobotics"          # ※Ko-fi作成後に確定
+KOFI_URL      = ""                                            # Ko-fi URL（空なら寄付ボタン非表示）
 APP_REPO      = "GhostSharkRobotics/tbh-marketlens"           # 更新通知の取得元（GitHub Releases）
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応
@@ -1103,8 +1103,9 @@ def show_settings(root):
     foot = tk.Frame(win, bg=C_CARD); foot.pack(fill="x", padx=18, pady=(14, 2))
     tk.Label(foot, text=f"{APP_NAME} v{APP_VERSION} · by {APP_AUTHOR}",
              bg=C_CARD, fg=C_META, font=fs, anchor="w").pack(side="left")
-    round_pill(foot, "☕ Support", "#2a2f3a", C_NAME,
-               lambda: webbrowser.open(KOFI_URL), fs).pack(side="right")
+    if KOFI_URL:
+        round_pill(foot, "☕ Support", "#2a2f3a", C_NAME,
+                   lambda: webbrowser.open(KOFI_URL), fs).pack(side="right")
     if _update_info[0]:                          # 新版があればワンクリック更新
         u = _update_info[0]
         def _ustatus(s):

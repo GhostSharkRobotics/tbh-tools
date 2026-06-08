@@ -27,7 +27,7 @@ It **never reads or writes the game's memory, never injects anything, and never 
 
 ## Install
 
-1. Download `TBH-MarketLens-vX.Y.zip` from the [Releases](#) page.
+1. Download `TBH-MarketLens-vX.Y.zip` from the [Releases](https://github.com/GhostSharkRobotics/tbh-marketlens/releases) page.
 2. **Extract the whole folder** anywhere (e.g. your Desktop). Keep the files together.
 3. Run **`TBH MarketLens.exe`**. It lives in the **system tray** (no window until you trigger it).
 

@@ -803,11 +803,12 @@ def _grab_foreground(win):
         if ft and ft != ct: u.AttachThreadInput(ct, ft, False)
     except Exception: pass
 
-def _keep_on_top(win, want_noact=lambda: True):
+def _keep_on_top(win, want_noact=lambda: True, pause=lambda: False):
     """フルスクリーン(ボーダーレス)のゲームの前へ出し続ける。要点は WS_EX_NOACTIVATE:
     これを付けるとポップをクリックしてもアクティブ化が起きない＝ゲームが前面に出てこない。
     ただし編集中(want_noact()=False)は外してキーボード入力を受けられるようにする。
-    TOPMOSTは常に維持し、120ms毎に再主張して背後への回り込みを防ぐ。"""
+    TOPMOSTは常に維持し、120ms毎に再主張して背後への回り込みを防ぐ。
+    pause()=True の間は再主張を休む（他のポップと最前面を奪い合ってチラつくのを防ぐ）。"""
     try: import ctypes
     except Exception: return
     u = ctypes.windll.user32
@@ -817,17 +818,18 @@ def _keep_on_top(win, want_noact=lambda: True):
     SWP = 0x0001 | 0x0002 | 0x0010   # NOSIZE | NOMOVE | NOACTIVATE
     def tick():
         if not win.winfo_exists(): return
-        try:
-            h = _top_hwnd(win)
-            ex = u.GetWindowLongW(h, GWL_EXSTYLE)
-            if want_noact():
-                want = ex | WS_EX_TOPMOST | WS_EX_NOACTIVATE
-            else:
-                want = (ex | WS_EX_TOPMOST) & ~WS_EX_NOACTIVATE
-            if want != ex:
-                u.SetWindowLongW(h, GWL_EXSTYLE, want)
-            u.SetWindowPos(h, HWND_TOPMOST, 0, 0, 0, 0, SWP)
-        except Exception: pass
+        if not pause():                          # 休止中は z順を触らない
+            try:
+                h = _top_hwnd(win)
+                ex = u.GetWindowLongW(h, GWL_EXSTYLE)
+                if want_noact():
+                    want = ex | WS_EX_TOPMOST | WS_EX_NOACTIVATE
+                else:
+                    want = (ex | WS_EX_TOPMOST) & ~WS_EX_NOACTIVATE
+                if want != ex:
+                    u.SetWindowLongW(h, GWL_EXSTYLE, want)
+                u.SetWindowPos(h, HWND_TOPMOST, 0, 0, 0, 0, SWP)
+            except Exception: pass
         win.after(120, tick)
     tick()
 
@@ -1245,7 +1247,8 @@ def show_history(root):
     _hist_win[0] = win; _hist_inner[0] = (canvas, inner)
     # NOACTIVATE維持＝アクティブ化で前面を奪わない→ゲームが覆い被さらない（時間で消えない）。
     # クリック/右クリックは受け取れる。スクロールはWin11の「非アクティブ窓もスクロール」既定で可。
-    _keep_on_top(win)
+    # ポップ表示中(_open非空)は最前面の再主張を休む＝価格ポップと奪い合わずチラつかない。
+    _keep_on_top(win, pause=lambda: bool(_open))
     _refresh_history()
 
 def hide_history():
@@ -1473,7 +1476,9 @@ def poll(root):
                 show_debug(xy, root)        # xy にデバッグ画像が入っている
                 continue
             show_popup(results, xy, text, root)
-            if _hist_visible[0]: _refresh_history()    # 履歴を開いていれば更新
+            # 履歴更新は実際の結果の時だけ（読み取り中ポップでは更新しない＝チラつき低減）
+            if _hist_visible[0] and results != "__processing__":
+                _refresh_history()
     except queue.Empty:
         pass
     root.after(80, lambda: poll(root))

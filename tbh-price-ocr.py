@@ -73,6 +73,7 @@ try:
     import cv2
     import winocr
     import mouse
+    import keyboard
     import pystray
     from tbh_price_match import Matcher, RARITIES, norm as _norm
 except Exception as e:
@@ -80,7 +81,7 @@ except Exception as e:
     try:
         import tkinter.messagebox as mb
         r = tk.Tk(); r.withdraw()
-        mb.showerror("TBH相場OCR", f"必要なライブラリが不足:\n{e}\n\npip install mss pillow winocr mouse pystray")
+        mb.showerror("TBH相場OCR", f"必要なライブラリが不足:\n{e}\n\npip install mss pillow winocr mouse keyboard pystray")
     except Exception:
         pass
     sys.exit(1)
@@ -379,6 +380,75 @@ _hist_visible = [False]    # トレイのオン/オフ状態
 _hist_limit = [50]         # 履歴の上限（0=無制限）。お気に入りは上限の対象外
 _hist_status = [None]      # ヘッダの「更新中/更新時刻」ラベル
 HIST_FILE = os.path.join(HERE, "tbh-price-history.json")   # 履歴の保存先（再起動で消えないように）
+SET_FILE = os.path.join(HERE, "tbh-price-settings.json")   # 設定の保存先
+
+# ---- 発動トリガー（マウスボタン/キーボード、ユーザーが自由に割り当て） ----
+_trigger = {"kind": "mouse", "value": SIDE_BUTTON}   # 既定：マウス戻る(サイド)
+_trig_hook = [None]                                  # (kind, handler) 解除用
+_set_win = [None]                                    # 設定ウィンドウ
+
+_MOUSE_LBL = {"x": "マウス サイド(戻る)", "x2": "マウス サイド(進む)", "middle": "マウス 中ボタン",
+              "left": "マウス 左", "right": "マウス 右"}
+
+def _trigger_label(kind=None, value=None):
+    kind = kind or _trigger["kind"]; value = value if value is not None else _trigger["value"]
+    if kind == "mouse":
+        return _MOUSE_LBL.get(value, "マウス " + str(value))
+    return str(value).upper()
+
+def _save_settings():
+    try:
+        with open(SET_FILE, "w", encoding="utf-8") as f:
+            json.dump({"trigger": _trigger}, f, ensure_ascii=False)
+    except Exception: pass
+
+def _load_settings():
+    try:
+        d = json.load(open(SET_FILE, encoding="utf-8"))
+        t = d.get("trigger") or {}
+        if t.get("kind") in ("mouse", "key") and t.get("value"):
+            _trigger.update(kind=t["kind"], value=t["value"])
+    except Exception: pass
+
+def _bind_trigger():
+    """現在の_triggerでWORKQ発火をフック。既存フックは外す。"""
+    if _trig_hook[0]:
+        kind, h = _trig_hook[0]
+        try:
+            if kind == "mouse": mouse.unhook(h)
+            else: keyboard.remove_hotkey(h)
+        except Exception: pass
+        _trig_hook[0] = None
+    kind, val = _trigger["kind"], _trigger["value"]
+    try:
+        if kind == "mouse":
+            h = mouse.on_button(lambda: WORKQ.put(1), buttons=(val,), types=("down",))
+            _trig_hook[0] = ("mouse", h)
+        else:
+            h = keyboard.add_hotkey(val, lambda: WORKQ.put(1))
+            _trig_hook[0] = ("key", h)
+    except Exception:
+        log_fatal("bind_trigger:\n" + traceback.format_exc())
+
+def _capture_trigger(on_done):
+    """次に押されたマウスボタン or キーを1つ取得して on_done(kind, value) を呼ぶ。"""
+    state = {"done": False}
+    def finish(kind, value):
+        if state["done"]: return
+        state["done"] = True
+        try: mouse.unhook(mh)
+        except Exception: pass
+        try: keyboard.unhook(kh)
+        except Exception: pass
+        on_done(kind, value)
+    def on_mouse(e):
+        if isinstance(e, mouse.ButtonEvent) and e.event_type == "down":
+            finish("mouse", e.button)
+    def on_key(e):
+        if getattr(e, "event_type", None) == "down" and getattr(e, "name", None):
+            finish("key", e.name)
+    mh = mouse.hook(on_mouse)
+    kh = keyboard.hook(on_key)
 
 def _save_hist():
     try:
@@ -851,6 +921,42 @@ def toggle_history(root):
     else: hide_history()
 
 
+def show_settings(root):
+    if _set_win[0] and _set_win[0].winfo_exists():
+        _set_win[0].deiconify(); _set_win[0].lift(); return
+    ja = _ui_lang == "ja"
+    win = tk.Toplevel(root); win.title("TBH 設定"); win.config(bg=C_CARD)
+    win.geometry("320x190"); win.attributes("-topmost", True)
+    win.protocol("WM_DELETE_WINDOW", win.withdraw)
+    f = tkfont.Font(family="Yu Gothic UI", size=11)
+    fb = tkfont.Font(family="Yu Gothic UI", size=10, weight="bold")
+    tk.Label(win, text="ポップアップを出すショートカット" if ja else "Popup shortcut",
+             bg=C_CARD, fg=C_NAME, font=fb, anchor="w").pack(fill="x", padx=16, pady=(14, 6))
+    cur = tk.Label(win, text=_trigger_label(), bg="#0d1016", fg=C_ACCENT, font=f, anchor="w")
+    cur.pack(fill="x", padx=16, ipady=6, ipadx=8)
+    tk.Label(win, text=("「割り当て」を押して、使いたいキーかマウスボタンを押してください"
+                        if ja else "Click Assign, then press any key or mouse button"),
+             bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w",
+             wraplength=288, justify="left").pack(fill="x", padx=16, pady=(8, 4))
+    bf = tk.Frame(win, bg=C_CARD); bf.pack(fill="x", padx=16, pady=(8, 12))
+    def assign():
+        cur.config(text=("押してください…" if ja else "Press any key/button…"), fg=C_ERR)
+        def done(kind, value):
+            def apply():
+                _trigger.update(kind=kind, value=value)
+                _bind_trigger(); _save_settings()
+                if cur.winfo_exists(): cur.config(text=_trigger_label(), fg=C_ACCENT)
+            if win.winfo_exists(): win.after(0, apply)
+        _capture_trigger(done)
+    def reset():
+        _trigger.update(kind="mouse", value="x"); _bind_trigger(); _save_settings()
+        cur.config(text=_trigger_label(), fg=C_ACCENT)
+    round_pill(bf, "割り当て" if ja else "Assign", C_ACCENT, "#0c0c0c", assign, fb).pack(side="left")
+    round_pill(bf, "既定に戻す" if ja else "Default", "#2a2f3a", C_NAME, reset, fb).pack(side="left", padx=(8, 0))
+    _set_win[0] = win
+    _keep_on_top(win)
+
+
 def poll(root):
     try:
         while True:
@@ -861,6 +967,9 @@ def poll(root):
                 continue
             if results == "__hist_trim__":         # 上限変更→切り詰め＋更新
                 _hist_trim(); _save_hist(); _refresh_history()
+                continue
+            if results == "__settings__":          # トレイから設定を開く
+                show_settings(root)
                 continue
             if results == "__close__":
                 for w in _open[:]:
@@ -913,7 +1022,8 @@ def run_tray(root):
         for n in (20, 50, 100, 200, 0)
     ])
     menu = pystray.Menu(
-        pystray.MenuItem("TBH 相場OCR  ( ゲーム前面で戻るボタン )", None, enabled=False),
+        pystray.MenuItem(lambda item: f"発動: {_trigger_label()}  (ゲーム前面で)", None, enabled=False),
+        pystray.MenuItem("設定（ショートカット）", lambda icon, item: PQ.put(("__settings__", None, None))),
         pystray.MenuItem("履歴一覧", _toggle_hist, checked=lambda item: _hist_visible[0]),
         pystray.MenuItem("履歴の上限", limit_menu),
         pystray.MenuItem("終了", _quit),
@@ -924,12 +1034,12 @@ def run_tray(root):
 # ---- main ----------------------------------------------------------------
 def main():
     _load_hist()                                               # 保存済み履歴を復元
+    _load_settings()                                           # 保存済みトリガー設定を復元
     threading.Thread(target=fetch_rate, daemon=True).start()   # 円レート取得（非同期）
     root = tk.Tk()
     root.withdraw()
     threading.Thread(target=ocr_worker, daemon=True).start()    # OCR常駐ワーカー（初期化1回）
-    # マウスの「戻る」サイドボタンで発動（押下シグナルをワーカーへ。前面判定はワーカー内）
-    mouse.on_button(lambda: WORKQ.put(1), buttons=(SIDE_BUTTON,), types=("down",))
+    _bind_trigger()                                             # 設定されたキー/ボタンで発動（既定:マウス戻る）
     threading.Thread(target=run_tray, args=(root,), daemon=True).start()
     poll(root)
     root.mainloop()

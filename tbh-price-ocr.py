@@ -589,6 +589,10 @@ def show_popup(results, xy, text, root):
             except Exception: pass
     mkt_pill = round_pill(btnf, "🛒 " + lb["mkt"], rarity_color(init_rar), "#0c0c0c", open_market, f_meta)
     mkt_pill.pack(side="left")
+    def open_history():
+        _hist_visible[0] = True; show_history(root)
+    round_pill(btnf, "🕘 " + ("履歴" if _ui_lang == "ja" else "History"),
+               "#2a2f3a", C_NAME, open_history, f_meta).pack(side="left", padx=(6, 0))
     round_pill(btnf, "✕", "#2a2f3a", C_NAME, win.destroy, f_meta, padx=12).pack(side="right")
 
     def render(ent):

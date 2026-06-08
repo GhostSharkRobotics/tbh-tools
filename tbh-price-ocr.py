@@ -504,8 +504,7 @@ def show_popup(results, xy, text, root):
     en2ja = {en: ja for en, ja in RARITIES}
     state = {"entry": e, "rarity": init_rar}
 
-    border = tk.Frame(win, bg=rarity_color(init_rar)); border.pack()   # レア度色の枠
-    content = tk.Frame(border, bg=C_CARD); content.pack(padx=3, pady=3)
+    content = tk.Frame(win, bg=C_CARD); content.pack()   # 枠なし（ダークカードのみ）
     content.columnconfigure(0, weight=1)
 
     # アイテム名：キーボード入力はゲーム最前面を奪って消えるので、マウスのみの候補ドロップダウンに。
@@ -563,7 +562,7 @@ def show_popup(results, xy, text, root):
     def render(ent):
         state["entry"] = ent
         ar = rarity_color(state["rarity"] or (ent.get("rarity_en") if ent else ""))
-        border.config(bg=ar); price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
+        price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
         if ent:
             name_lbl.config(text=((ent.get("en") if _ui_lang == "en" else ent.get("ja"))
                                   or ent.get("en") or ent.get("ja") or "—") + ("  ▾" if cand_list else ""))

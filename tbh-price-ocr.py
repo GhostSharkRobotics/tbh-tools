@@ -171,7 +171,7 @@ def _ocr(c):
             out.append(" ".join(l.get("text", "") for l in (r.get("lines") if isinstance(r, dict) else []) or []))
         except Exception:
             pass
-    return "  ".join(out)
+    return "\n".join(out)   # ja/en読みは改行区切り＝行ごとに照合（二重化での薄まりを防ぐ）
 
 
 def detect_boxes(img):

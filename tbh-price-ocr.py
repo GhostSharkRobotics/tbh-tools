@@ -132,31 +132,31 @@ def grab(frac):
     return Image.frombytes("RGB", raw.size, raw.bgra, "raw", "BGRX"), (left, top)
 
 
-def preprocess(img):
-    """局所適応二値化: 明度(V)で、局所平均より明るい画素＝文字 を白にする。
-    暗い赤(イモータル)等どんなレア色名でも、全体の明暗に左右されず文字が出る。小領域は拡大。"""
-    v = img.convert("HSV").split()[2]          # 明度 = max(R,G,B)
-    w, h = v.size
-    if w < 700:
-        v = v.resize((w * 3, h * 3), Image.LANCZOS)
-    mean = v.filter(ImageFilter.BoxBlur(14))   # 局所平均（背景）
-    a = np.asarray(v, dtype=np.int16)
-    m = np.asarray(mean, dtype=np.int16)
-    binimg = ((a > m + 10) * 255).astype("uint8")   # 局所背景より明るい＝文字
-    return Image.fromarray(binimg, "L").convert("RGB")
+def _variants(img):
+    """複数の前処理を返す（どれかが名前/等級を読めるように＝同時多手）。"""
+    v = img.convert("HSV").split()[2]                 # 明度 = max(R,G,B)
+    mean = v.filter(ImageFilter.BoxBlur(14))
+    a = np.asarray(v, dtype=np.int16); m = np.asarray(mean, dtype=np.int16)
+    adapt = Image.fromarray(((a > m + 8) * 255).astype("uint8"), "L")   # 局所適応二値化
+    return [adapt, ImageOps.autocontrast(v), ImageOps.autocontrast(img.convert("L"))]
 
 
 def ocr_lines(img):
-    """各行の (テキスト, 中心x, 中心y) を返す。座標は撮影画像(=領域)のピクセル。"""
-    proc = preprocess(img)
-    fx = proc.width / max(1, img.width)      # 拡大率（座標を元画像へ戻す用）
-    if CALIBRATE:
-        try: proc.save(os.path.join(HERE, "tbh-ocr-proc.png"))
-        except Exception: pass
-    out = []
-    for lang in OCR_LANGS:          # ja/en 両方の行を全部集める（認識率を上げる）
-        try:
-            r = winocr.recognize_pil_sync(proc, lang)
+    """3種の前処理×OCRの行を全部合算して (テキスト, x, y) を返す（重複は除去）。"""
+    scale = 3 if img.width < 700 else 1
+    seen, out = set(), []
+    for vi, proc in enumerate(_variants(img)):
+        if scale > 1:
+            proc = proc.resize((proc.width * scale, proc.height * scale), Image.LANCZOS)
+        if CALIBRATE and vi == 0:
+            try: proc.save(os.path.join(HERE, "tbh-ocr-proc.png"))
+            except Exception: pass
+        rgb = proc.convert("RGB")
+        for lang in OCR_LANGS:
+            try:
+                r = winocr.recognize_pil_sync(rgb, lang)
+            except Exception:
+                continue
             for ln in (r.get("lines") if isinstance(r, dict) else []) or []:
                 ws = ln.get("words") or []
                 if not ws:
@@ -165,11 +165,13 @@ def ocr_lines(img):
                 rs = [w["bounding_rect"]["x"] + w["bounding_rect"]["width"] for w in ws]
                 ys = [w["bounding_rect"]["y"] for w in ws]
                 bs = [w["bounding_rect"]["y"] + w["bounding_rect"]["height"] for w in ws]
-                cx = (min(xs) + max(rs)) / 2 / fx
-                cy = (min(ys) + max(bs)) / 2 / fx
-                out.append((ln.get("text", ""), cx, cy))
-        except Exception:
-            pass
+                cx = (min(xs) + max(rs)) / 2 / scale
+                cy = (min(ys) + max(bs)) / 2 / scale
+                t = ln.get("text", "")
+                key = (t, round(cx / 25), round(cy / 25))
+                if key in seen:
+                    continue
+                seen.add(key); out.append((t, cx, cy))
     return out
 
 

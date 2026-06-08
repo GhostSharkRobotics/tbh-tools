@@ -160,13 +160,14 @@ def detect_boxes(img):
         return []
     arr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
     res = cv2.matchTemplate(arr, _TPL, cv2.TM_CCOEFF_NORMED)
-    ys, xs = np.where(res >= 0.72)
+    # 閾値は低め＝枠を取りこぼさない。誤検出はマッチャの確信0.85で除外される。
+    ys, xs = np.where(res >= 0.62)
     peaks = sorted(zip(xs.tolist(), ys.tolist(), res[ys, xs].tolist()), key=lambda p: -p[2])
     picked = []
     for x, y, s in peaks:                       # 近接ピークをまとめる
-        if all(abs(x - px) > 40 or abs(y - py) > 24 for px, py, _ in picked):
+        if all(abs(x - px) > 45 or abs(y - py) > 26 for px, py, _ in picked):
             picked.append((x, y, s))
-        if len(picked) >= 8:
+        if len(picked) >= 14:
             break
     out = []
     for x, y, s in picked:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""tbh-prices.json -> tbh-price-lookup.json
-OCR名を「既知名」へ曖昧スナップする索引。EN/JA両対応。
-変種A/B・レベルはベース名でグループ化し、該当変種を全部返せるようにする。
+"""tbh-data.json(全アイテム) + tbh-prices.json(価格) -> tbh-price-lookup.json
+全アイテム(装備/宝石/素材/彫刻/アイテム)を名前＋等級で索引化し、市場価格があれば付与する。
+価格が無ければ sell=None（=「市場価格なし」）。OCR名→既知名へ曖昧スナップ用。EN/JA両対応。
 """
 import json, re, unicodedata, os
 
@@ -22,54 +22,97 @@ def norm(s: str) -> str:
     s = s.translate(_SMALL)
     s = unicodedata.normalize("NFD", s).replace("゙", "").replace("゚", "")
     s = s.translate(_LOOK)
+    s = s.replace("等級", "")                       # 「○○等級」の等級は除去
     s = re.sub(r"[\s　ー\-ｰ~一()\[\]（）【】・,._/:：]+", "", s)
     return s
 
-def split_variant(en: str):
-    """末尾の ' A'/' B'/' C' を変種として分離。base, variant を返す。"""
-    m = re.match(r"^(.*?)[ 　]+([A-C])$", en.strip())
-    if m: return m.group(1).strip(), m.group(2)
-    return en.strip(), ""
-
-def base_ja(ja: str):
-    """JA名末尾の ' A'/' B' を除いたベース。"""
-    return re.sub(r"[ 　]+[A-C]$", "", ja.strip()).strip()
 
 def main():
-    src = json.load(open(os.path.join(ROOT, "tbh-prices.json"), encoding="utf-8"))
-    prices = src["prices"]
-    entries = []
-    for en, v in prices.items():
-        b_en, variant = split_variant(en)
-        entries.append({
-            "en": en, "ja": v.get("name_ja", ""),
-            "base_en": b_en, "base_ja": base_ja(v.get("name_ja", "")),
-            "variant": variant,
-            "sell": v.get("sell"), "median": v.get("median"),
-            "listings": v.get("listings"), "volume": v.get("volume"),
-            "type": v.get("type", ""),
-        })
+    data = json.load(open(os.path.join(ROOT, "tbh-data.json"), encoding="utf-8"))
+    prices = json.load(open(os.path.join(ROOT, "tbh-prices.json"), encoding="utf-8"))["prices"]
 
-    # ベース正規化名 -> 同一ベースの全エントリindex（=変種A/Bまとめ）
+    # レアリティ en->ja（rarityOrder と equipRarities が同順）
+    rorder = data.get("rarityOrder", [])
+    rja = [r["name"] for r in data.get("equipRarities", [])]
+    RMAP = dict(zip(rorder, rja))
+
+    def price_of(hashkey):
+        return prices.get(hashkey)
+
+    entries = {}   # キー(ja, rarity_ja) -> entry。A/Bは価格ある方を採用してまとめる
+    def put(ja, en, rarity_en, hashkey, gtype, variant=""):
+        if not ja and not en: return
+        rja_ = RMAP.get(rarity_en, "")
+        k = (ja, rja_, en)
+        e = entries.get(k)
+        if e is None:
+            e = {"ja": ja, "en": en, "rarity_ja": rja_, "rarity_en": rarity_en or "",
+                 "type": gtype or "", "hash": hashkey, "variant": variant,
+                 "sell": None, "median": None, "listings": None, "volume": None}
+            entries[k] = e
+        pr = price_of(hashkey)
+        if pr and e["sell"] is None:
+            e.update(sell=pr.get("sell"), median=pr.get("median"),
+                     listings=pr.get("listings"), volume=pr.get("volume"),
+                     hash=hashkey, type=pr.get("type", e["type"]))
+
+    # 装備: nameEn (rarity) variant
+    for x in data.get("equipment", []):
+        var = x.get("variant", "") or ""
+        hk = f"{x['nameEn']} ({x['rarity']})" + (f" {var}" if var else "")
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), hk, x.get("gearJa", ""), var)
+
+    # 宝石・彫刻: nameEn（市場は素名）
+    for x in data.get("gems", []):
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "宝石")
+    for x in data.get("engravings", []):
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "彫刻素材")
+    # 素材: name.{ja,en}
+    for x in data.get("materials", []):
+        nm = x.get("name", {})
+        put(nm.get("ja", ""), nm.get("en", ""), None, nm.get("en", ""), x.get("materialType", "素材"))
+    # アイテム類: name.{ja,en}
+    for x in data.get("items", []):
+        nm = x.get("name", {})
+        put(nm.get("ja", ""), nm.get("en", ""), None, nm.get("en", ""), x.get("type", "アイテム"))
+
+    # 価格にあってDBで拾えなかったキーはそのまま追加（取りこぼし防止）
+    seen_hash = {e["hash"] for e in entries.values()}
+    for hk, pr in prices.items():
+        if hk in seen_hash: continue
+        m = re.match(r"^(.*?) \(([^)]+)\)(?: ([A-C]))?$", hk)
+        if m:
+            en_base, rar, var = m.group(1), m.group(2), m.group(3) or ""
+        else:
+            en_base, rar, var = hk, None, ""
+        k = (pr.get("name_ja", ""), RMAP.get(rar, ""), en_base)
+        if k in entries: continue
+        entries[k] = {"ja": pr.get("name_ja", ""), "en": en_base, "rarity_ja": RMAP.get(rar, ""),
+                      "rarity_en": rar or "", "type": pr.get("type", ""), "hash": hk, "variant": var,
+                      "sell": pr.get("sell"), "median": pr.get("median"),
+                      "listings": pr.get("listings"), "volume": pr.get("volume")}
+
+    entries = list(entries.values())
+
+    # 索引: 名前＋等級 / 名前 / 英名＋等級 / 英名（normで）
     index = {}
     def add(key, i):
         if not key: return
         index.setdefault(key, [])
         if i not in index[key]: index[key].append(i)
-    for i, r in enumerate(entries):
-        add(norm(r["base_en"]), i)
-        add(norm(r["base_ja"]), i)
-        add(norm(r["en"]), i)   # フル名でも引けるように
-        add(norm(r["ja"]), i)
+    for i, e in enumerate(entries):
+        ja, en, rj, re_ = e["ja"], e["en"], e["rarity_ja"], e["rarity_en"]
+        add(norm(ja + rj), i)
+        add(norm(ja), i)
+        add(norm(en + re_), i)
+        add(norm(en), i)
 
-    out = {
-        "marketUpdated": src.get("marketUpdated"),
-        "currency": src.get("currency"), "unit": src.get("unit"),
-        "entries": entries, "index": index,
-    }
-    dst = os.path.join(ROOT, "tbh-price-lookup.json")
-    json.dump(out, open(dst, "w", encoding="utf-8"), ensure_ascii=False)
-    print(f"entries={len(entries)} index_keys={len(index)} -> {dst}")
+    out = {"marketUpdated": json.load(open(os.path.join(ROOT, "tbh-prices.json"), encoding="utf-8")).get("marketUpdated"),
+           "entries": entries, "index": index}
+    json.dump(out, open(os.path.join(ROOT, "tbh-price-lookup.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    priced = sum(1 for e in entries if e["sell"] is not None)
+    print(f"entries={len(entries)} (price有={priced}) index_keys={len(index)}")
+
 
 if __name__ == "__main__":
     main()

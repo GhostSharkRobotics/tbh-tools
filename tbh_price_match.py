@@ -29,13 +29,11 @@ class Matcher:
         self.marketUpdated = d.get("marketUpdated")
 
     def _collect(self, key, score):
-        # 同一ベース名の全変種(A/B)を集約して返す
-        idxs = self.index[key]
-        bases = {norm(self.entries[i]["base_en"]) for i in idxs}
-        out = [dict(self.entries[i]) for i in range(len(self.entries))
-               if norm(self.entries[i]["base_en"]) in bases]
-        out.sort(key=lambda e: (e["base_en"], e["variant"]))
-        for e in out: e["score"] = round(score, 3)
+        # その索引キーのエントリを返す。価格がある方を優先（A/B等）。
+        out = [dict(self.entries[i]) for i in self.index[key]]
+        out.sort(key=lambda e: (e.get("sell") is None, -(e.get("sell") or 0)))
+        for e in out:
+            e["score"] = round(score, 3)
         return out
 
     def match(self, ocr_text: str, min_score=0.7):

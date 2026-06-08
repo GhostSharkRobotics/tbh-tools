@@ -153,11 +153,10 @@ def ocr_lines(img):
     if CALIBRATE:
         try: proc.save(os.path.join(HERE, "tbh-ocr-proc.png"))
         except Exception: pass
-    best = []
-    for lang in OCR_LANGS:
+    out = []
+    for lang in OCR_LANGS:          # ja/en 両方の行を全部集める（認識率を上げる）
         try:
             r = winocr.recognize_pil_sync(proc, lang)
-            lines = []
             for ln in (r.get("lines") if isinstance(r, dict) else []) or []:
                 ws = ln.get("words") or []
                 if not ws:
@@ -168,12 +167,10 @@ def ocr_lines(img):
                 bs = [w["bounding_rect"]["y"] + w["bounding_rect"]["height"] for w in ws]
                 cx = (min(xs) + max(rs)) / 2 / fx
                 cy = (min(ys) + max(bs)) / 2 / fx
-                lines.append((ln.get("text", ""), cx, cy))
-            if len(lines) > len(best):
-                best = lines
+                out.append((ln.get("text", ""), cx, cy))
         except Exception:
             pass
-    return best
+    return out
 
 
 WORKQ = queue.Queue()    # 戻るボタン押下シグナル（常駐ワーカーが処理）
@@ -234,7 +231,7 @@ def ocr_worker():
                     with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
                         f.write(f"cursor={xy}  win_off=({ox},{oy})\n--CANDIDATES--\n")
                         for sc, d2, sx, sy, r in sorted(cands, key=lambda c: c[1]):
-                            f.write(f"{r[0]['base_ja']}  score={sc} dist={int(d2**0.5)} @({int(sx)},{int(sy)})\n")
+                            f.write(f"{r[0].get('ja','?')}（{r[0].get('rarity_ja','')}）¥{r[0].get('sell')}  score={sc} dist={int(d2**0.5)} @({int(sx)},{int(sy)})\n")
                         f.write("--LINES--\n")
                         for t, cx, cy in lines:
                             f.write(f"({int(ox+cx)},{int(oy+cy)}) {t}\n")
@@ -282,15 +279,22 @@ def show_popup(results, xy, text, root):
         row(f"読取: {snip}", C_META, f_meta, (0, 16))
     else:
         e = results[0]
-        jp = e.get("base_ja") or e.get("ja") or e["base_en"]   # 日本語名＋等級を大きく
+        rj = e.get("rarity_ja") or ""
+        jp = e.get("ja", "") + (f"（{rj}）" if rj else "")     # 日本語名＋等級を大きく
         row(jp, C_NAME, f_name, (16, 0))
-        row(e["base_en"], C_JA, f_sub, (0, 4))                  # 英語名は小さく
-        row(f"最安 {yen(e['sell'])}    中央値 {yen(e['median'])}", C_PRICE, f_price, (4, 4))
-        row(f"{e.get('type','')}   出品 {e.get('listings','—')} / 売買 {e.get('volume','—')}",
-            C_META, f_meta, (0, 2))
-        row("クリックでSteamマーケットを開く", C_ACCENT, f_meta, (0, 2))
-        row(f"相場 {matcher.marketUpdated or '—'}", C_META, f_meta, (0, 16))
-        url = f"https://steamcommunity.com/market/listings/{APPID}/" + urllib.parse.quote(e["en"])
+        en_line = e.get("en", "") + (f" ({e['rarity_en']})" if e.get("rarity_en") else "")
+        row(en_line, C_JA, f_sub, (0, 4))                      # 英語名は小さく
+        if e.get("sell") is not None:
+            row(f"最安 {yen(e['sell'])}    中央値 {yen(e['median'])}", C_PRICE, f_price, (4, 4))
+            row(f"{e.get('type','')}   出品 {e.get('listings','—')} / 売買 {e.get('volume','—')}",
+                C_META, f_meta, (0, 2))
+            row("クリックでSteamマーケットを開く", C_ACCENT, f_meta, (0, 2))
+            row(f"相場 {matcher.marketUpdated or '—'}", C_META, f_meta, (0, 16))
+            url = f"https://steamcommunity.com/market/listings/{APPID}/" + \
+                  urllib.parse.quote(e.get("hash") or e.get("en", ""))
+        else:
+            row("市場価格なし（非取引）", C_PRICE, f_price, (4, 4))
+            row(e.get("type", ""), C_META, f_meta, (0, 16))
 
     win.update_idletasks()
     sw, sh = win.winfo_screenwidth(), win.winfo_screenheight()

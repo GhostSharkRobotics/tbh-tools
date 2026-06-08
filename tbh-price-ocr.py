@@ -380,9 +380,16 @@ def _round_corners(win):
     except Exception:
         pass
 
+def _top_hwnd(win):
+    """Tkウィンドウの本当のトップレベルHWNDを返す（overrideredirectは子HWNDが返るためGA_ROOTで解決）。"""
+    import ctypes
+    h = win.winfo_id()
+    r = ctypes.windll.user32.GetAncestor(h, 2)   # GA_ROOT
+    return r or ctypes.windll.user32.GetParent(h) or h
+
 def _keep_on_top(win):
     """フルスクリーンのゲームより前へ。フォーカスは奪わない(SWP_NOACTIVATE)＝ゲーム最小化しない。
-    ゲームが前面に戻っても200ms毎に再主張して背後に回り込むのを防ぐ。"""
+    ゲームが前面に戻っても120ms毎に再主張して背後に回り込むのを防ぐ。"""
     try: import ctypes
     except Exception: return
     HWND_TOPMOST = -1
@@ -390,10 +397,9 @@ def _keep_on_top(win):
     def tick():
         if not win.winfo_exists(): return
         try:
-            hwnd = win.winfo_id()
-            ctypes.windll.user32.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP)
+            ctypes.windll.user32.SetWindowPos(_top_hwnd(win), HWND_TOPMOST, 0, 0, 0, 0, SWP)
         except Exception: pass
-        win.after(200, tick)
+        win.after(120, tick)
     tick()
 
 def round_pill(parent, text, fill, fg, cmd, font, padx=14, pady=6):

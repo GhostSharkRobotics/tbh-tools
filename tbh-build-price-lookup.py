@@ -40,41 +40,44 @@ def main():
         return prices.get(hashkey)
 
     entries = {}   # キー(ja, rarity_ja) -> entry。A/Bは価格ある方を採用してまとめる
-    def put(ja, en, rarity_en, hashkey, gtype, variant=""):
+    def put(ja, en, rarity_en, hashkey, type_ja, type_en, variant=""):
         if not ja and not en: return
         rja_ = RMAP.get(rarity_en, "")
         k = (ja, rja_, en)
         e = entries.get(k)
         if e is None:
             e = {"ja": ja, "en": en, "rarity_ja": rja_, "rarity_en": rarity_en or "",
-                 "type": gtype or "", "hash": hashkey, "variant": variant,
+                 "type_ja": type_ja or "", "type_en": type_en or type_ja or "", "type": type_ja or "",
+                 "hash": hashkey, "variant": variant,
                  "sell": None, "median": None, "listings": None, "volume": None}
             entries[k] = e
         pr = price_of(hashkey)
         if pr and e["sell"] is None:
             e.update(sell=pr.get("sell"), median=pr.get("median"),
-                     listings=pr.get("listings"), volume=pr.get("volume"),
-                     hash=hashkey, type=pr.get("type", e["type"]))
+                     listings=pr.get("listings"), volume=pr.get("volume"), hash=hashkey)
+            if pr.get("type"): e["type_en"] = pr["type"]   # 価格側の英語種別(例 Bow - Lv. 20)
 
     # 装備: nameEn (rarity) variant
     for x in data.get("equipment", []):
         var = x.get("variant", "") or ""
         hk = f"{x['nameEn']} ({x['rarity']})" + (f" {var}" if var else "")
-        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), hk, x.get("gearJa", ""), var)
+        lvl = x.get("lvl", "")
+        tj = f"{x.get('gearJa','')} Lv.{lvl}"; te = f"{(x.get('gear','') or '').title()} Lv.{lvl}"
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), hk, tj, te, var)
 
     # 宝石・彫刻: nameEn（市場は素名）
     for x in data.get("gems", []):
-        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "宝石")
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "宝石", "Gem")
     for x in data.get("engravings", []):
-        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "彫刻素材")
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "彫刻素材", "Engraving")
     # 素材: name.{ja,en}
     for x in data.get("materials", []):
-        nm = x.get("name", {})
-        put(nm.get("ja", ""), nm.get("en", ""), None, nm.get("en", ""), x.get("materialType", "素材"))
+        nm = x.get("name", {}); mt = (x.get("materialType", "") or "素材")
+        put(nm.get("ja", ""), nm.get("en", ""), None, nm.get("en", ""), mt, mt.title())
     # アイテム類: name.{ja,en}
     for x in data.get("items", []):
-        nm = x.get("name", {})
-        put(nm.get("ja", ""), nm.get("en", ""), None, nm.get("en", ""), x.get("type", "アイテム"))
+        nm = x.get("name", {}); tp = x.get("type", "")
+        put(nm.get("ja", ""), nm.get("en", ""), None, nm.get("en", ""), tp, tp)
 
     # 価格にあってDBで拾えなかったキーはそのまま追加（取りこぼし防止）
     seen_hash = {e["hash"] for e in entries.values()}
@@ -87,8 +90,10 @@ def main():
             en_base, rar, var = hk, None, ""
         k = (pr.get("name_ja", ""), RMAP.get(rar, ""), en_base)
         if k in entries: continue
+        tp = pr.get("type", "")
         entries[k] = {"ja": pr.get("name_ja", ""), "en": en_base, "rarity_ja": RMAP.get(rar, ""),
-                      "rarity_en": rar or "", "type": pr.get("type", ""), "hash": hk, "variant": var,
+                      "rarity_en": rar or "", "type_ja": tp, "type_en": tp, "type": tp,
+                      "hash": hk, "variant": var,
                       "sell": pr.get("sell"), "median": pr.get("median"),
                       "listings": pr.get("listings"), "volume": pr.get("volume")}
 

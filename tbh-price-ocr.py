@@ -366,15 +366,16 @@ def show_popup(results, xy, text, root):
             rows.append((en_line, C_NAME, f_name, 2)); rows.append((ja_line, C_JA, f_sub, 1))
         else:
             rows.append((ja_line, C_NAME, f_name, 2)); rows.append((en_line, C_JA, f_sub, 1))
+        cat = e.get("type_en" if _ui_lang == "en" else "type_ja") or e.get("type", "")
         if e.get("sell") is not None:
             rows.append((f"{lb['low']} {yen(e['sell'])}   {lb['med']} {yen(e['median'])}", C_PRICE, f_price, 3))
-            rows.append((f"{e.get('type','')}  {lb['lst']}{e.get('listings','—')}/{lb['sold']}{e.get('volume','—')}", C_META, f_meta, 1))
+            rows.append((f"{cat}  {lb['lst']}{e.get('listings','—')}/{lb['sold']}{e.get('volume','—')}", C_META, f_meta, 1))
             rows.append((lb["mkt"], C_ACCENT, f_meta, 2))
             url = f"https://steamcommunity.com/market/listings/{APPID}/" + \
                   urllib.parse.quote(e.get("hash") or e.get("en", ""))
         else:
             rows.append((lb["noprice"], C_PRICE, f_price, 3))
-            rows.append((e.get("type", ""), C_META, f_meta, 1))
+            rows.append((cat, C_META, f_meta, 1))
 
     padx, pady = 16, 12
     W = max(f.measure(t) for t, c, f, ip in rows) + padx * 2

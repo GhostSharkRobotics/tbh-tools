@@ -388,16 +388,25 @@ def _top_hwnd(win):
     return r or ctypes.windll.user32.GetParent(h) or h
 
 def _keep_on_top(win):
-    """フルスクリーンのゲームより前へ。フォーカスは奪わない(SWP_NOACTIVATE)＝ゲーム最小化しない。
-    ゲームが前面に戻っても120ms毎に再主張して背後に回り込むのを防ぐ。"""
+    """フルスクリーン(ボーダーレス)のゲームの前へ出し続ける。要点は WS_EX_NOACTIVATE:
+    これを付けるとポップをクリックしてもアクティブ化が起きない＝ゲームが前面に出てこない。
+    さらにTOPMOSTを維持し、120ms毎に再主張して背後への回り込みを防ぐ。"""
     try: import ctypes
     except Exception: return
+    u = ctypes.windll.user32
+    GWL_EXSTYLE = -20
+    WS_EX_TOPMOST, WS_EX_NOACTIVATE = 0x00000008, 0x08000000
     HWND_TOPMOST = -1
     SWP = 0x0001 | 0x0002 | 0x0010   # NOSIZE | NOMOVE | NOACTIVATE
     def tick():
         if not win.winfo_exists(): return
         try:
-            ctypes.windll.user32.SetWindowPos(_top_hwnd(win), HWND_TOPMOST, 0, 0, 0, 0, SWP)
+            h = _top_hwnd(win)
+            ex = u.GetWindowLongW(h, GWL_EXSTYLE)
+            want = ex | WS_EX_TOPMOST | WS_EX_NOACTIVATE
+            if want != ex:
+                u.SetWindowLongW(h, GWL_EXSTYLE, want)
+            u.SetWindowPos(h, HWND_TOPMOST, 0, 0, 0, 0, SWP)
         except Exception: pass
         win.after(120, tick)
     tick()

@@ -154,11 +154,15 @@ def _adapt(c):
 
 
 def _ocr(c):
-    try:
-        r = winocr.recognize_pil_sync(_adapt(c), "ja")
-        return " ".join(l.get("text", "") for l in (r.get("lines") if isinstance(r, dict) else []) or [])
-    except Exception:
-        return ""
+    proc = _adapt(c)
+    out = []
+    for lang in ("ja", "en"):          # 日本語・英語どちらの表示でも読めるよう両方
+        try:
+            r = winocr.recognize_pil_sync(proc, lang)
+            out.append(" ".join(l.get("text", "") for l in (r.get("lines") if isinstance(r, dict) else []) or []))
+        except Exception:
+            pass
+    return "  ".join(out)
 
 
 def detect_boxes(img):
@@ -285,6 +289,9 @@ def ocr_worker():
                 best = max(same, key=lambda c: c[0])
                 if best[0] >= 0.85:
                     found, chosen = best[4], best
+                    bname = best[7]                       # 読み取った名前テキスト
+                    ja_n = sum(1 for ch in bname if ord(ch) > 0x3000)
+                    found[0]["_lang"] = "en" if ja_n < 2 else "ja"   # 英語表示モード判定
             if DEBUG_UI:                          # デバッグUI: 撮影画像＋枠＋読取＋結果を1枚に
                 try:
                     PQ.put(("__debug__", _annotate(img, boxes, cands, chosen, xy, (ox, oy)), None))
@@ -297,6 +304,11 @@ def ocr_worker():
 
 # ---- ポップ表示（メインスレッドで） --------------------------------------
 _open = []
+def _rrect(cv, x0, y0, x1, y1, r, **kw):
+    pts = [x0+r,y0, x1-r,y0, x1,y0, x1,y0+r, x1,y1-r, x1,y1, x1-r,y1,
+           x0+r,y1, x0,y1, x0,y1-r, x0,y0+r, x0,y0]
+    return cv.create_polygon(pts, smooth=True, **kw)
+
 def show_popup(results, xy, text, root):
     for w in _open[:]:
         try: w.destroy()
@@ -306,63 +318,66 @@ def show_popup(results, xy, text, root):
     win = tk.Toplevel(root)
     win.overrideredirect(True)
     win.attributes("-topmost", True)
-    try: win.attributes("-alpha", 0.97)
+    KEY = "#ff00fe"
+    win.config(bg=KEY)
+    try: win.attributes("-transparentcolor", KEY)   # 角を透過＝丸角
     except Exception: pass
 
-    border = tk.Frame(win, bg=C_ACCENT)
-    border.pack()
-    card = tk.Frame(border, bg=C_CARD)
-    card.pack(padx=(6, 2), pady=2)   # 左に太めのアクセント帯
+    f_name  = tkfont.Font(family="Yu Gothic UI", size=14, weight="bold")
+    f_price = tkfont.Font(family="Yu Gothic UI", size=18, weight="bold")
+    f_sub   = tkfont.Font(family="Yu Gothic UI", size=10)
+    f_meta  = tkfont.Font(family="Yu Gothic UI", size=9)
 
-    f_name  = tkfont.Font(family="Yu Gothic UI", size=20, weight="bold")
-    f_price = tkfont.Font(family="Yu Gothic UI", size=26, weight="bold")
-    f_sub   = tkfont.Font(family="Yu Gothic UI", size=15)
-    f_meta  = tkfont.Font(family="Yu Gothic UI", size=12)
-
-    def row(txt, color, fnt, pady=(2, 2)):
-        tk.Label(card, text=txt, bg=C_CARD, fg=color, font=fnt,
-                 anchor="w", justify="left").pack(fill="x", padx=20, pady=pady)
-
+    rows = []   # (text, color, font, ipady)
     url = None
     if results == "__processing__":
-        row("🔍 読み取り中…", C_ACCENT, f_name, (16, 16))
+        rows = [("🔍 読み取り中…", C_ACCENT, f_name, 4)]
     elif not results:
-        row("該当なし", C_ERR, f_name, (16, 4))
         snip = (text or "").strip().replace("\n", " ")[:36] or "(読取なし)"
-        row(f"読取: {snip}", C_META, f_meta, (0, 16))
+        rows = [("該当なし", C_ERR, f_name, 2), ("読取: " + snip, C_META, f_meta, 2)]
     else:
         e = results[0]
         rj = e.get("rarity_ja") or ""
-        jp = e.get("ja", "") + (f"（{rj}）" if rj else "")     # 日本語名＋等級を大きく
-        row(jp, C_NAME, f_name, (16, 0))
+        ja_line = e.get("ja", "") + (f"（{rj}）" if rj else "")
         en_line = e.get("en", "") + (f" ({e['rarity_en']})" if e.get("rarity_en") else "")
-        row(en_line, C_JA, f_sub, (0, 4))                      # 英語名は小さく
+        if e.get("_lang") == "en":                       # 英語モードは英語名を主表示
+            rows.append((en_line, C_NAME, f_name, 2)); rows.append((ja_line, C_JA, f_sub, 1))
+        else:
+            rows.append((ja_line, C_NAME, f_name, 2)); rows.append((en_line, C_JA, f_sub, 1))
         if e.get("sell") is not None:
-            row(f"最安 {yen(e['sell'])}    中央値 {yen(e['median'])}", C_PRICE, f_price, (4, 4))
-            row(f"{e.get('type','')}   出品 {e.get('listings','—')} / 売買 {e.get('volume','—')}",
-                C_META, f_meta, (0, 2))
-            row("クリックでSteamマーケットを開く", C_ACCENT, f_meta, (0, 2))
-            row(f"相場 {matcher.marketUpdated or '—'}", C_META, f_meta, (0, 16))
+            rows.append((f"最安 {yen(e['sell'])}   中央値 {yen(e['median'])}", C_PRICE, f_price, 3))
+            rows.append((f"{e.get('type','')}  出品{e.get('listings','—')}/売買{e.get('volume','—')}", C_META, f_meta, 1))
+            rows.append(("クリックでSteamマーケットを開く", C_ACCENT, f_meta, 2))
             url = f"https://steamcommunity.com/market/listings/{APPID}/" + \
                   urllib.parse.quote(e.get("hash") or e.get("en", ""))
         else:
-            row("市場価格なし（非取引）", C_PRICE, f_price, (4, 4))
-            row(e.get("type", ""), C_META, f_meta, (0, 16))
+            rows.append(("市場価格なし（非取引）", C_PRICE, f_price, 3))
+            rows.append((e.get("type", ""), C_META, f_meta, 1))
+
+    padx, pady = 16, 12
+    W = max(f.measure(t) for t, c, f, ip in rows) + padx * 2
+    hs = [f.metrics("linespace") + ip * 2 for t, c, f, ip in rows]
+    H = sum(hs) + pady * 2
+    cv = tk.Canvas(win, bg=KEY, highlightthickness=0, width=W, height=H)
+    cv.pack()
+    _rrect(cv, 1, 1, W - 1, H - 1, 16, fill=C_CARD, outline=C_ACCENT, width=2)
+    yy = pady
+    for (t, c, f, ip), h in zip(rows, hs):
+        cv.create_text(padx, yy + ip, text=t, fill=c, font=f, anchor="nw")
+        yy += h
 
     win.update_idletasks()
     sw, sh = win.winfo_screenwidth(), win.winfo_screenheight()
-    pw, ph = win.winfo_width(), win.winfo_height()
-    x = min(max(8, xy[0] + 26), sw - pw - 8)     # カーソル近くに表示
-    y = min(max(8, xy[1] + 26), sh - ph - 8)
-    win.geometry(f"+{x}+{y}")
+    x = min(max(8, xy[0] + 24), sw - W - 8)
+    y = min(max(8, xy[1] + 24), sh - H - 8)
+    win.geometry(f"{W}x{H}+{x}+{y}")
 
     def on_click(ev):
         if url:
             try: webbrowser.open(url)
             except Exception: pass
         win.destroy()
-    for w in [win, border, card] + list(card.winfo_children()):
-        w.bind("<Button-1>", on_click)
+    cv.bind("<Button-1>", on_click); win.bind("<Button-1>", on_click)
     win.after(int(POPUP_SECONDS * 1000), lambda: (win.winfo_exists() and win.destroy()))
     _open.append(win)
 

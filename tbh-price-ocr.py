@@ -405,13 +405,18 @@ _trigger = {"kind": "mouse", "value": SIDE_BUTTON}   # 既定：マウス戻る(
 _trig_hook = [None]                                  # (kind, handler) 解除用
 _set_win = [None]                                    # 設定ウィンドウ
 
-_MOUSE_LBL = {"x": "マウス サイド(戻る)", "x2": "マウス サイド(進む)", "middle": "マウス 中ボタン",
-              "left": "マウス 左", "right": "マウス 右"}
+_MOUSE_LBL = {
+    "ja": {"x": "マウス サイド(戻る)", "x2": "マウス サイド(進む)", "middle": "マウス 中ボタン",
+           "left": "マウス 左", "right": "マウス 右"},
+    "en": {"x": "Mouse Side (Back)", "x2": "Mouse Side (Forward)", "middle": "Mouse Middle",
+           "left": "Mouse Left", "right": "Mouse Right"},
+}
 
 def _trigger_label(kind=None, value=None):
     kind = kind or _trigger["kind"]; value = value if value is not None else _trigger["value"]
     if kind == "mouse":
-        return _MOUSE_LBL.get(value, "マウス " + str(value))
+        d = _MOUSE_LBL.get(_ui_lang, _MOUSE_LBL["ja"])
+        return d.get(value, ("マウス " if _ui_lang == "ja" else "Mouse ") + str(value))
     return " + ".join(p.capitalize() for p in str(value).split("+"))   # ctrl+shift+p → Ctrl + Shift + P
 
 def _save_settings():
@@ -909,8 +914,8 @@ def _refresh_history():
 def show_history(root):
     if _hist_win[0] and _hist_win[0].winfo_exists():
         _hist_win[0].deiconify(); _refresh_history(); return
-    win = tk.Toplevel(root); win.title("TBH 価格履歴"); win.config(bg=C_CARD)
-    win.geometry("360x460"); win.attributes("-topmost", True)
+    win = tk.Toplevel(root); win.title("価格履歴" if _ui_lang == "ja" else "Price history")
+    win.config(bg=C_CARD); win.geometry("360x460"); win.attributes("-topmost", True)
     win.protocol("WM_DELETE_WINDOW", lambda: toggle_history(root))   # ×でオフに同期
     f_hbtn = tkfont.Font(family="Yu Gothic UI", size=9)
     hdr = tk.Frame(win, bg=C_CARD); hdr.pack(fill="x", padx=12, pady=(10, 0))
@@ -1084,17 +1089,23 @@ def run_tray(root):
             PQ.put(("__hist_trim__", None, None))
             icon.update_menu()
         return _cb
+    def _t(ja_s, en_s): return ja_s if _ui_lang == "ja" else en_s
+    def _limit_label(n):
+        return (("無制限" if _ui_lang == "ja" else "Unlimited") if n == 0
+                else (f"{n} 件" if _ui_lang == "ja" else f"{n}"))
     limit_menu = pystray.Menu(*[
-        pystray.MenuItem(("無制限" if n == 0 else f"{n} 件"), _mk_limit(n),
+        pystray.MenuItem(lambda item, n=n: _limit_label(n), _mk_limit(n),
                          checked=lambda item, n=n: _hist_limit[0] == n, radio=True)
         for n in (20, 50, 100, 200, 0)
     ])
     menu = pystray.Menu(
-        pystray.MenuItem(lambda item: f"キー：{_trigger_label()}", None, enabled=False),
-        pystray.MenuItem("設定", lambda icon, item: PQ.put(("__settings__", None, None))),
-        pystray.MenuItem("履歴一覧", _toggle_hist, checked=lambda item: _hist_visible[0]),
-        pystray.MenuItem("履歴の上限", limit_menu),
-        pystray.MenuItem("終了", _quit),
+        pystray.MenuItem(lambda item: f"{_t('キー：', 'Key: ')}{_trigger_label()}", None, enabled=False),
+        pystray.MenuItem(lambda item: _t("設定", "Settings"),
+                         lambda icon, item: PQ.put(("__settings__", None, None))),
+        pystray.MenuItem(lambda item: _t("履歴一覧", "History"), _toggle_hist,
+                         checked=lambda item: _hist_visible[0]),
+        pystray.MenuItem(lambda item: _t("履歴の上限", "History limit"), limit_menu),
+        pystray.MenuItem(lambda item: _t("終了", "Quit"), _quit),
     )
     pystray.Icon("tbh_price_ocr", tray_image(), "TBH 相場OCR", menu).run()
 

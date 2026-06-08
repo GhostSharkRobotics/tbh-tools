@@ -58,7 +58,7 @@ TR = {
         "nomatch": "該当なし", "reading": "🔍 読み取り中…", "read": "読取",
         "rarity": "等級", "history": "履歴",
         "hist_title": "価格履歴", "update_all": "全部更新", "hist_empty": "まだ履歴がありません",
-        "updating": "更新中 {n}/{total}…", "updated": "更新 {t}",
+        "updating": "更新中 {n}/{total}…", "updated": "更新 {t}", "updating_btn": "更新中…", "updating_btn": "更新中…",
         "fav": "☆ お気に入り", "unfav": "★ お気に入り解除", "rename": "アイテム名変更",
         "rarity_change": "レア度変更", "delete": "削除", "rename_title": "アイテム名変更",
         "ok": "OK", "cancel": "キャンセル",
@@ -94,7 +94,7 @@ TR = {
         "nomatch": "No match", "reading": "🔍 Reading…", "read": "OCR",
         "rarity": "Rarity", "history": "History",
         "hist_title": "Price history", "update_all": "Update all", "hist_empty": "No history yet",
-        "updating": "Updating {n}/{total}…", "updated": "Updated {t}",
+        "updating": "Updating {n}/{total}…", "updated": "Updated {t}", "updating_btn": "Updating…",
         "fav": "☆ Favorite", "unfav": "★ Unfavorite", "rename": "Rename",
         "rarity_change": "Rarity", "delete": "Delete", "rename_title": "Rename item",
         "ok": "OK", "cancel": "Cancel",
@@ -1179,6 +1179,7 @@ def _hist_apply_cache():
 
 _hist_gen = [0]            # 全部更新の世代。新しい更新が始まると古い取得は中断（言語連続切替の競合防止）
 _hist_updating = [False]   # 全部更新が実行中か（連打で多重起動しないように）
+_hist_update_btn = [None]  # 「全部更新」ボタン（実行中は表示を変える）
 
 def _hist_update_all(force=True):
     if _hist_updating[0]: return                       # 実行中の連打は無視（多重起動しない）
@@ -1188,6 +1189,10 @@ def _hist_update_all(force=True):
     _hist_updating[0] = True
     _hist_gen[0] += 1; gen = _hist_gen[0]
     cur = _cur_code()                                  # この更新が固定で扱う通貨
+    def _btn(text):                                    # ボタン表示を実行中⇄通常で切替（押せない理由を可視化）
+        b = _hist_update_btn[0]
+        if b and b.winfo_exists(): _pill_set_text(b, text)
+    _hist_after(lambda: _btn("⏳ " + T("updating_btn")))
     def alive(): return gen == _hist_gen[0]
     def setstat(txt):
         def _s():
@@ -1220,6 +1225,7 @@ def _hist_update_all(force=True):
     def waiter():
         for t in threads: t.join()
         _hist_updating[0] = False                      # 完了→再度押せる
+        _hist_after(lambda: _btn("↻ " + T("update_all")))
         if not alive(): return
         _save_hist()
         setstat(T("updated", t=time.strftime("%H:%M:%S")))
@@ -1385,8 +1391,9 @@ def show_history(root):
     hdr = tk.Frame(win, bg=C_CARD); hdr.pack(fill="x", padx=12, pady=(10, 0))
     tk.Label(hdr, text=T("hist_title"), bg=C_CARD, fg=C_NAME,
              font=("Yu Gothic UI", 13, "bold"), anchor="w").pack(side="left")
-    round_pill(hdr, "↻ " + T("update_all"),
-               C_ACCENT, "#0c0c0c", _hist_update_all, f_hbtn).pack(side="right")
+    _hist_update_btn[0] = round_pill(hdr, ("⏳ " + T("updating_btn")) if _hist_updating[0] else ("↻ " + T("update_all")),
+                                     C_ACCENT, "#0c0c0c", _hist_update_all, f_hbtn)
+    _hist_update_btn[0].pack(side="right")
     _hist_status[0] = tk.Label(win, text="", bg=C_CARD, fg=C_ACCENT,
                                font=("Yu Gothic UI", 9), anchor="w")
     _hist_status[0].pack(fill="x", padx=12, pady=(0, 2))

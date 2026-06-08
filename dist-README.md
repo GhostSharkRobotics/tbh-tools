@@ -40,6 +40,10 @@ It **never reads or writes the game's memory, never injects anything, and never 
 - **🕘 History** button on the popup, or **tray → History**, opens the list. Right-click any row for **Favourite / Rename / Rarity / Delete**.
 - **Tray → Settings**: change language, rebind the trigger, set the history limit.
 
+## Updates
+
+MarketLens checks for a newer version on startup. When one is available, a **"⬆ Update"** entry appears in the tray menu (and Settings) — **one click downloads it, swaps the files, and restarts itself.** No manual re-download or re-extract.
+
 ## Support
 
 If it saves you time, you can leave a small tip — entirely optional, no nagging:
@@ -62,5 +66,7 @@ _TBH: Task Bar Hero_ のアイテムにカーソルを当てて**キーを押す
 - 価格履歴（お気に入り・名前/レア度修正・一括更新・永続保存）、発動キー自由割り当て、日本語/英語UI（初回はPCの言語を自動取得）。
 
 **導入**：zipを展開し、フォルダごと置いて `TBH MarketLens.exe` を実行（タスクトレイ常駐）。未署名のためSmartScreen警告は「詳細→実行」。
+
+**更新**：起動時に新版を確認し、あれば**トレイ／設定に「⬆ 更新」**が出ます。**1クリックでDL→差し替え→自動再起動**（手動の再DL・再展開は不要）。
 
 ☕ 応援（任意）：[Ko-fi](https://ko-fi.com/ghostsharkrobotics)

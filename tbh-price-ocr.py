@@ -406,9 +406,50 @@ def _check_update():
         d = json.load(urllib.request.urlopen(req, timeout=6))
         tag = (d.get("tag_name") or "").lstrip("vV")
         if tag and _ver_tuple(tag) > _ver_tuple(APP_VERSION):
-            _update_info[0] = {"ver": tag,
+            zip_url = None
+            for a in d.get("assets", []):
+                if str(a.get("name", "")).lower().endswith(".zip"):
+                    zip_url = a.get("browser_download_url"); break
+            _update_info[0] = {"ver": tag, "zip": zip_url,
                                "url": d.get("html_url") or f"https://github.com/{APP_REPO}/releases/latest"}
     except Exception: pass
+
+def _do_update(on_status=lambda s: None):
+    """新版zipをDL→展開→ヘルパーbatが本体終了を待って差し替え→自動再起動（ワンクリック更新）。
+    開発(スクリプト実行)やzip無し時はダウンロードページを開くだけ。"""
+    u = _update_info[0]
+    if not u: return
+    if not getattr(sys, "frozen", False) or not u.get("zip"):
+        webbrowser.open(u["url"]); return
+    def work():
+        import zipfile, subprocess, shutil as _sh
+        try:
+            on_status("ダウンロード中…" if _ui_lang == "ja" else "Downloading…")
+            zpath = os.path.join(HERE, "_update.zip"); newdir = os.path.join(HERE, "_update_new")
+            req = urllib.request.Request(u["zip"], headers={"User-Agent": "TBH-MarketLens"})
+            with urllib.request.urlopen(req, timeout=120) as r, open(zpath, "wb") as f:
+                _sh.copyfileobj(r, f)
+            on_status("展開中…" if _ui_lang == "ja" else "Extracting…")
+            if os.path.isdir(newdir): _sh.rmtree(newdir, ignore_errors=True)
+            with zipfile.ZipFile(zpath) as z: z.extractall(newdir)
+            inner = os.path.join(newdir, "TBH MarketLens")        # zipが1段フォルダ入りでも対応
+            srcdir = inner if os.path.isdir(inner) else newdir
+            bat = os.path.join(HERE, "_update.bat"); exe = os.path.join(HERE, "TBH MarketLens.exe")
+            with open(bat, "w", encoding="cp932") as f:
+                f.write("@echo off\r\n:wait\r\n"
+                        'tasklist /fi "imagename eq TBH MarketLens.exe" | find /i "TBH MarketLens.exe" >nul '
+                        "&& (timeout /t 1 >nul & goto wait)\r\n"
+                        f'robocopy "{srcdir}" "{HERE}" /e /is /it >nul\r\n'
+                        f'rmdir /s /q "{newdir}"\r\n' f'del "{zpath}"\r\n'
+                        f'start "" "{exe}"\r\n' 'del "%~f0"\r\n')
+            on_status("再起動して更新…" if _ui_lang == "ja" else "Restarting…")
+            subprocess.Popen(["cmd", "/c", bat], creationflags=0x00000008)   # DETACHED_PROCESS
+            os._exit(0)                                           # 本体を即終了→batが差し替え＆再起動
+        except Exception:
+            on_status("更新失敗→ページを開きます" if _ui_lang == "ja" else "Update failed → opening page")
+            try: webbrowser.open(u["url"])
+            except Exception: pass
+    threading.Thread(target=work, daemon=True).start()
 
 # ---- 表示言語（ja / en）。起動時はPCの言語を自動取得して既定に ----
 _lang_mode = [None]        # None=未設定（起動時にPC言語へ）, "ja" / "en"
@@ -656,6 +697,10 @@ def round_pill(parent, text, fill, fg, cmd, font, padx=14, pady=6):
 
 def recolor_pill(cv, color):
     try: cv.itemconfig("bg", fill=color, outline=color)
+    except Exception: pass
+
+def _pill_set_text(cv, text):
+    try: cv.itemconfig("txt", text=text)
     except Exception: pass
 
 def _rrect(cv, x1, y1, x2, y2, r, fill, tag):
@@ -1060,10 +1105,13 @@ def show_settings(root):
              bg=C_CARD, fg=C_META, font=fs, anchor="w").pack(side="left")
     round_pill(foot, "☕ Support", "#2a2f3a", C_NAME,
                lambda: webbrowser.open(KOFI_URL), fs).pack(side="right")
-    if _update_info[0]:                          # 新版があれば控えめに告知
+    if _update_info[0]:                          # 新版があればワンクリック更新
         u = _update_info[0]
-        round_pill(foot, f"⬆ {'新版' if ja else 'Update'} v{u['ver']}", C_ACCENT, "#0c0c0c",
-                   lambda: webbrowser.open(u["url"]), fs).pack(side="right", padx=(0, 8))
+        def _ustatus(s):
+            if win.winfo_exists(): win.after(0, lambda: _pill_set_text(upill, s))
+        upill = round_pill(foot, f"⬆ {'更新' if ja else 'Update'} v{u['ver']}", C_ACCENT, "#0c0c0c",
+                           lambda: _do_update(_ustatus), fs)
+        upill.pack(side="right", padx=(0, 8))
     tk.Label(win, text=("非公式ツール · Nugem Studio / Valve とは無関係" if ja else
                         "Unofficial tool · not affiliated with Nugem Studio or Valve"),
              bg=C_CARD, fg="#5a5f6a", font=fs, anchor="w").pack(fill="x", padx=18, pady=(0, 14))
@@ -1142,8 +1190,8 @@ def run_tray(root):
         for n in (20, 50, 100, 200, 0)
     ])
     menu = pystray.Menu(
-        pystray.MenuItem(lambda item: f"⬆ {_t('新版あり', 'Update')} v{(_update_info[0] or {}).get('ver','')}",
-                         lambda icon, item: _update_info[0] and webbrowser.open(_update_info[0]["url"]),
+        pystray.MenuItem(lambda item: f"⬆ {_t('新版へ更新', 'Update')} v{(_update_info[0] or {}).get('ver','')}",
+                         lambda icon, item: _do_update(),
                          visible=lambda item: _update_info[0] is not None),
         pystray.MenuItem(lambda item: f"{_t('キー：', 'Key: ')}{_trigger_label()}", None, enabled=False),
         pystray.MenuItem(lambda item: _t("設定", "Settings"),

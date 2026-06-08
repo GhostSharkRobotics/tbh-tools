@@ -387,10 +387,28 @@ def _top_hwnd(win):
     r = ctypes.windll.user32.GetAncestor(h, 2)   # GA_ROOT
     return r or ctypes.windll.user32.GetParent(h) or h
 
-def _keep_on_top(win):
+def _grab_foreground(win):
+    """テキスト編集のため前面フォーカスを取る。NOACTIVATEを一時解除し、フォアグラウンドロックを
+    AttachThreadInputで回避してSetForegroundWindow。ボーダーレスのゲームは最小化しない。"""
+    try:
+        import ctypes
+        u = ctypes.windll.user32; k = ctypes.windll.kernel32
+        h = _top_hwnd(win)
+        ex = u.GetWindowLongW(h, -20)
+        u.SetWindowLongW(h, -20, ex & ~0x08000000)   # WS_EX_NOACTIVATE off
+        fg = u.GetForegroundWindow()
+        ft = u.GetWindowThreadProcessId(fg, None)
+        ct = k.GetCurrentThreadId()
+        if ft and ft != ct: u.AttachThreadInput(ct, ft, True)
+        u.SetForegroundWindow(h); u.BringWindowToTop(h)
+        if ft and ft != ct: u.AttachThreadInput(ct, ft, False)
+    except Exception: pass
+
+def _keep_on_top(win, want_noact=lambda: True):
     """フルスクリーン(ボーダーレス)のゲームの前へ出し続ける。要点は WS_EX_NOACTIVATE:
     これを付けるとポップをクリックしてもアクティブ化が起きない＝ゲームが前面に出てこない。
-    さらにTOPMOSTを維持し、120ms毎に再主張して背後への回り込みを防ぐ。"""
+    ただし編集中(want_noact()=False)は外してキーボード入力を受けられるようにする。
+    TOPMOSTは常に維持し、120ms毎に再主張して背後への回り込みを防ぐ。"""
     try: import ctypes
     except Exception: return
     u = ctypes.windll.user32
@@ -403,7 +421,10 @@ def _keep_on_top(win):
         try:
             h = _top_hwnd(win)
             ex = u.GetWindowLongW(h, GWL_EXSTYLE)
-            want = ex | WS_EX_TOPMOST | WS_EX_NOACTIVATE
+            if want_noact():
+                want = ex | WS_EX_TOPMOST | WS_EX_NOACTIVATE
+            else:
+                want = (ex | WS_EX_TOPMOST) & ~WS_EX_NOACTIVATE
             if want != ex:
                 u.SetWindowLongW(h, GWL_EXSTYLE, want)
             u.SetWindowPos(h, HWND_TOPMOST, 0, 0, 0, 0, SWP)
@@ -411,10 +432,10 @@ def _keep_on_top(win):
         win.after(120, tick)
     tick()
 
-def _dismiss(win):
+def _dismiss(win, is_editing=lambda: False):
     """ポップの閉じ方のマナー: ①カーソルが一度乗ってから外れて0.7秒で閉じる(ホバーアウト)
     ②UI外を左クリックで即閉じ(ライトディスミス) ③一度も乗らなければ8秒で自動消滅。
-    メニュー展開中(grab)は判定を止める。"""
+    メニュー展開中(grab)・テキスト編集中(is_editing)は判定を止める。"""
     try: import ctypes
     except Exception: return
     u = ctypes.windll.user32
@@ -424,8 +445,8 @@ def _dismiss(win):
         if not win.winfo_exists(): return
         s["age"] += 1
         try:
-            if win.grab_current():            # メニュー展開中は何もしない
-                win.after(80, tick); return
+            if win.grab_current() or is_editing():   # メニュー展開中/編集中は何もしない
+                s["out"] = 0; win.after(80, tick); return
         except Exception: pass
         try:
             pt = _PT(); u.GetCursorPos(ctypes.byref(pt))
@@ -502,32 +523,24 @@ def show_popup(results, xy, text, root):
     init_name = (e.get("en") if _ui_lang == "en" else e.get("ja")) if e else (text or "").strip()
     init_rar = (e.get("rarity_en") if e else "") or ""
     en2ja = {en: ja for en, ja in RARITIES}
-    state = {"entry": e, "rarity": init_rar}
+    state = {"entry": e, "rarity": init_rar, "editing": False}
 
     content = tk.Frame(win, bg=C_CARD); content.pack()   # 枠なし（ダークカードのみ）
     content.columnconfigure(0, weight=1)
 
-    # アイテム名：キーボード入力はゲーム最前面を奪って消えるので、マウスのみの候補ドロップダウンに。
-    def _disp(ent):
-        nm = (ent.get("en") if _ui_lang == "en" else ent.get("ja")) or ent.get("en") or ent.get("ja") or "?"
-        rj = (ent.get("rarity_ja") if _ui_lang == "ja" else ent.get("rarity_en")) or ""
-        return (nm + ("  " + rj if rj else "")).strip()
-    cand_list = []
-    try: cand_list = matcher.candidates(text or "", 8)
-    except Exception: cand_list = []
-    if e and not any(c.get("ja") == e.get("ja") and c.get("rarity_ja") == e.get("rarity_ja") for c in cand_list):
-        cand_list = [e] + cand_list
-    name_menu = tk.Menu(win, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
-                        activeforeground="#ffffff", bd=0, relief="flat")
-    for c in cand_list:
-        name_menu.add_command(label=_disp(c), foreground=rarity_color(c.get("rarity_en") or ""),
-                              command=lambda c=c: pick(c))
-    name_lbl = tk.Label(content, text=(init_name or "—") + ("  ▾" if cand_list else ""),
-                        bg=C_CARD, fg=C_NAME, font=f_name, anchor="w", cursor="hand2")
-    name_lbl.grid(row=0, column=0, sticky="we", padx=14, pady=(14, 6))
-    if cand_list:
-        name_lbl.bind("<Button-1>", lambda ev: name_menu.tk_popup(
-            name_lbl.winfo_rootx(), name_lbl.winfo_rooty() + name_lbl.winfo_height()))
+    # アイテム名：テキスト入力で修正可（OCR誤読の修正用）。編集時だけ前面フォーカスを取る。
+    name_var = tk.StringVar(value=init_name)
+    name_ent = tk.Entry(content, textvariable=name_var, font=f_name, width=20, relief="flat",
+                        bg="#0d1016", fg=C_NAME, insertbackground=C_NAME)
+    name_ent.grid(row=0, column=0, sticky="we", padx=14, pady=(14, 6), ipady=5, ipadx=6)
+    def _begin_edit(ev=None):
+        state["editing"] = True
+        _grab_foreground(win); name_ent.focus_set()
+        try: name_ent.select_range(0, "end"); name_ent.icursor("end")
+        except Exception: pass
+    name_ent.bind("<Button-1>", _begin_edit)
+    name_ent.bind("<FocusOut>", lambda ev: state.__setitem__("editing", False))
+    name_ent.bind("<Return>", lambda ev: (state.__setitem__("editing", False), relookup()))
 
     rar_holder = tk.Frame(content, bg=C_CARD); rar_holder.grid(row=1, column=0, sticky="w", padx=14, pady=2)
     rar_menu = tk.Menu(win, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
@@ -563,9 +576,9 @@ def show_popup(results, xy, text, root):
         state["entry"] = ent
         ar = rarity_color(state["rarity"] or (ent.get("rarity_en") if ent else ""))
         price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
-        if ent:
-            name_lbl.config(text=((ent.get("en") if _ui_lang == "en" else ent.get("ja"))
-                                  or ent.get("en") or ent.get("ja") or "—") + ("  ▾" if cand_list else ""))
+        if ent and not state["editing"]:           # 入力中は上書きしない
+            name_var.set((ent.get("en") if _ui_lang == "en" else ent.get("ja"))
+                         or ent.get("en") or ent.get("ja") or "")
         if ent and ent.get("sell") is not None:
             price_lbl.config(text=f"{lb['low']} {price(ent['sell'])}   {lb['med']} {price(ent['median'])}")
             cat = ent.get("type_en" if _ui_lang == "en" else "type_ja") or ent.get("type", "")
@@ -576,44 +589,36 @@ def show_popup(results, xy, text, root):
             price_lbl.config(text=lb["nomatch"]); meta_lbl.config(text="")
         _place(win, xy)
 
-    def _fetch_live(ent):
+    def _lookup(nm, rar_en):                        # 名前＋等級で引き直し→現在価格を取得→描画
         def work():
-            lp = live_price(ent.get("hash")) if ent else None
-            if lp:
-                low, med, vol = lp
-                if low is not None: ent["sell"] = low
-                if med is not None: ent["median"] = med
-                if vol is not None: ent["volume"] = vol
+            r = matcher.match_item(nm, en2ja.get(rar_en, rar_en) if rar_en else "")
+            ent = r[0] if r else None
+            if ent:
+                lp = live_price(ent.get("hash"))
+                if lp:
+                    low, med, vol = lp
+                    if low is not None: ent["sell"] = low
+                    if med is not None: ent["median"] = med
+                    if vol is not None: ent["volume"] = vol
             win.after(0, lambda: render(ent))
         threading.Thread(target=work, daemon=True).start()
 
-    def pick(c):                                   # 候補名を選び直し（マウスのみ）
-        state["rarity"] = c.get("rarity_en") or ""
-        build_rar_pill(); render(c); _fetch_live(c)
+    def relookup():                                 # 名前を打ち直してEnter
+        _lookup(name_var.get().strip(), state["rarity"])
 
-    def set_rarity(en):                            # 等級を選び直し→同名×新等級で引き直し
+    def set_rarity(en):                             # 等級を選び直し→同名×新等級で引き直し
         state["rarity"] = en; build_rar_pill()
         cur = state["entry"]
-        nm = (cur.get("ja") or cur.get("en")) if cur else (text or "")
-        def work():
-            r = matcher.match_item(nm, en2ja.get(en, en))
-            ent = r[0] if r else cur
-            lp = live_price(ent.get("hash")) if ent else None
-            if lp and ent:
-                low, med, vol = lp
-                if low is not None: ent["sell"] = low
-                if med is not None: ent["median"] = med
-                if vol is not None: ent["volume"] = vol
-            win.after(0, lambda: render(ent))
-        threading.Thread(target=work, daemon=True).start()
+        nm = name_var.get().strip() or ((cur.get("ja") or cur.get("en")) if cur else (text or ""))
+        _lookup(nm, en)
 
     build_rar_pill()
     win.bind("<Escape>", lambda ev: win.destroy())
 
     render(e)
     _round_corners(win)        # Win11のOS角丸（透過なし＝クリックで消えない）
-    _keep_on_top(win)          # ゲームの前へ。背後に回り込むのを防ぐ
-    _dismiss(win)              # 外側クリック/ホバーアウト/無操作で閉じるマナー
+    _keep_on_top(win, lambda: not state["editing"])   # ゲームの前へ。編集中はNOACTIVATEを外す
+    _dismiss(win, lambda: state["editing"])            # 編集中は閉じない
     _open.append(win)
 
 

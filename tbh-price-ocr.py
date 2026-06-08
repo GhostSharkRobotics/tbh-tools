@@ -34,6 +34,15 @@ DEBUG_UI      = True               # Trueで押下毎に「撮影＋枠＋読取
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 C_NAME, C_JA, C_PRICE, C_META, C_ERR = "#ffffff", "#8ab4f8", "#34d399", "#8b909a", "#f87171"
+_ui_lang = "ja"                    # 直近に判定したゲーム言語（ja/en）
+LBL = {
+    "ja": dict(low="最安", med="中央値", lst="出品", sold="売買", quote="相場",
+               mkt="クリックでSteamマーケットを開く", noprice="市場価格なし（非取引）",
+               nomatch="該当なし", reading="🔍 読み取り中…", read="読取"),
+    "en": dict(low="Low", med="Median", lst="List", sold="Sold", quote="Updated",
+               mkt="Click to open Steam Market", noprice="Not on market",
+               nomatch="No match", reading="🔍 Reading…", read="OCR"),
+}
 # -------------------------------------------------------------------------
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -282,6 +291,12 @@ def ocr_worker():
                     sx, sy = ox + cx, oy + cy
                     d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
                     cands.append((best_r[0]["score"], d2, sx, sy, best_r, bx, by, name, rank))
+            # ゲーム言語判定（全枠OCRのASCII/日本語比率）
+            global _ui_lang
+            alltext = " ".join((n or "") + (r or "") for n, r, *_ in boxes)
+            asc = sum(1 for c in alltext if c.isascii() and c.isalpha())
+            jpn = sum(1 for c in alltext if ord(c) > 0x3040)
+            _ui_lang = "en" if asc > jpn else "ja"
             found, chosen = [], None
             if cands:
                 ax, ay = min(cands, key=lambda c: c[1])[2:4]   # カーソル最近の枠＝指してる位置
@@ -289,10 +304,20 @@ def ocr_worker():
                 best = max(same, key=lambda c: c[0])
                 if best[0] >= 0.85:
                     found, chosen = best[4], best
-                    bname = best[7]                       # 読み取った名前テキスト
-                    ja_n = sum(1 for ch in bname if ord(ch) > 0x3000)
-                    found[0]["_lang"] = "en" if ja_n < 2 else "ja"   # 英語表示モード判定
-            if DEBUG_UI:                          # デバッグUI: 撮影画像＋枠＋読取＋結果を1枚に
+            if CALIBRATE:                         # 失敗時の画像とログを残す（私が原因を見る用）
+                try:
+                    with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
+                        f.write(f"lang={_ui_lang} cursor={xy} off=({ox},{oy}) 枠数={len(boxes)} 結果={'OK' if found else 'なし'}\n")
+                        for n, r, bx, by, st in boxes:
+                            f.write(f" 枠@({bx},{by}) t={st:.2f} 名[{(n or '')[:26]}] 級[{(r or '')[:16]}]\n")
+                        for c in sorted(cands, key=lambda c: c[1]):
+                            f.write(f" 候補 {c[4][0].get('en')} / {c[4][0].get('ja')} s={c[0]} d={int(c[1]**.5)}\n")
+                    if not found:
+                        img.save(os.path.join(HERE, "fail.png"))
+                        import shutil; shutil.copy(os.path.join(HERE, "ocr-text.txt"), os.path.join(HERE, "fail.txt"))
+                except Exception:
+                    pass
+            if DEBUG_UI:
                 try:
                     PQ.put(("__debug__", _annotate(img, boxes, cands, chosen, xy, (ox, oy)), None))
                 except Exception:
@@ -328,30 +353,31 @@ def show_popup(results, xy, text, root):
     f_sub   = tkfont.Font(family="Yu Gothic UI", size=10)
     f_meta  = tkfont.Font(family="Yu Gothic UI", size=9)
 
+    lb = LBL.get(_ui_lang, LBL["ja"])
     rows = []   # (text, color, font, ipady)
     url = None
     if results == "__processing__":
-        rows = [("🔍 読み取り中…", C_ACCENT, f_name, 4)]
+        rows = [(lb["reading"], C_ACCENT, f_name, 4)]
     elif not results:
-        snip = (text or "").strip().replace("\n", " ")[:36] or "(読取なし)"
-        rows = [("該当なし", C_ERR, f_name, 2), ("読取: " + snip, C_META, f_meta, 2)]
+        snip = (text or "").strip().replace("\n", " ")[:36] or "-"
+        rows = [(lb["nomatch"], C_ERR, f_name, 2), (lb["read"] + ": " + snip, C_META, f_meta, 2)]
     else:
         e = results[0]
         rj = e.get("rarity_ja") or ""
         ja_line = e.get("ja", "") + (f"（{rj}）" if rj else "")
         en_line = e.get("en", "") + (f" ({e['rarity_en']})" if e.get("rarity_en") else "")
-        if e.get("_lang") == "en":                       # 英語モードは英語名を主表示
+        if _ui_lang == "en":                              # 英語モードは英語名を主表示
             rows.append((en_line, C_NAME, f_name, 2)); rows.append((ja_line, C_JA, f_sub, 1))
         else:
             rows.append((ja_line, C_NAME, f_name, 2)); rows.append((en_line, C_JA, f_sub, 1))
         if e.get("sell") is not None:
-            rows.append((f"最安 {yen(e['sell'])}   中央値 {yen(e['median'])}", C_PRICE, f_price, 3))
-            rows.append((f"{e.get('type','')}  出品{e.get('listings','—')}/売買{e.get('volume','—')}", C_META, f_meta, 1))
-            rows.append(("クリックでSteamマーケットを開く", C_ACCENT, f_meta, 2))
+            rows.append((f"{lb['low']} {yen(e['sell'])}   {lb['med']} {yen(e['median'])}", C_PRICE, f_price, 3))
+            rows.append((f"{e.get('type','')}  {lb['lst']}{e.get('listings','—')}/{lb['sold']}{e.get('volume','—')}", C_META, f_meta, 1))
+            rows.append((lb["mkt"], C_ACCENT, f_meta, 2))
             url = f"https://steamcommunity.com/market/listings/{APPID}/" + \
                   urllib.parse.quote(e.get("hash") or e.get("en", ""))
         else:
-            rows.append(("市場価格なし（非取引）", C_PRICE, f_price, 3))
+            rows.append((lb["noprice"], C_PRICE, f_price, 3))
             rows.append((e.get("type", ""), C_META, f_meta, 1))
 
     padx, pady = 16, 12

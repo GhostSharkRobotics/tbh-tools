@@ -185,10 +185,10 @@ def detect_boxes(img):
     ys, xs = np.where(res >= 0.62)
     peaks = sorted(zip(xs.tolist(), ys.tolist(), res[ys, xs].tolist()), key=lambda p: -p[2])
     picked = []
-    for x, y, s in peaks:                       # 近接ピークをまとめる
-        if all(abs(x - px) > 45 or abs(y - py) > 26 for px, py, _ in picked):
+    for x, y, s in peaks:                       # 同じ枠の重複ピークをまとめる（高スコア順なので最良が残る）
+        if all(abs(x - px) > 420 or abs(y - py) > 36 for px, py, _ in picked):
             picked.append((x, y, s))
-        if len(picked) >= 14:
+        if len(picked) >= 10:
             break
     out = []
     for x, y, s in picked:

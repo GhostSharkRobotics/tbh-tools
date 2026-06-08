@@ -1270,7 +1270,14 @@ def show_settings(root):
     def choose_lang(m):
         if _lang_mode[0] == m: return
         _apply_lang(m)
-        if _hist_visible[0]: _refresh_history()
+        # 言語が混ざらないよう、開いている副ウィンドウは破棄→次回開いた時に新言語で再生成
+        for w in (_help_win, _fb_win, _hist_win, _hist_inner):
+            if w[0] is not None:
+                try:
+                    if hasattr(w[0], "destroy"): w[0].destroy()
+                except Exception: pass
+                w[0] = None
+        if _hist_visible[0]: show_history(root)     # 履歴は開いていたら新言語で開き直す
         geo = win.geometry()
         pos = ("+" + geo.split("+", 1)[1]) if "+" in geo else ""   # 位置を保持して建て直し（動かない）
         win.destroy(); _set_win[0] = None; show_settings(root)

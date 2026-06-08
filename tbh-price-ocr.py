@@ -379,6 +379,22 @@ def _round_corners(win):
     except Exception:
         pass
 
+def round_pill(parent, text, fill, fg, cmd, font, padx=14, pady=6):
+    """角丸（ピル型）ボタン。canvasで描画。"""
+    tw, th = font.measure(text), font.metrics("linespace")
+    w, h = tw + padx * 2, th + pady * 2
+    cv = tk.Canvas(parent, width=w, height=h, bg=parent.cget("bg"), highlightthickness=0, cursor="hand2")
+    cv.create_arc(0, 0, h, h, start=90, extent=180, fill=fill, outline=fill, tags="bg")
+    cv.create_arc(w - h, 0, w, h, start=-90, extent=180, fill=fill, outline=fill, tags="bg")
+    cv.create_rectangle(h / 2, 0, w - h / 2, h, fill=fill, outline=fill, tags="bg")
+    cv.create_text(w / 2, h / 2 + 1, text=text, fill=fg, font=font, tags="txt")
+    cv.bind("<Button-1>", lambda e: cmd())
+    return cv
+
+def recolor_pill(cv, color):
+    try: cv.itemconfig("bg", fill=color, outline=color)
+    except Exception: pass
+
 def _place(win, xy):
     win.update_idletasks()
     sw, sh = win.winfo_screenwidth(), win.winfo_screenheight()
@@ -414,63 +430,65 @@ def show_popup(results, xy, text, root):
     e = results[0] if results else None
     init_name = (e.get("en") if _ui_lang == "en" else e.get("ja")) if e else (text or "").strip()
     init_rar = (e.get("rarity_en") if e else "") or ""
-    en2ja = {en: ja for en, ja in RARITIES}; ja2en = {ja: en for en, ja in RARITIES}
+    en2ja = {en: ja for en, ja in RARITIES}
 
     border = tk.Frame(win, bg=rarity_color(init_rar)); border.pack()
     card = tk.Frame(border, bg=C_CARD); card.pack(padx=3, pady=3)
     card.columnconfigure(0, weight=1)
-    state = {"entry": e}
+    state = {"entry": e, "rarity": init_rar}
 
     name_var = tk.StringVar(value=init_name)
-    name_ent = tk.Entry(card, textvariable=name_var, font=f_name, width=24,
+    name_ent = tk.Entry(card, textvariable=name_var, font=f_name, width=22,
                         bg="#0d1016", fg=C_NAME, insertbackground=C_NAME, relief="flat")
-    name_ent.grid(row=0, column=0, sticky="we", padx=12, pady=(12, 4), ipady=3)
+    name_ent.grid(row=0, column=0, sticky="we", padx=14, pady=(14, 6), ipady=5)
 
-    disp_vals = [""] + [(ja if _ui_lang == "ja" else en) for en, ja in RARITIES]
-    init_disp = (en2ja.get(init_rar, "") if _ui_lang == "ja" else init_rar) if init_rar else ""
-    rar_var = tk.StringVar(value=init_disp)
-    rar_combo = ttk.Combobox(card, textvariable=rar_var, values=disp_vals, state="readonly",
-                             style="D.TCombobox", font=f_meta)
-    rar_combo.grid(row=1, column=0, sticky="we", padx=12, pady=2)
+    # レア度: 色付きピル → ダーク色付きメニュー
+    rar_holder = tk.Frame(card, bg=C_CARD); rar_holder.grid(row=1, column=0, sticky="w", padx=14, pady=2)
+    rar_menu = tk.Menu(win, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
+                       activeforeground="#ffffff", bd=0, relief="flat")
+    for en, ja in RARITIES:
+        rar_menu.add_command(label=(ja if _ui_lang == "ja" else en), foreground=rarity_color(en),
+                             command=lambda en=en: set_rarity(en))
+    _rp = {"w": None}
+    def build_rar_pill():
+        if _rp["w"]:
+            _rp["w"].destroy()
+        r = state["rarity"]
+        txt = "▼ " + ((en2ja.get(r, r) if _ui_lang == "ja" else r) if r else ("等級" if _ui_lang == "ja" else "Rarity"))
+        p = round_pill(rar_holder, txt, rarity_color(r), "#0c0c0c",
+                       lambda: rar_menu.tk_popup(p.winfo_rootx(), p.winfo_rooty() + p.winfo_height()), f_meta)
+        p.pack(anchor="w"); _rp["w"] = p
 
     price_lbl = tk.Label(card, text="", bg=C_CARD, font=f_price, anchor="w")
-    price_lbl.grid(row=2, column=0, sticky="we", padx=12, pady=(6, 2))
+    price_lbl.grid(row=2, column=0, sticky="we", padx=14, pady=(8, 2))
     meta_lbl = tk.Label(card, text="", bg=C_CARD, fg=C_META, font=f_meta, anchor="w")
-    meta_lbl.grid(row=3, column=0, sticky="we", padx=12, pady=(0, 6))
+    meta_lbl.grid(row=3, column=0, sticky="we", padx=14, pady=(0, 8))
 
-    btnf = tk.Frame(card, bg=C_CARD); btnf.grid(row=4, column=0, sticky="we", padx=12, pady=(2, 12))
-    mkt_btn = tk.Button(btnf, text="🛒 " + lb["mkt"], relief="flat", font=f_meta, fg="#101010",
-                        cursor="hand2", bd=0, padx=10, pady=4)
-    mkt_btn.pack(side="left")
-    tk.Button(btnf, text="✕", bg=C_CARD, fg=C_META, relief="flat", bd=0, command=win.destroy,
-              cursor="hand2", padx=6).pack(side="right")
-
-    def render(ent):
-        state["entry"] = ent
-        ar = rarity_color(ent.get("rarity_en") if ent else init_rar)
-        border.config(bg=ar); price_lbl.config(fg=ar); mkt_btn.config(bg=ar)
-        if ent and ent.get("sell") is not None:
-            price_lbl.config(text=f"{lb['low']} {price(ent['sell'])}   {lb['med']} {price(ent['median'])}")
-            cat = ent.get("type_en" if _ui_lang == "en" else "type_ja") or ent.get("type", "")
-            meta_lbl.config(text=f"{cat}   {lb['sold']}{ent.get('volume','—')}")
-            mkt_btn.config(state="normal")
-        elif ent:
-            price_lbl.config(text=lb["noprice"])
-            meta_lbl.config(text=ent.get("type_ja", "") or ent.get("type_en", ""))
-            mkt_btn.config(state="disabled")
-        else:
-            price_lbl.config(text=lb["nomatch"]); meta_lbl.config(text=""); mkt_btn.config(state="disabled")
-
+    btnf = tk.Frame(card, bg=C_CARD); btnf.grid(row=4, column=0, sticky="we", padx=14, pady=(2, 14))
     def open_market():
         ent = state["entry"]
         if ent and ent.get("hash"):
             try: webbrowser.open(f"https://steamcommunity.com/market/listings/{APPID}/" + urllib.parse.quote(ent["hash"]))
             except Exception: pass
-    mkt_btn.config(command=open_market)
+    mkt_pill = round_pill(btnf, "🛒 " + lb["mkt"], rarity_color(init_rar), "#0c0c0c", open_market, f_meta)
+    mkt_pill.pack(side="left")
+    round_pill(btnf, "✕", "#2a2f3a", C_NAME, win.destroy, f_meta, padx=12).pack(side="right")
+
+    def render(ent):
+        state["entry"] = ent
+        ar = rarity_color(state["rarity"] or (ent.get("rarity_en") if ent else ""))
+        border.config(bg=ar); price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
+        if ent and ent.get("sell") is not None:
+            price_lbl.config(text=f"{lb['low']} {price(ent['sell'])}   {lb['med']} {price(ent['median'])}")
+            cat = ent.get("type_en" if _ui_lang == "en" else "type_ja") or ent.get("type", "")
+            meta_lbl.config(text=f"{cat}   {lb['sold']}{ent.get('volume','—')}")
+        elif ent:
+            price_lbl.config(text=lb["noprice"]); meta_lbl.config(text=ent.get("type_ja", "") or ent.get("type_en", ""))
+        else:
+            price_lbl.config(text=lb["nomatch"]); meta_lbl.config(text="")
 
     def relookup(*_):
-        nm = name_var.get().strip()
-        rj = ja2en.get(rar_var.get(), rar_var.get())
+        nm = name_var.get().strip(); rj = state["rarity"]
         def work():
             r = matcher.match_item(nm, rj or "")
             ent = r[0] if r else None
@@ -483,12 +501,17 @@ def show_popup(results, xy, text, root):
                     if vol is not None: ent["volume"] = vol
             win.after(0, lambda: (render(ent), _place(win, xy)))
         threading.Thread(target=work, daemon=True).start()
+
+    def set_rarity(en):
+        state["rarity"] = en; build_rar_pill(); relookup()
+
+    build_rar_pill()
     name_ent.bind("<Return>", relookup)
-    rar_combo.bind("<<ComboboxSelected>>", relookup)
     win.bind("<Escape>", lambda ev: win.destroy())
 
     render(e)
     _place(win, xy); _round_corners(win)
+    win.after(60, lambda: (win.winfo_exists() and (win.focus_force(), name_ent.focus_set())))  # 編集可能に
     _open.append(win)
 
 

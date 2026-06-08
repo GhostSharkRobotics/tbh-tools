@@ -362,9 +362,9 @@ def show_popup(results, xy, text, root):
         rj = e.get("rarity_ja") or ""
         ja_line = e.get("ja", "") + (f"（{rj}）" if rj else "")
         en_line = e.get("en", "") + (f" ({e['rarity_en']})" if e.get("rarity_en") else "")
-        if _ui_lang == "en":                              # 英語モードは英語名を主表示
-            rows.append((en_line, C_NAME, f_name, 2)); rows.append((ja_line, C_JA, f_sub, 1))
-        else:
+        if _ui_lang == "en":                              # 英語モードは英語名のみ
+            rows.append((en_line, C_NAME, f_name, 2))
+        else:                                             # 日本語モードは日本語＋英語（市場検索用）
             rows.append((ja_line, C_NAME, f_name, 2)); rows.append((en_line, C_JA, f_sub, 1))
         cat = e.get("type_en" if _ui_lang == "en" else "type_ja") or e.get("type", "")
         if e.get("sell") is not None:

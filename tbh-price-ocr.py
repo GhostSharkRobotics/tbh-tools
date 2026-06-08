@@ -1056,22 +1056,16 @@ def show_help(root):
     fb = tkfont.Font(family="Yu Gothic UI", size=10)
     W = 380
     tk.Label(win, text=APP_NAME, bg=C_CARD, fg=C_ACCENT, font=ft, anchor="w").pack(fill="x", padx=22, pady=(18, 0))
-    tk.Label(win, text=("アイテムを指すだけで Steamマーケット価格" if ja
-                        else "Steam Market prices, just by pointing at an item"),
-             bg=C_CARD, fg=C_META, font=fb, anchor="w").pack(fill="x", padx=22, pady=(0, 12))
-    steps = ([("① ゲームを前面に", "TBH: Task Bar Hero のウィンドウを最前面に。"),
-              ("② アイテムにカーソル", "持ち物や市場のアイテムにマウスを乗せる。"),
-              ("③ 発動キーを押す", "既定はマウスのサイドボタン（戻る）。設定で変更可。"),
-              ("→ 価格がポップ表示", "最安値・中央値。🛒でSteam市場、🕘で履歴を開く。")]
-             if ja else
-             [("① Focus the game", "Bring TBH: Task Bar Hero to the front."),
-              ("② Hover an item", "Point your mouse at an item (bag or market)."),
-              ("③ Press the hotkey", "Default: mouse side (back) button. Change it in Settings."),
-              ("→ Price pops up", "Lowest + median. 🛒 opens Steam Market, 🕘 the history.")])
-    for t, d in steps:
-        r = tk.Frame(win, bg=C_CARD); r.pack(fill="x", padx=22, pady=2)
-        tk.Label(r, text=t, bg=C_CARD, fg=C_NAME, font=fh, anchor="w").pack(fill="x")
-        tk.Label(r, text=d, bg=C_CARD, fg=C_META, font=fb, anchor="w", justify="left", wraplength=W - 16).pack(fill="x")
+    main = ("アイテムに合わせて発動キーを押すと、そのアイテムの\nSteamマーケット価格（最安値・中央値）が出ます。"
+            if ja else
+            "Point at an item and press your hotkey — its Steam Market\nprice (lowest + median) pops up.")
+    tk.Label(win, text=main, bg=C_CARD, fg=C_NAME, font=fh, anchor="w", justify="left",
+             wraplength=W - 16).pack(fill="x", padx=22, pady=(2, 8))
+    key = ("発動キーの既定はマウスのサイドボタン（戻る）。「設定」で変更できます。"
+           if ja else
+           "Default hotkey is the mouse side (back) button. Change it in Settings.")
+    tk.Label(win, text=key, bg=C_CARD, fg=C_META, font=fb, anchor="w", justify="left",
+             wraplength=W - 16).pack(fill="x", padx=22, pady=(0, 2))
     tk.Frame(win, bg="#2a2f3a", height=1).pack(fill="x", padx=22, pady=(10, 8))
     tips = (["ポップは 外をクリック / カーソルを外す / Esc で閉じる",
              "名前が違う時はレア度ピルや名前で選び直し",

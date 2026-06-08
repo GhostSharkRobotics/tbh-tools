@@ -1059,7 +1059,7 @@ def _get_icon(h, cb):
                 req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
                 with urllib.request.urlopen(req, timeout=8) as r, open(fp, "wb") as f:
                     f.write(r.read())
-            im = Image.open(fp).convert("RGBA").resize((28, 28), Image.NEAREST)
+            im = Image.open(fp).convert("RGBA").resize((48, 48), Image.NEAREST)   # ドット絵なので大きめ＋NEAREST
             w = _hist_win[0]
             if not (w and w.winfo_exists()): return
             def ready():
@@ -1240,7 +1240,7 @@ def _refresh_history():
     if _blank_icon[0] is None:
         try:
             from PIL import ImageTk
-            _blank_icon[0] = ImageTk.PhotoImage(Image.new("RGBA", (28, 28), (0, 0, 0, 0)))
+            _blank_icon[0] = ImageTk.PhotoImage(Image.new("RGBA", (48, 48), (0, 0, 0, 0)))
         except Exception: pass
     if not _hist:
         tk.Label(inner, text=T("hist_empty"), bg=C_CARD, fg=C_META, anchor="w").pack(fill="x", padx=12, pady=10)

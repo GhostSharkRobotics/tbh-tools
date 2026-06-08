@@ -418,9 +418,7 @@ def show_popup(results, xy, text, root):
         _open.remove(w)
     lb = LBL.get(_ui_lang, LBL["ja"])
     win = tk.Toplevel(root)
-    win.overrideredirect(True); win.attributes("-topmost", True); win.config(bg=_KEYCLR)
-    try: win.attributes("-transparentcolor", _KEYCLR)   # 角の外を透過＝本物の角丸
-    except Exception: win.config(bg=C_CARD)
+    win.overrideredirect(True); win.attributes("-topmost", True); win.config(bg=C_CARD)
     f_name = tkfont.Font(family="Yu Gothic UI", size=14, weight="bold")
     f_price = tkfont.Font(family="Yu Gothic UI", size=17, weight="bold")
     f_meta = tkfont.Font(family="Yu Gothic UI", size=9)
@@ -437,11 +435,10 @@ def show_popup(results, xy, text, root):
     init_name = (e.get("en") if _ui_lang == "en" else e.get("ja")) if e else (text or "").strip()
     init_rar = (e.get("rarity_en") if e else "") or ""
     en2ja = {en: ja for en, ja in RARITIES}
-    R, PAD = 16, 16
-    state = {"entry": e, "rarity": init_rar, "border": rarity_color(init_rar)}
+    state = {"entry": e, "rarity": init_rar}
 
-    cv = tk.Canvas(win, bg=_KEYCLR, highlightthickness=0, bd=0); cv.pack()
-    content = tk.Frame(win, bg=C_CARD)   # 角丸キャンバスの上に乗せる中身（角は同色C_CARDで隠れる）
+    border = tk.Frame(win, bg=rarity_color(init_rar)); border.pack()   # レア度色の枠
+    content = tk.Frame(border, bg=C_CARD); content.pack(padx=3, pady=3)
     content.columnconfigure(0, weight=1)
 
     # アイテム名：キーボード入力はゲーム最前面を奪って消えるので、マウスのみの候補ドロップダウンに。
@@ -461,12 +458,12 @@ def show_popup(results, xy, text, root):
                               command=lambda c=c: pick(c))
     name_lbl = tk.Label(content, text=(init_name or "—") + ("  ▾" if cand_list else ""),
                         bg=C_CARD, fg=C_NAME, font=f_name, anchor="w", cursor="hand2")
-    name_lbl.grid(row=0, column=0, sticky="we", pady=(0, 6))
+    name_lbl.grid(row=0, column=0, sticky="we", padx=14, pady=(14, 6))
     if cand_list:
         name_lbl.bind("<Button-1>", lambda ev: name_menu.tk_popup(
             name_lbl.winfo_rootx(), name_lbl.winfo_rooty() + name_lbl.winfo_height()))
 
-    rar_holder = tk.Frame(content, bg=C_CARD); rar_holder.grid(row=1, column=0, sticky="w", pady=2)
+    rar_holder = tk.Frame(content, bg=C_CARD); rar_holder.grid(row=1, column=0, sticky="w", padx=14, pady=2)
     rar_menu = tk.Menu(win, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
                        activeforeground="#ffffff", bd=0, relief="flat")
     for en, ja in RARITIES:
@@ -482,11 +479,11 @@ def show_popup(results, xy, text, root):
         p.pack(anchor="w"); _rp["w"] = p
 
     price_lbl = tk.Label(content, text="", bg=C_CARD, font=f_price, anchor="w")
-    price_lbl.grid(row=2, column=0, sticky="we", pady=(8, 2))
+    price_lbl.grid(row=2, column=0, sticky="we", padx=14, pady=(8, 2))
     meta_lbl = tk.Label(content, text="", bg=C_CARD, fg=C_META, font=f_meta, anchor="w")
-    meta_lbl.grid(row=3, column=0, sticky="we", pady=(0, 10))
+    meta_lbl.grid(row=3, column=0, sticky="we", padx=14, pady=(0, 10))
 
-    btnf = tk.Frame(content, bg=C_CARD); btnf.grid(row=4, column=0, sticky="we")
+    btnf = tk.Frame(content, bg=C_CARD); btnf.grid(row=4, column=0, sticky="we", padx=14, pady=(0, 14))
     def open_market():
         ent = state["entry"]
         if ent and ent.get("hash"):
@@ -496,24 +493,10 @@ def show_popup(results, xy, text, root):
     mkt_pill.pack(side="left")
     round_pill(btnf, "✕", "#2a2f3a", C_NAME, win.destroy, f_meta, padx=12).pack(side="right")
 
-    winid = cv.create_window(0, 0, window=content, anchor="center")
-    def resize():
-        if not win.winfo_exists(): return
-        content.update_idletasks()
-        cw, ch = content.winfo_reqwidth(), content.winfo_reqheight()
-        W, H = cw + PAD * 2, ch + PAD * 2
-        cv.config(width=W, height=H)
-        cv.delete("bg")
-        _rrect(cv, 1, 1, W - 1, H - 1, R, state["border"], "bg")        # 外枠＝レア度色
-        _rrect(cv, 4, 4, W - 4, H - 4, R - 3, C_CARD, "bg")            # 内側＝ダークカード
-        cv.tag_lower("bg")
-        cv.coords(winid, W / 2, H / 2)
-        _place(win, xy)
-
     def render(ent):
         state["entry"] = ent
         ar = rarity_color(state["rarity"] or (ent.get("rarity_en") if ent else ""))
-        state["border"] = ar; price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
+        border.config(bg=ar); price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
         if ent:
             name_lbl.config(text=((ent.get("en") if _ui_lang == "en" else ent.get("ja"))
                                   or ent.get("en") or ent.get("ja") or "—") + ("  ▾" if cand_list else ""))
@@ -525,7 +508,7 @@ def show_popup(results, xy, text, root):
             price_lbl.config(text=lb["noprice"]); meta_lbl.config(text=ent.get("type_ja", "") or ent.get("type_en", ""))
         else:
             price_lbl.config(text=lb["nomatch"]); meta_lbl.config(text="")
-        resize()
+        _place(win, xy)
 
     def _fetch_live(ent):
         def work():
@@ -562,6 +545,7 @@ def show_popup(results, xy, text, root):
     win.bind("<Escape>", lambda ev: win.destroy())
 
     render(e)
+    _round_corners(win)        # Win11のOS角丸（透過なし＝クリックで消えない）
     _open.append(win)
 
 

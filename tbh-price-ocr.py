@@ -170,9 +170,9 @@ def detect_boxes(img):
             break
     out = []
     for x, y, s in picked:
-        name = _ocr(img.crop((x + 10, y + 8, x + 600, y + 58)))    # 枠内＝名前
-        rank = _ocr(img.crop((x + 10, y + 58, x + 600, y + 122)))  # 枠直下＝等級
-        out.append((name + " " + rank, x + 300, y + 30))
+        name = _ocr(img.crop((max(0, x - 90), y + 6, x + 560, y + 56)))   # 枠内＝名前（左に広め＝短名対策）
+        rank = _ocr(img.crop((max(0, x - 90), y + 56, x + 560, y + 122))) # 枠直下＝等級
+        out.append((name, rank, x + 250, y + 30))
     return out
 
 
@@ -204,12 +204,16 @@ def ocr_worker():
                 except Exception: pass
             boxes = detect_boxes(img)            # 枠テンプレートで名前枠を位置特定→各枠OCR
             cands = []
-            for text, bx, by in boxes:
-                r = matcher.match(text)
-                if r:
+            for name, rank, bx, by in boxes:
+                best_r = None
+                for probe in (name, name + " " + rank):   # 名前単独(素材)と名前＋等級(装備)両方→高い方
+                    rr = matcher.match(probe)
+                    if rr and (best_r is None or rr[0]["score"] > best_r[0]["score"]):
+                        best_r = rr
+                if best_r:
                     sx, sy = ox + bx, oy + by
                     d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
-                    cands.append((r[0]["score"], d2, sx, sy, r, text))
+                    cands.append((best_r[0]["score"], d2, sx, sy, best_r, name + "|" + rank))
             found = []
             if cands:
                 ax, ay = min(cands, key=lambda c: c[1])[2:4]   # カーソル最近の枠＝指してる位置
@@ -224,8 +228,8 @@ def ocr_worker():
                         for sc, d2, sx, sy, r, tx in sorted(cands, key=lambda c: c[1]):
                             f.write(f"{r[0].get('ja','?')}（{r[0].get('rarity_ja','')}）¥{r[0].get('sell')} s={sc} d={int(d2**0.5)} @({int(sx)},{int(sy)}) [{tx[:30]}]\n")
                         f.write("--BOXES--\n")
-                        for text, bx, by in boxes:
-                            f.write(f"({int(ox+bx)},{int(oy+by)}) {text[:40]}\n")
+                        for name, rank, bx, by in boxes:
+                            f.write(f"({int(ox+bx)},{int(oy+by)}) 名[{name[:20]}] 級[{rank[:14]}]\n")
                     if not found:        # 該当なしの回は別ファイルに残す（上書きされない）
                         img.save(os.path.join(HERE, "fail.png"))
                         import shutil

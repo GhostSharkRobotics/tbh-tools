@@ -914,8 +914,7 @@ def show_popup(results, xy, text, root):
     f_meta = tkfont.Font(family="Yu Gothic UI", size=9)
 
     if results == "__processing__":
-        b = tk.Frame(win, bg=C_ACCENT); b.pack()
-        c = tk.Frame(b, bg=C_CARD); c.pack(padx=3, pady=3)
+        c = tk.Frame(win, bg=C_CARD); c.pack()      # 色枠なし＝結果ポップと統一
         tk.Label(c, text=T("reading"), bg=C_CARD, fg=C_ACCENT, font=f_name, padx=18, pady=12).pack()
         _place(win, xy); _round_corners(win); _keep_on_top(win); _open.append(win)
         win.after(int(POPUP_SECONDS * 1000), lambda: (win.winfo_exists() and win.destroy()))

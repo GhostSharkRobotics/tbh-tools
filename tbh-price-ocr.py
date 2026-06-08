@@ -81,7 +81,7 @@ except Exception as e:
     try:
         import tkinter.messagebox as mb
         r = tk.Tk(); r.withdraw()
-        mb.showerror("TBH相場OCR", f"必要なライブラリが不足:\n{e}\n\npip install mss pillow winocr mouse keyboard pystray")
+        mb.showerror("TBH MarketLens", f"必要なライブラリが不足:\n{e}\n\npip install mss pillow winocr mouse keyboard pystray")
     except Exception:
         pass
     sys.exit(1)
@@ -914,7 +914,8 @@ def _refresh_history():
 def show_history(root):
     if _hist_win[0] and _hist_win[0].winfo_exists():
         _hist_win[0].deiconify(); _refresh_history(); return
-    win = tk.Toplevel(root); win.title("価格履歴" if _ui_lang == "ja" else "Price history")
+    win = tk.Toplevel(root)
+    win.title("TBH MarketLens — " + ("価格履歴" if _ui_lang == "ja" else "Price history"))
     win.config(bg=C_CARD); win.geometry("360x460"); win.attributes("-topmost", True)
     win.protocol("WM_DELETE_WINDOW", lambda: toggle_history(root))   # ×でオフに同期
     f_hbtn = tkfont.Font(family="Yu Gothic UI", size=9)
@@ -955,8 +956,8 @@ def show_settings(root):
     if _set_win[0] and _set_win[0].winfo_exists():
         _set_win[0].deiconify(); _set_win[0].lift(); return
     ja = _ui_lang == "ja"
-    win = tk.Toplevel(root); win.title("設定"); win.config(bg=C_CARD)
-    win.attributes("-topmost", True); win.resizable(False, False)
+    win = tk.Toplevel(root); win.title("TBH MarketLens — " + ("設定" if _ui_lang == "ja" else "Settings"))
+    win.config(bg=C_CARD); win.attributes("-topmost", True); win.resizable(False, False)
     win.protocol("WM_DELETE_WINDOW", win.withdraw)
     f = tkfont.Font(family="Yu Gothic UI", size=12)
     fb = tkfont.Font(family="Yu Gothic UI", size=11, weight="bold")
@@ -1107,7 +1108,7 @@ def run_tray(root):
         pystray.MenuItem(lambda item: _t("履歴の上限", "History limit"), limit_menu),
         pystray.MenuItem(lambda item: _t("終了", "Quit"), _quit),
     )
-    pystray.Icon("tbh_price_ocr", tray_image(), "TBH 相場OCR", menu).run()
+    pystray.Icon("tbh_marketlens", tray_image(), "TBH MarketLens", menu).run()
 
 
 # ---- main ----------------------------------------------------------------
@@ -1135,6 +1136,6 @@ if __name__ == "__main__":
         try:
             import tkinter.messagebox as mb
             r = tk.Tk(); r.withdraw()
-            mb.showerror("TBH相場OCR", "起動に失敗しました。error.log を確認してください。")
+            mb.showerror("TBH MarketLens", "起動に失敗しました。error.log を確認してください。")
         except Exception:
             pass

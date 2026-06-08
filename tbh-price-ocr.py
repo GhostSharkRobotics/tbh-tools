@@ -273,9 +273,10 @@ def _rl_allow():
         _rl_times.append(now)
         return True
 
-def live_price(hash_name, force=False, cur=None, cache_only=False):
+def live_price(hash_name, force=False, cur=None, cache_only=False, wait_rl=False):
     """Steamマーケットの現在価格を取得。cur未指定なら表示言語の通貨。失敗時None。5分(hash,通貨)キャッシュ。
-    cache_only=Trueはネット非使用。自主レート制限中もキャッシュ/Noneを返しネットを叩かない。"""
+    cache_only=Trueはネット非使用。wait_rl=Trueはレート枠が空くまで待つ（全部更新用＝全件取得）。
+    レンズ(wait_rl=False)は待たず即キャッシュ/Noneを返す。"""
     if not hash_name: return None
     if cur is None: cur = _cur_code()
     now = time.time()
@@ -283,8 +284,12 @@ def live_price(hash_name, force=False, cur=None, cache_only=False):
     c = _price_cache.get(key)
     if c and not force and now - c[0] < 300:
         return c[1], c[2], c[3]
-    if cache_only or not _rl_allow():           # 制限中はネットを叩かずキャッシュ（あれば）で返す
+    if cache_only:
         return (c[1], c[2], c[3]) if c else None
+    while not _rl_allow():                        # レート枠を確保
+        if not wait_rl or time.time() < _rl_blocked[0]:   # 待たない/429中なら諦めてキャッシュ
+            return (c[1], c[2], c[3]) if c else None
+        time.sleep(1.0)                           # 全部更新は枠が空くまで待つ（≈15/分でペース）
     try:
         url = (f"https://steamcommunity.com/market/priceoverview/?appid={APPID}"
                f"&currency={cur}&market_hash_name=" + urllib.parse.quote(hash_name))
@@ -1160,6 +1165,7 @@ def _hist_rename(rec):
 
 def _hist_apply_cache():
     """履歴の価格を、現在通貨のキャッシュだけで更新（ネット非使用＝言語切替で429を起こさない）。"""
+    _hist_gen[0] += 1                             # 実行中の全部更新（旧通貨）を中断
     cur = _cur_code()
     for rec in _hist:
         if not rec.get("hash"): continue
@@ -1172,11 +1178,14 @@ def _hist_apply_cache():
             rec["cur"] = cur
 
 _hist_gen = [0]            # 全部更新の世代。新しい更新が始まると古い取得は中断（言語連続切替の競合防止）
+_hist_updating = [False]   # 全部更新が実行中か（連打で多重起動しないように）
 
 def _hist_update_all(force=True):
+    if _hist_updating[0]: return                       # 実行中の連打は無視（多重起動しない）
     recs = [r for r in list(_hist) if r.get("hash")]
     total = len(recs)
     if not total: return
+    _hist_updating[0] = True
     _hist_gen[0] += 1; gen = _hist_gen[0]
     cur = _cur_code()                                  # この更新が固定で扱う通貨
     def alive(): return gen == _hist_gen[0]
@@ -1194,7 +1203,7 @@ def _hist_update_all(force=True):
         while alive():                                 # 上書き(言語切替/再押下)されたら中断
             try: rec = work_q.get_nowait()
             except _q.Empty: return
-            lp = live_price(rec["hash"], force=force, cur=cur)
+            lp = live_price(rec["hash"], force=force, cur=cur, wait_rl=True)   # 枠が空くまで待って全件
             if not alive(): return
             if lp:
                 low, med, vol = lp
@@ -1210,6 +1219,7 @@ def _hist_update_all(force=True):
     for t in threads: t.start()
     def waiter():
         for t in threads: t.join()
+        _hist_updating[0] = False                      # 完了→再度押せる
         if not alive(): return
         _save_hist()
         setstat(T("updated", t=time.strftime("%H:%M:%S")))

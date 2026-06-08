@@ -226,6 +226,10 @@ def ocr_worker():
                         f.write("--BOXES--\n")
                         for text, bx, by in boxes:
                             f.write(f"({int(ox+bx)},{int(oy+by)}) {text[:40]}\n")
+                    if not found:        # 該当なしの回は別ファイルに残す（上書きされない）
+                        img.save(os.path.join(HERE, "fail.png"))
+                        import shutil
+                        shutil.copy(os.path.join(HERE, "ocr-text.txt"), os.path.join(HERE, "fail.txt"))
                 except Exception:
                     pass
             PQ.put((found, xy, ""))

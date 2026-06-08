@@ -21,9 +21,9 @@ from tkinter import ttk
 
 # ---- 設定 ----------------------------------------------------------------
 APP_NAME      = "TBH MarketLens"
-APP_VERSION   = "1.0"
+APP_VERSION   = "1.1"
 APP_AUTHOR    = "Ghost Shark Robotics"
-KOFI_URL      = ""                                            # Ko-fi URL（空なら寄付ボタン非表示）
+KOFI_URL      = "https://ko-fi.com/ghostsharkrobotics"        # Ko-fi（空なら寄付ボタン非表示）
 APP_REPO      = "GhostSharkRobotics/tbh-marketlens"           # 更新通知の取得元（GitHub Releases）
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応

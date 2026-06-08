@@ -47,14 +47,87 @@ RARITY_COLORS = {"Common": "#c8c8c8", "Uncommon": "#5ce65c", "Rare": "#5b9bff",
 def rarity_color(r):
     return RARITY_COLORS.get(r, C_ACCENT)
 _ui_lang = "ja"                    # 直近に判定したゲーム言語（ja/en）
-LBL = {
-    "ja": dict(low="最安", med="中央値", lst="出品", sold="売買", quote="相場",
-               mkt="クリックでSteamマーケットを開く", noprice="市場価格なし（非取引）",
-               nomatch="該当なし", reading="🔍 読み取り中…", read="読取"),
-    "en": dict(low="Low", med="Median", lst="List", sold="Sold", quote="Updated",
-               mkt="Click to open Steam Market", noprice="Not on market",
-               nomatch="No match", reading="🔍 Reading…", read="OCR"),
+# ===== 文言カタログ（全UI文字列はここ＋T()経由。言語追加はLANGSとTRに列を足すだけ） =====
+LANGS = ("ja", "en")
+LANG_NAMES = {"ja": "日本語", "en": "English"}        # 言語自身の表示名（モード非依存のデータ）
+TR = {
+    "ja": {
+        "low": "最安", "med": "中央値", "lst": "出品", "sold": "売買", "quote": "相場",
+        "mkt": "クリックでSteamマーケットを開く", "noprice": "市場価格なし（非取引）",
+        "nomatch": "該当なし", "reading": "🔍 読み取り中…", "read": "読取",
+        "rarity": "等級", "history": "履歴",
+        "hist_title": "価格履歴", "update_all": "全部更新", "hist_empty": "まだ履歴がありません",
+        "updating": "更新中 {n}/{total}…", "updated": "更新 {t}",
+        "fav": "☆ お気に入り", "unfav": "★ お気に入り解除", "rename": "アイテム名変更",
+        "rarity_change": "レア度変更", "delete": "削除", "rename_title": "アイテム名変更",
+        "ok": "OK", "cancel": "キャンセル",
+        "downloading": "ダウンロード中…", "extracting": "展開中…", "restarting": "再起動して更新…",
+        "update_failed": "更新失敗→ページを開きます", "update_btn": "更新", "update_tray": "新版へ更新",
+        "settings_title": "設定", "language": "表示言語", "shortcut": "発動キー",
+        "capture_prompt": "キーかボタンを押す…",
+        "capture_hint": "↑ クリックして、使いたいキー（Ctrl+Shift+P等の組み合わせ可）かマウスボタンを押す",
+        "reset_default": "既定に戻す（マウス サイド戻る）", "howto": "使い方", "support": "☕ 応援",
+        "disclaimer": "非公式ツール · Nugem Studio / Valve とは無関係",
+        "help_main": "アイテムに合わせて発動キーを押すと、そのアイテムの\nSteamマーケット価格（最安値・中央値）が出ます。",
+        "help_key": "発動キーの既定はマウスのサイドボタン（戻る）。「設定」で変更できます。",
+        "help_tips": ["ポップは 外をクリック / カーソルを外す / Esc で閉じる",
+                      "名前が違う時はレア度ピルや名前で選び直し",
+                      "履歴：トレイ『履歴一覧』で表示。右クリックでお気に入り・名前変更・レア度・削除、『全部更新』も",
+                      "発動キー・表示言語は『設定』で変更",
+                      "安全：ゲームには干渉しません（自分の画面OCR＋キーのみ）"],
+        "close": "閉じる",
+        "tray_key": "キー：", "tray_settings": "設定", "tray_history": "履歴一覧",
+        "tray_limit": "履歴の上限", "tray_quit": "終了", "unlimited": "無制限", "items": "{n} 件",
+        "mouse_x": "マウス サイド(戻る)", "mouse_x2": "マウス サイド(進む)", "mouse_middle": "マウス 中ボタン",
+        "mouse_left": "マウス 左", "mouse_right": "マウス 右", "mouse_prefix": "マウス ",
+        "dbg_title": "デバッグ",
+        "err_deps": "必要なライブラリが不足:\n{e}\n\npip install mss pillow winocr mouse keyboard pystray",
+        "err_start": "起動に失敗しました。error.log を確認してください。",
+    },
+    "en": {
+        "low": "Low", "med": "Median", "lst": "List", "sold": "Sold", "quote": "Updated",
+        "mkt": "Click to open Steam Market", "noprice": "Not on market",
+        "nomatch": "No match", "reading": "🔍 Reading…", "read": "OCR",
+        "rarity": "Rarity", "history": "History",
+        "hist_title": "Price history", "update_all": "Update all", "hist_empty": "No history yet",
+        "updating": "Updating {n}/{total}…", "updated": "Updated {t}",
+        "fav": "☆ Favorite", "unfav": "★ Unfavorite", "rename": "Rename",
+        "rarity_change": "Rarity", "delete": "Delete", "rename_title": "Rename item",
+        "ok": "OK", "cancel": "Cancel",
+        "downloading": "Downloading…", "extracting": "Extracting…", "restarting": "Restarting…",
+        "update_failed": "Update failed → opening page", "update_btn": "Update", "update_tray": "Update",
+        "settings_title": "Settings", "language": "Language", "shortcut": "Shortcut",
+        "capture_prompt": "Press a key or button…",
+        "capture_hint": "↑ Click above, then press a key (combos like Ctrl+Shift+P ok) or mouse button",
+        "reset_default": "Reset to default", "howto": "How to use", "support": "☕ Support",
+        "disclaimer": "Unofficial tool · not affiliated with Nugem Studio or Valve",
+        "help_main": "Point at an item and press your hotkey — its Steam Market\nprice (lowest + median) pops up.",
+        "help_key": "Default hotkey is the mouse side (back) button. Change it in Settings.",
+        "help_tips": ["Close the popup by clicking away, moving off it, or pressing Esc",
+                      "Wrong name? re-pick via the rarity pill or the name",
+                      "History: open from tray. Right-click a row for Favourite / Rename / Rarity / Delete, plus 'Update all'",
+                      "Change the hotkey & language in Settings",
+                      "Safe: it never touches the game (screen OCR + hotkey only)"],
+        "close": "Close",
+        "tray_key": "Key: ", "tray_settings": "Settings", "tray_history": "History",
+        "tray_limit": "History limit", "tray_quit": "Quit", "unlimited": "Unlimited", "items": "{n}",
+        "mouse_x": "Mouse Side (Back)", "mouse_x2": "Mouse Side (Forward)", "mouse_middle": "Mouse Middle",
+        "mouse_left": "Mouse Left", "mouse_right": "Mouse Right", "mouse_prefix": "Mouse ",
+        "dbg_title": "Debug",
+        "err_deps": "Missing libraries:\n{e}\n\npip install mss pillow winocr mouse keyboard pystray",
+        "err_start": "Failed to start. Please check error.log.",
+    },
 }
+
+def T(key, **kw):
+    """文言を現在の言語で取得。未定義キーは英語→キー名にフォールバック。{}は.formatで差し込み。"""
+    d = TR.get(_ui_lang) or TR["en"]
+    s = d.get(key)
+    if s is None:
+        s = TR["en"].get(key, key)
+    if isinstance(s, list):
+        return s
+    return s.format(**kw) if kw else s
 # -------------------------------------------------------------------------
 
 if getattr(sys, "frozen", False):                       # PyInstaller でexe化された場合
@@ -90,7 +163,7 @@ except Exception as e:
     try:
         import tkinter.messagebox as mb
         r = tk.Tk(); r.withdraw()
-        mb.showerror("TBH MarketLens", f"必要なライブラリが不足:\n{e}\n\npip install mss pillow winocr mouse keyboard pystray")
+        mb.showerror("TBH MarketLens", T("err_deps", e=e))
     except Exception:
         pass
     sys.exit(1)
@@ -295,7 +368,7 @@ def show_debug(pim, root):
     if _dbg_win[0] is not None:
         try: _dbg_win[0].destroy()
         except Exception: pass
-    win = tk.Toplevel(root); win.title("TBH OCR デバッグ")
+    win = tk.Toplevel(root); win.title("TBH MarketLens — " + T("dbg_title"))
     win.attributes("-topmost", True)
     ph = ImageTk.PhotoImage(pim)
     lb = tk.Label(win, image=ph, bg="#000"); lb.image = ph; lb.pack()
@@ -437,12 +510,12 @@ def _do_update(on_status=lambda s: None):
     def work():
         import zipfile, subprocess, shutil as _sh
         try:
-            on_status("ダウンロード中…" if _ui_lang == "ja" else "Downloading…")
+            on_status(T("downloading"))
             zpath = os.path.join(HERE, "_update.zip"); newdir = os.path.join(HERE, "_update_new")
             req = urllib.request.Request(u["zip"], headers={"User-Agent": "TBH-MarketLens"})
             with urllib.request.urlopen(req, timeout=120) as r, open(zpath, "wb") as f:
                 _sh.copyfileobj(r, f)
-            on_status("展開中…" if _ui_lang == "ja" else "Extracting…")
+            on_status(T("extracting"))
             if os.path.isdir(newdir): _sh.rmtree(newdir, ignore_errors=True)
             with zipfile.ZipFile(zpath) as z: z.extractall(newdir)
             inner = os.path.join(newdir, "TBH MarketLens")        # zipが1段フォルダ入りでも対応
@@ -455,11 +528,11 @@ def _do_update(on_status=lambda s: None):
                         f'robocopy "{srcdir}" "{HERE}" /e /is /it >nul\r\n'
                         f'rmdir /s /q "{newdir}"\r\n' f'del "{zpath}"\r\n'
                         f'start "" "{exe}"\r\n' 'del "%~f0"\r\n')
-            on_status("再起動して更新…" if _ui_lang == "ja" else "Restarting…")
+            on_status(T("restarting"))
             subprocess.Popen(["cmd", "/c", bat], creationflags=0x00000008)   # DETACHED_PROCESS
             os._exit(0)                                           # 本体を即終了→batが差し替え＆再起動
         except Exception:
-            on_status("更新失敗→ページを開きます" if _ui_lang == "ja" else "Update failed → opening page")
+            on_status(T("update_failed"))
             try: webbrowser.open(u["url"])
             except Exception: pass
     threading.Thread(target=work, daemon=True).start()
@@ -491,18 +564,11 @@ _set_win = [None]                                    # 設定ウィンドウ
 _help_win = [None]                                   # 使い方ウィンドウ
 _intro_seen = [False]                                # 初回起動の使い方を表示済みか
 
-_MOUSE_LBL = {
-    "ja": {"x": "マウス サイド(戻る)", "x2": "マウス サイド(進む)", "middle": "マウス 中ボタン",
-           "left": "マウス 左", "right": "マウス 右"},
-    "en": {"x": "Mouse Side (Back)", "x2": "Mouse Side (Forward)", "middle": "Mouse Middle",
-           "left": "Mouse Left", "right": "Mouse Right"},
-}
-
 def _trigger_label(kind=None, value=None):
     kind = kind or _trigger["kind"]; value = value if value is not None else _trigger["value"]
     if kind == "mouse":
-        d = _MOUSE_LBL.get(_ui_lang, _MOUSE_LBL["ja"])
-        return d.get(value, ("マウス " if _ui_lang == "ja" else "Mouse ") + str(value))
+        k = "mouse_" + str(value)
+        return TR[_ui_lang].get(k) or TR["en"].get(k) or (T("mouse_prefix") + str(value))
     return " + ".join(p.capitalize() for p in str(value).split("+"))   # ctrl+shift+p → Ctrl + Shift + P
 
 def _save_settings():
@@ -740,7 +806,6 @@ def show_popup(results, xy, text, root):
         try: w.destroy()
         except Exception: pass
         _open.remove(w)
-    lb = LBL.get(_ui_lang, LBL["ja"])
     win = tk.Toplevel(root)
     win.overrideredirect(True); win.attributes("-topmost", True); win.config(bg=C_CARD)
     f_name = tkfont.Font(family="Yu Gothic UI", size=14, weight="bold")
@@ -750,7 +815,7 @@ def show_popup(results, xy, text, root):
     if results == "__processing__":
         b = tk.Frame(win, bg=C_ACCENT); b.pack()
         c = tk.Frame(b, bg=C_CARD); c.pack(padx=3, pady=3)
-        tk.Label(c, text=lb["reading"], bg=C_CARD, fg=C_ACCENT, font=f_name, padx=18, pady=12).pack()
+        tk.Label(c, text=T("reading"), bg=C_CARD, fg=C_ACCENT, font=f_name, padx=18, pady=12).pack()
         _place(win, xy); _round_corners(win); _keep_on_top(win); _open.append(win)
         win.after(int(POPUP_SECONDS * 1000), lambda: (win.winfo_exists() and win.destroy()))
         return
@@ -778,7 +843,7 @@ def show_popup(results, xy, text, root):
     def build_rar_pill():
         if _rp["w"]: _rp["w"].destroy()
         r = state["rarity"]
-        txt = "▾ " + ((en2ja.get(r, r) if _ui_lang == "ja" else r) if r else ("等級" if _ui_lang == "ja" else "Rarity"))
+        txt = "▾ " + ((en2ja.get(r, r) if _ui_lang == "ja" else r) if r else T("rarity"))
         p = round_pill(rar_holder, txt, rarity_color(r), "#0c0c0c",
                        lambda: rar_menu.tk_popup(p.winfo_rootx(), p.winfo_rooty() + p.winfo_height()), f_meta)
         p.pack(anchor="w"); _rp["w"] = p
@@ -794,11 +859,11 @@ def show_popup(results, xy, text, root):
         if ent and ent.get("hash"):
             try: webbrowser.open(f"https://steamcommunity.com/market/listings/{APPID}/" + urllib.parse.quote(ent["hash"]))
             except Exception: pass
-    mkt_pill = round_pill(btnf, "🛒 " + lb["mkt"], rarity_color(init_rar), "#0c0c0c", open_market, f_meta)
+    mkt_pill = round_pill(btnf, "🛒 " + T("mkt"), rarity_color(init_rar), "#0c0c0c", open_market, f_meta)
     mkt_pill.pack(side="left")
     def open_history():
         _hist_visible[0] = True; show_history(root)
-    round_pill(btnf, "🕘 " + ("履歴" if _ui_lang == "ja" else "History"),
+    round_pill(btnf, "🕘 " + T("history"),
                "#2a2f3a", C_NAME, open_history, f_meta).pack(side="left", padx=(6, 0))
     round_pill(btnf, "✕", "#2a2f3a", C_NAME, win.destroy, f_meta, padx=12).pack(side="right")
 
@@ -810,13 +875,13 @@ def show_popup(results, xy, text, root):
             name_lbl.config(text=(ent.get("en") if _ui_lang == "en" else ent.get("ja"))
                             or ent.get("en") or ent.get("ja") or "—")
         if ent and ent.get("sell") is not None:
-            price_lbl.config(text=f"{lb['low']} {price(ent['sell'])}   {lb['med']} {price(ent['median'])}")
+            price_lbl.config(text=f"{T('low')} {price(ent['sell'])}   {T('med')} {price(ent['median'])}")
             cat = ent.get("type_en" if _ui_lang == "en" else "type_ja") or ent.get("type", "")
-            meta_lbl.config(text=f"{cat}   {lb['sold']}{ent.get('volume','—')}")
+            meta_lbl.config(text=f"{cat}   {T('sold')}{ent.get('volume','—')}")
         elif ent:
-            price_lbl.config(text=lb["noprice"]); meta_lbl.config(text=ent.get("type_ja", "") or ent.get("type_en", ""))
+            price_lbl.config(text=T("noprice")); meta_lbl.config(text=ent.get("type_ja", "") or ent.get("type_en", ""))
         else:
-            price_lbl.config(text=lb["nomatch"]); meta_lbl.config(text="")
+            price_lbl.config(text=T("nomatch")); meta_lbl.config(text="")
         _place(win, xy)
 
     def _lookup(nm, rar_en):                        # 名前＋等級で引き直し→現在価格を取得→描画
@@ -891,7 +956,7 @@ def _hist_set_rarity(rec, en):
 def _hist_rename(rec):
     def on_ok(s):
         if s: _hist_apply(rec, s, rec.get("rarity_en"))
-    _ask_text("アイテム名変更" if _ui_lang == "ja" else "Rename item",
+    _ask_text(T("rename_title"),
               rec.get("ja") or rec.get("en") or "", on_ok)
 
 def _hist_update_all():
@@ -904,7 +969,7 @@ def _hist_update_all():
         _hist_after(_s)
     def work():
         n = 0
-        setstat(("更新中 0/%d…" % total) if _ui_lang == "ja" else "Updating 0/%d…" % total)
+        setstat(T("updating", n=0, total=total))
         for rec in recs:
             h = rec.get("hash")
             if not h: continue
@@ -915,12 +980,12 @@ def _hist_update_all():
                 if med is not None: rec["median"] = med
                 if vol is not None: rec["volume"] = vol
             n += 1
-            setstat(("更新中 %d/%d…" % (n, total)) if _ui_lang == "ja" else "Updating %d/%d…" % (n, total))
+            setstat(T("updating", n=n, total=total))
             _hist_after(_refresh_history)         # 1件ずつ反映＝変化が見える
             time.sleep(0.3)                        # Steamのレート制限回避
         _save_hist()
         done = time.strftime("%H:%M:%S")
-        setstat((f"更新 {done}") if _ui_lang == "ja" else f"Updated {done}")
+        setstat(T("updated", t=done))
         _hist_after(_refresh_history)
     threading.Thread(target=work, daemon=True).start()
 
@@ -938,7 +1003,7 @@ def _ask_text(title, initial, on_ok):
         on_ok(var.get().strip()); d.destroy()
     bf = tk.Frame(d, bg=C_CARD); bf.pack(padx=14, pady=(6, 12), fill="x")
     round_pill(bf, "OK", C_ACCENT, "#0c0c0c", ok, f).pack(side="right", padx=(6, 0))
-    round_pill(bf, "キャンセル" if _ui_lang == "ja" else "Cancel", "#2a2f3a", C_NAME, d.destroy, f).pack(side="right")
+    round_pill(bf, T("cancel"), "#2a2f3a", C_NAME, d.destroy, f).pack(side="right")
     d.bind("<Return>", ok); d.bind("<Escape>", lambda e: d.destroy())
     _grab_foreground(d)
     ent.focus_set()
@@ -949,30 +1014,28 @@ def _row_menu(ev, rec):
     m = tk.Menu(_hist_win[0], tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
                 activeforeground="#ffffff", bd=0)
     ja = _ui_lang == "ja"
-    m.add_command(label=("★ お気に入り解除" if rec.get("fav") else "☆ お気に入り") if ja
-                  else ("★ Unfavorite" if rec.get("fav") else "☆ Favorite"),
+    m.add_command(label=(T("unfav") if rec.get("fav") else T("fav")),
                   command=lambda: _hist_fav(rec))
-    m.add_command(label="アイテム名変更" if ja else "Rename", command=lambda: _hist_rename(rec))
+    m.add_command(label=T("rename"), command=lambda: _hist_rename(rec))
     rm = tk.Menu(m, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
                  activeforeground="#ffffff", bd=0)
     for en, jaa in RARITIES:
         rm.add_command(label=(jaa if ja else en), foreground=rarity_color(en),
                        command=lambda en=en: _hist_set_rarity(rec, en))
-    m.add_cascade(label="レア度変更" if ja else "Rarity", menu=rm)
+    m.add_cascade(label=T("rarity_change"), menu=rm)
     m.add_separator()
-    m.add_command(label="削除" if ja else "Delete", command=lambda: _hist_delete(rec))
+    m.add_command(label=T("delete"), command=lambda: _hist_delete(rec))
     m.tk_popup(ev.x_root, ev.y_root)
 
 
 def _refresh_history():
     if not (_hist_win[0] and _hist_win[0].winfo_exists() and _hist_inner[0]): return
-    lb = LBL.get(_ui_lang, LBL["ja"])
     canvas, inner = _hist_inner[0]
     for w in inner.winfo_children():
         try: w.destroy()
         except Exception: pass
     if not _hist:
-        tk.Label(inner, text="まだ履歴がありません" if _ui_lang == "ja" else "No history yet",
+        tk.Label(inner, text=T("hist_empty"),
                  bg=C_CARD, fg=C_META, anchor="w").pack(fill="x", padx=12, pady=10)
     for rec in sorted(_hist, key=lambda r: (not r.get("fav"),)):   # お気に入りを上に
         ar = rarity_color(rec.get("rarity_en") or "")
@@ -986,10 +1049,10 @@ def _refresh_history():
         tk.Label(top, text=rec.get("ts", ""), bg=C_CARD, fg=C_META,
                  font=("Yu Gothic UI", 8), anchor="e").pack(side="right")
         if rec.get("sell") is not None:
-            ptxt = f"{lb['low']} {price(rec['sell'])}   {lb['med']} {price(rec['median'])}"
+            ptxt = f"{T('low')} {price(rec['sell'])}   {T('med')} {price(rec['median'])}"
             pcol = C_PRICE
         else:
-            ptxt = lb["noprice"]; pcol = C_META
+            ptxt = T("noprice"); pcol = C_META
         cat = rec.get("type_en" if _ui_lang == "en" else "type_ja") or rec.get("type", "")
         tk.Label(row, text=ptxt, bg=C_CARD, fg=pcol, font=("Yu Gothic UI", 9), anchor="w").pack(fill="x")
         tk.Label(row, text=cat, bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(fill="x")
@@ -1007,14 +1070,14 @@ def show_history(root):
     if _hist_win[0] and _hist_win[0].winfo_exists():
         _hist_win[0].deiconify(); _refresh_history(); return
     win = tk.Toplevel(root)
-    win.title("TBH MarketLens — " + ("価格履歴" if _ui_lang == "ja" else "Price history"))
+    win.title("TBH MarketLens — " + T("hist_title"))
     win.config(bg=C_CARD); win.geometry("360x460"); win.attributes("-topmost", True)
     win.protocol("WM_DELETE_WINDOW", lambda: toggle_history(root))   # ×でオフに同期
     f_hbtn = tkfont.Font(family="Yu Gothic UI", size=9)
     hdr = tk.Frame(win, bg=C_CARD); hdr.pack(fill="x", padx=12, pady=(10, 0))
-    tk.Label(hdr, text="価格履歴" if _ui_lang == "ja" else "Price history", bg=C_CARD, fg=C_NAME,
+    tk.Label(hdr, text=T("hist_title"), bg=C_CARD, fg=C_NAME,
              font=("Yu Gothic UI", 13, "bold"), anchor="w").pack(side="left")
-    round_pill(hdr, "↻ " + ("全部更新" if _ui_lang == "ja" else "Update all"),
+    round_pill(hdr, "↻ " + T("update_all"),
                C_ACCENT, "#0c0c0c", _hist_update_all, f_hbtn).pack(side="right")
     _hist_status[0] = tk.Label(win, text="", bg=C_CARD, fg=C_ACCENT,
                                font=("Yu Gothic UI", 9), anchor="w")
@@ -1049,39 +1112,22 @@ def show_help(root):
         _help_win[0].deiconify(); _help_win[0].lift(); return
     ja = _ui_lang == "ja"
     win = tk.Toplevel(root); win.config(bg=C_CARD); win.attributes("-topmost", True); win.resizable(False, False)
-    win.title(f"{APP_NAME} — " + ("使い方" if ja else "How to use"))
+    win.title(f"{APP_NAME} — " + T("howto"))
     win.protocol("WM_DELETE_WINDOW", win.withdraw)
     ft = tkfont.Font(family="Yu Gothic UI", size=15, weight="bold")
     fh = tkfont.Font(family="Yu Gothic UI", size=10, weight="bold")
     fb = tkfont.Font(family="Yu Gothic UI", size=10)
     W = 380
     tk.Label(win, text=APP_NAME, bg=C_CARD, fg=C_ACCENT, font=ft, anchor="w").pack(fill="x", padx=22, pady=(18, 0))
-    main = ("アイテムに合わせて発動キーを押すと、そのアイテムの\nSteamマーケット価格（最安値・中央値）が出ます。"
-            if ja else
-            "Point at an item and press your hotkey — its Steam Market\nprice (lowest + median) pops up.")
-    tk.Label(win, text=main, bg=C_CARD, fg=C_NAME, font=fh, anchor="w", justify="left",
+    tk.Label(win, text=T("help_main"), bg=C_CARD, fg=C_NAME, font=fh, anchor="w", justify="left",
              wraplength=W - 16).pack(fill="x", padx=22, pady=(2, 8))
-    key = ("発動キーの既定はマウスのサイドボタン（戻る）。「設定」で変更できます。"
-           if ja else
-           "Default hotkey is the mouse side (back) button. Change it in Settings.")
-    tk.Label(win, text=key, bg=C_CARD, fg=C_META, font=fb, anchor="w", justify="left",
+    tk.Label(win, text=T("help_key"), bg=C_CARD, fg=C_META, font=fb, anchor="w", justify="left",
              wraplength=W - 16).pack(fill="x", padx=22, pady=(0, 2))
     tk.Frame(win, bg="#2a2f3a", height=1).pack(fill="x", padx=22, pady=(10, 8))
-    tips = (["ポップは 外をクリック / カーソルを外す / Esc で閉じる",
-             "名前が違う時はレア度ピルや名前で選び直し",
-             "履歴：トレイ『履歴一覧』で表示。右クリックでお気に入り・名前変更・レア度・削除、『全部更新』も",
-             "発動キー・表示言語は『設定』で変更",
-             "安全：ゲームには干渉しません（自分の画面OCR＋キーのみ）"]
-            if ja else
-            ["Close the popup by clicking away, moving off it, or pressing Esc",
-             "Wrong name? re-pick via the rarity pill or the name",
-             "History: open from tray. Right-click a row for Favourite / Rename / Rarity / Delete, plus 'Update all'",
-             "Change the hotkey & language in Settings",
-             "Safe: it never touches the game (screen OCR + hotkey only)"])
-    for t in tips:
+    for t in T("help_tips"):
         tk.Label(win, text="・ " + t, bg=C_CARD, fg=C_META, font=fb, anchor="w",
                  justify="left", wraplength=W - 8).pack(fill="x", padx=22, pady=1)
-    round_pill(win, "閉じる" if ja else "Close", C_ACCENT, "#0c0c0c", win.withdraw, fb).pack(pady=(12, 18))
+    round_pill(win, T("close"), C_ACCENT, "#0c0c0c", win.withdraw, fb).pack(pady=(12, 18))
     win.update_idletasks()
     win.geometry(f"{max(W, win.winfo_reqwidth())}x{win.winfo_reqheight()}")
     _help_win[0] = win
@@ -1092,7 +1138,7 @@ def show_settings(root):
     if _set_win[0] and _set_win[0].winfo_exists():
         _set_win[0].deiconify(); _set_win[0].lift(); return
     ja = _ui_lang == "ja"
-    win = tk.Toplevel(root); win.title("TBH MarketLens — " + ("設定" if _ui_lang == "ja" else "Settings"))
+    win = tk.Toplevel(root); win.title("TBH MarketLens — " + T("settings_title"))
     win.config(bg=C_CARD); win.attributes("-topmost", True); win.resizable(False, False)
     win.protocol("WM_DELETE_WINDOW", win.withdraw)
     f = tkfont.Font(family="Yu Gothic UI", size=12)
@@ -1107,7 +1153,7 @@ def show_settings(root):
         return c
 
     # ── 表示言語 ──
-    c1 = section("表示言語" if ja else "Language")
+    c1 = section(T("language"))
     langf = tk.Frame(c1, bg="#11141a"); langf.pack(fill="x", padx=14, pady=(0, 14))
     def choose_lang(m):
         if _lang_mode[0] == m: return
@@ -1119,26 +1165,24 @@ def show_settings(root):
         if pos and _set_win[0]:
             try: _set_win[0].geometry(pos)
             except Exception: pass
-    for m, label in (("ja", "日本語"), ("en", "English")):
+    for m in LANGS:
         on = _lang_mode[0] == m
-        round_pill(langf, ("● " if on else "") + label, C_ACCENT if on else "#2a2f3a",
+        round_pill(langf, ("● " if on else "") + LANG_NAMES[m], C_ACCENT if on else "#2a2f3a",
                    "#0c0c0c" if on else C_NAME, lambda m=m: choose_lang(m), fs).pack(side="left", padx=(0, 6))
 
     # ── 発動キー ──
-    c2 = section("発動キー" if ja else "Shortcut")
+    c2 = section(T("shortcut"))
     field = tk.Label(c2, text=_trigger_label(), bg="#0d1016", fg=C_ACCENT, font=f,
                      anchor="w", cursor="hand2", padx=12, pady=10)
     field.pack(fill="x", padx=14)
-    tk.Label(c2, text=("↑ クリックして、使いたいキー（Ctrl+Shift+P等の組み合わせ可）か"
-                       "マウスボタンを押す" if ja else
-                       "Click above, then press a key (combos ok) or mouse button"),
+    tk.Label(c2, text=T("capture_hint"),
              bg="#11141a", fg=C_META, font=fs, anchor="w", justify="left",
              wraplength=300).pack(fill="x", padx=14, pady=(6, 4))
 
     def start_capture(*_):
         if state["capturing"]: return
         state["capturing"] = True
-        field.config(text=("キーかボタンを押す…" if ja else "Press a key or button…"), fg=C_ERR)
+        field.config(text=T("capture_prompt"), fg=C_ERR)
         def done(kind, value):
             def apply():
                 state["capturing"] = False
@@ -1157,29 +1201,28 @@ def show_settings(root):
         _trigger.update(kind="mouse", value="x"); _bind_trigger(); _save_settings()
         field.config(text=_trigger_label(), fg=C_ACCENT)
     rf = tk.Frame(c2, bg="#11141a"); rf.pack(fill="x", padx=14, pady=(2, 12))
-    round_pill(rf, "既定に戻す（マウス サイド戻る）" if ja else "Reset to default",
+    round_pill(rf, T("reset_default"),
                "#2a2f3a", C_NAME, reset, fs).pack(side="left")
 
     # ── フッター：クレジット＋控えめな寄付＋免責 ──
     hf = tk.Frame(win, bg=C_CARD); hf.pack(fill="x", padx=18, pady=(6, 0))
-    round_pill(hf, "❓ " + ("使い方" if ja else "How to use"), "#2a2f3a", C_NAME,
+    round_pill(hf, "❓ " + T("howto"), "#2a2f3a", C_NAME,
                lambda: show_help(root), fs).pack(side="left")
 
     foot = tk.Frame(win, bg=C_CARD); foot.pack(fill="x", padx=18, pady=(10, 2))
     tk.Label(foot, text=f"{APP_NAME} v{APP_VERSION} · by {APP_AUTHOR}",
              bg=C_CARD, fg=C_META, font=fs, anchor="w").pack(side="left")
     if KOFI_URL:
-        round_pill(foot, "☕ Support", "#2a2f3a", C_NAME,
+        round_pill(foot, T("support"), "#2a2f3a", C_NAME,
                    lambda: webbrowser.open(KOFI_URL), fs).pack(side="right")
     if _update_info[0]:                          # 新版があればワンクリック更新
         u = _update_info[0]
         def _ustatus(s):
             if win.winfo_exists(): win.after(0, lambda: _pill_set_text(upill, s))
-        upill = round_pill(foot, f"⬆ {'更新' if ja else 'Update'} v{u['ver']}", C_ACCENT, "#0c0c0c",
+        upill = round_pill(foot, f"⬆ {T('update_btn')} v{u['ver']}", C_ACCENT, "#0c0c0c",
                            lambda: _do_update(_ustatus), fs)
         upill.pack(side="right", padx=(0, 8))
-    tk.Label(win, text=("非公式ツール · Nugem Studio / Valve とは無関係" if ja else
-                        "Unofficial tool · not affiliated with Nugem Studio or Valve"),
+    tk.Label(win, text=T("disclaimer"),
              bg=C_CARD, fg="#5a5f6a", font=fs, anchor="w").pack(fill="x", padx=18, pady=(0, 14))
     win.update_idletasks()
     win.geometry(f"{win.winfo_reqwidth()}x{win.winfo_reqheight()}")   # 内容ぴったりに固定
@@ -1249,28 +1292,26 @@ def run_tray(root):
             PQ.put(("__hist_trim__", None, None))
             icon.update_menu()
         return _cb
-    def _t(ja_s, en_s): return ja_s if _ui_lang == "ja" else en_s
     def _limit_label(n):
-        return (("無制限" if _ui_lang == "ja" else "Unlimited") if n == 0
-                else (f"{n} 件" if _ui_lang == "ja" else f"{n}"))
+        return T("unlimited") if n == 0 else T("items", n=n)
     limit_menu = pystray.Menu(*[
         pystray.MenuItem(lambda item, n=n: _limit_label(n), _mk_limit(n),
                          checked=lambda item, n=n: _hist_limit[0] == n, radio=True)
         for n in (20, 50, 100, 200, 0)
     ])
     menu = pystray.Menu(
-        pystray.MenuItem(lambda item: f"⬆ {_t('新版へ更新', 'Update')} v{(_update_info[0] or {}).get('ver','')}",
+        pystray.MenuItem(lambda item: f"⬆ {T('update_tray')} v{(_update_info[0] or {}).get('ver','')}",
                          lambda icon, item: _do_update(),
                          visible=lambda item: _update_info[0] is not None),
-        pystray.MenuItem(lambda item: f"{_t('キー：', 'Key: ')}{_trigger_label()}", None, enabled=False),
-        pystray.MenuItem(lambda item: _t("使い方", "How to use"),
+        pystray.MenuItem(lambda item: f"{T('tray_key')}{_trigger_label()}", None, enabled=False),
+        pystray.MenuItem(lambda item: T("howto"),
                          lambda icon, item: PQ.put(("__help__", None, None))),
-        pystray.MenuItem(lambda item: _t("設定", "Settings"),
+        pystray.MenuItem(lambda item: T("tray_settings"),
                          lambda icon, item: PQ.put(("__settings__", None, None))),
-        pystray.MenuItem(lambda item: _t("履歴一覧", "History"), _toggle_hist,
+        pystray.MenuItem(lambda item: T("tray_history"), _toggle_hist,
                          checked=lambda item: _hist_visible[0]),
-        pystray.MenuItem(lambda item: _t("履歴の上限", "History limit"), limit_menu),
-        pystray.MenuItem(lambda item: _t("終了", "Quit"), _quit),
+        pystray.MenuItem(lambda item: T("tray_limit"), limit_menu),
+        pystray.MenuItem(lambda item: T("tray_quit"), _quit),
     )
     pystray.Icon("tbh_marketlens", tray_image(), "TBH MarketLens", menu).run()
 
@@ -1304,6 +1345,6 @@ if __name__ == "__main__":
         try:
             import tkinter.messagebox as mb
             r = tk.Tk(); r.withdraw()
-            mb.showerror("TBH MarketLens", "起動に失敗しました。error.log を確認してください。")
+            mb.showerror("TBH MarketLens", T("err_start"))
         except Exception:
             pass

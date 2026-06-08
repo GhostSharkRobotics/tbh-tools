@@ -118,12 +118,12 @@ def price(c):                      # 英語モードは$、日本語モードは
 
 
 _price_cache = {}                  # hash -> (取得time, low_cents, med_cents, volume)
-def live_price(hash_name):
-    """Steamマーケットの現在価格を取得（表示の瞬間に最新を取る）。失敗時None。5分キャッシュ。"""
+def live_price(hash_name, force=False):
+    """Steamマーケットの現在価格を取得（表示の瞬間に最新を取る）。失敗時None。5分キャッシュ。force=Trueで無視。"""
     if not hash_name: return None
     now = time.time()
     c = _price_cache.get(hash_name)
-    if c and now - c[0] < 300:
+    if c and not force and now - c[0] < 300:
         return c[1], c[2], c[3]
     try:
         url = (f"https://steamcommunity.com/market/priceoverview/?appid={APPID}"
@@ -376,16 +376,28 @@ _hist = []                 # 価格履歴（新しい順）
 _hist_win = [None]         # 履歴ウィンドウ
 _hist_inner = [None]       # (canvas, inner) の参照
 _hist_visible = [False]    # トレイのオン/オフ状態
+_hist_limit = [50]         # 履歴の上限（0=無制限）。お気に入りは上限の対象外
+
+def _hist_trim():
+    lim = _hist_limit[0]
+    if lim <= 0 or len(_hist) <= lim: return
+    favs = sum(1 for r in _hist if r.get("fav"))
+    keep_nonfav = max(0, lim - favs)
+    seen = 0; out = []
+    for r in _hist:                       # 新しい順。お気に入りは常に残し、非お気に入りは上限まで
+        if r.get("fav"): out.append(r)
+        elif seen < keep_nonfav: out.append(r); seen += 1
+    _hist[:] = out
 
 def _record_history(ent):
     if not ent: return
     rec = {k: ent.get(k) for k in ("ja", "en", "rarity_en", "rarity_ja", "sell", "median",
                                    "volume", "hash", "type_ja", "type_en", "type")}
     rec["ts"] = time.strftime("%H:%M")
-    if _hist and _hist[0].get("hash") == rec["hash"]:   # 直近と同一なら時刻だけ更新
-        _hist[0] = rec
+    if _hist and _hist[0].get("hash") == rec["hash"]:   # 直近と同一なら時刻だけ更新（fav保持）
+        rec["fav"] = _hist[0].get("fav"); _hist[0] = rec
     else:
-        _hist.insert(0, rec); del _hist[40:]
+        _hist.insert(0, rec); _hist_trim()
 
 def _round_corners(win):
     try:
@@ -625,6 +637,105 @@ def show_popup(results, xy, text, root):
     _open.append(win)
 
 
+def _hist_after(fn):
+    w = _hist_win[0]
+    if w and w.winfo_exists():
+        try: w.after(0, fn)
+        except Exception: pass
+
+def _hist_delete(rec):
+    try: _hist.remove(rec)
+    except ValueError: pass
+    _refresh_history()
+
+def _hist_fav(rec):
+    rec["fav"] = not rec.get("fav"); _refresh_history()
+
+def _hist_apply(rec, name, rarity_en):
+    """name+等級で再照合し、recを新データに置換（fav/tsは保持）。価格も取得。"""
+    fav, ts = rec.get("fav"), rec.get("ts")
+    rmap = {en: ja for en, ja in RARITIES}
+    def work():
+        r = matcher.match_item(name, rmap.get(rarity_en, rarity_en) if rarity_en else "")
+        ent = r[0] if r else None
+        if ent:
+            lp = live_price(ent.get("hash"), force=True)
+            if lp:
+                low, med, vol = lp
+                if low is not None: ent["sell"] = low
+                if med is not None: ent["median"] = med
+                if vol is not None: ent["volume"] = vol
+            new = {k: ent.get(k) for k in ("ja", "en", "rarity_en", "rarity_ja", "sell", "median",
+                                           "volume", "hash", "type_ja", "type_en", "type")}
+            new["fav"], new["ts"] = fav, ts
+            if rec in _hist: _hist[_hist.index(rec)] = new
+        _hist_after(_refresh_history)
+    threading.Thread(target=work, daemon=True).start()
+
+def _hist_set_rarity(rec, en):
+    _hist_apply(rec, rec.get("ja") or rec.get("en") or "", en)
+
+def _hist_rename(rec):
+    def on_ok(s):
+        if s: _hist_apply(rec, s, rec.get("rarity_en"))
+    _ask_text("アイテム名変更" if _ui_lang == "ja" else "Rename item",
+              rec.get("ja") or rec.get("en") or "", on_ok)
+
+def _hist_update_all():
+    recs = list(_hist)
+    def work():
+        for rec in recs:
+            h = rec.get("hash")
+            if not h: continue
+            lp = live_price(h, force=True)
+            if lp:
+                low, med, vol = lp
+                if low is not None: rec["sell"] = low
+                if med is not None: rec["median"] = med
+                if vol is not None: rec["volume"] = vol
+        _hist_after(_refresh_history)
+    threading.Thread(target=work, daemon=True).start()
+
+def _ask_text(title, initial, on_ok):
+    """履歴上で使う小さな入力ダイアログ（前面フォーカスを取って打てる）。"""
+    parent = _hist_win[0]
+    d = tk.Toplevel(parent); d.title(title); d.config(bg=C_CARD); d.attributes("-topmost", True)
+    f = tkfont.Font(family="Yu Gothic UI", size=11)
+    tk.Label(d, text=title, bg=C_CARD, fg=C_NAME, font=f, anchor="w").pack(fill="x", padx=14, pady=(12, 4))
+    var = tk.StringVar(value=initial)
+    ent = tk.Entry(d, textvariable=var, font=f, bg="#0d1016", fg=C_NAME,
+                   insertbackground=C_NAME, relief="flat", width=26)
+    ent.pack(padx=14, pady=4, ipady=4, ipadx=4)
+    def ok(*_):
+        on_ok(var.get().strip()); d.destroy()
+    bf = tk.Frame(d, bg=C_CARD); bf.pack(padx=14, pady=(6, 12), fill="x")
+    round_pill(bf, "OK", C_ACCENT, "#0c0c0c", ok, f).pack(side="right", padx=(6, 0))
+    round_pill(bf, "キャンセル" if _ui_lang == "ja" else "Cancel", "#2a2f3a", C_NAME, d.destroy, f).pack(side="right")
+    d.bind("<Return>", ok); d.bind("<Escape>", lambda e: d.destroy())
+    _grab_foreground(d)
+    ent.focus_set()
+    try: ent.select_range(0, "end"); ent.icursor("end")
+    except Exception: pass
+
+def _row_menu(ev, rec):
+    m = tk.Menu(_hist_win[0], tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
+                activeforeground="#ffffff", bd=0)
+    ja = _ui_lang == "ja"
+    m.add_command(label=("★ お気に入り解除" if rec.get("fav") else "☆ お気に入り") if ja
+                  else ("★ Unfavorite" if rec.get("fav") else "☆ Favorite"),
+                  command=lambda: _hist_fav(rec))
+    m.add_command(label="アイテム名変更" if ja else "Rename", command=lambda: _hist_rename(rec))
+    rm = tk.Menu(m, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
+                 activeforeground="#ffffff", bd=0)
+    for en, jaa in RARITIES:
+        rm.add_command(label=(jaa if ja else en), foreground=rarity_color(en),
+                       command=lambda en=en: _hist_set_rarity(rec, en))
+    m.add_cascade(label="レア度変更" if ja else "Rarity", menu=rm)
+    m.add_separator()
+    m.add_command(label="削除" if ja else "Delete", command=lambda: _hist_delete(rec))
+    m.tk_popup(ev.x_root, ev.y_root)
+
+
 def _refresh_history():
     if not (_hist_win[0] and _hist_win[0].winfo_exists() and _hist_inner[0]): return
     lb = LBL.get(_ui_lang, LBL["ja"])
@@ -635,13 +746,14 @@ def _refresh_history():
     if not _hist:
         tk.Label(inner, text="まだ履歴がありません" if _ui_lang == "ja" else "No history yet",
                  bg=C_CARD, fg=C_META, anchor="w").pack(fill="x", padx=12, pady=10)
-    for rec in _hist:
+    for rec in sorted(_hist, key=lambda r: (not r.get("fav"),)):   # お気に入りを上に
         ar = rarity_color(rec.get("rarity_en") or "")
         nm = (rec.get("en") if _ui_lang == "en" else rec.get("ja")) or rec.get("ja") or rec.get("en") or "?"
         rj = (rec.get("rarity_ja") if _ui_lang == "ja" else rec.get("rarity_en")) or ""
+        star = "★ " if rec.get("fav") else ""
         row = tk.Frame(inner, bg=C_CARD, cursor="hand2"); row.pack(fill="x", padx=6, pady=(4, 0))
         top = tk.Frame(row, bg=C_CARD); top.pack(fill="x")
-        tk.Label(top, text=nm + (("  " + rj) if rj else ""), bg=C_CARD, fg=ar,
+        tk.Label(top, text=star + nm + (("  " + rj) if rj else ""), bg=C_CARD, fg=ar,
                  font=("Yu Gothic UI", 10, "bold"), anchor="w").pack(side="left")
         tk.Label(top, text=rec.get("ts", ""), bg=C_CARD, fg=C_META,
                  font=("Yu Gothic UI", 8), anchor="e").pack(side="right")
@@ -660,6 +772,7 @@ def _refresh_history():
                 except Exception: pass
         for wdg in (row, top, *top.winfo_children(), *row.winfo_children()):
             wdg.bind("<Button-1>", _open_mkt)
+            wdg.bind("<Button-3>", lambda ev, r=rec: _row_menu(ev, r))   # 右クリックでメニュー
     canvas.update_idletasks(); canvas.configure(scrollregion=canvas.bbox("all"))
 
 def show_history(root):
@@ -668,8 +781,12 @@ def show_history(root):
     win = tk.Toplevel(root); win.title("TBH 価格履歴"); win.config(bg=C_CARD)
     win.geometry("360x460"); win.attributes("-topmost", True)
     win.protocol("WM_DELETE_WINDOW", lambda: toggle_history(root))   # ×でオフに同期
-    tk.Label(win, text="価格履歴" if _ui_lang == "ja" else "Price history", bg=C_CARD, fg=C_NAME,
-             font=("Yu Gothic UI", 13, "bold"), anchor="w").pack(fill="x", padx=12, pady=(10, 2))
+    f_hbtn = tkfont.Font(family="Yu Gothic UI", size=9)
+    hdr = tk.Frame(win, bg=C_CARD); hdr.pack(fill="x", padx=12, pady=(10, 2))
+    tk.Label(hdr, text="価格履歴" if _ui_lang == "ja" else "Price history", bg=C_CARD, fg=C_NAME,
+             font=("Yu Gothic UI", 13, "bold"), anchor="w").pack(side="left")
+    round_pill(hdr, "↻ " + ("全部更新" if _ui_lang == "ja" else "Update all"),
+               C_ACCENT, "#0c0c0c", _hist_update_all, f_hbtn).pack(side="right")
     body = tk.Frame(win, bg=C_CARD); body.pack(fill="both", expand=True, padx=6, pady=(0, 8))
     canvas = tk.Canvas(body, bg=C_CARD, highlightthickness=0)
     sb = tk.Scrollbar(body, orient="vertical", command=canvas.yview)
@@ -679,7 +796,9 @@ def show_history(root):
     canvas.pack(side="left", fill="both", expand=True); sb.pack(side="right", fill="y")
     win.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units"))
     _hist_win[0] = win; _hist_inner[0] = (canvas, inner)
-    _keep_on_top(win, lambda: False)   # ゲームの前へ（NOACTIVATEは付けない＝スクロール/クリック可）
+    # NOACTIVATE維持＝アクティブ化で前面を奪わない→ゲームが覆い被さらない（時間で消えない）。
+    # クリック/右クリックは受け取れる。スクロールはWin11の「非アクティブ窓もスクロール」既定で可。
+    _keep_on_top(win)
     _refresh_history()
 
 def hide_history():
@@ -700,6 +819,9 @@ def poll(root):
             if results == "__history__":           # トレイから履歴表示の同期
                 if _hist_visible[0]: show_history(root)
                 else: hide_history()
+                continue
+            if results == "__hist_trim__":         # 上限変更→切り詰め＋更新
+                _hist_trim(); _refresh_history()
                 continue
             if results == "__close__":
                 for w in _open[:]:
@@ -740,9 +862,21 @@ def run_tray(root):
         _hist_visible[0] = not _hist_visible[0]       # 状態を反転（×と二重反転しないようpoll側は同期のみ）
         PQ.put(("__history__", None, None))
         icon.update_menu()
+    def _mk_limit(n):
+        def _cb(icon, item):
+            _hist_limit[0] = n
+            PQ.put(("__hist_trim__", None, None))
+            icon.update_menu()
+        return _cb
+    limit_menu = pystray.Menu(*[
+        pystray.MenuItem(("無制限" if n == 0 else f"{n} 件"), _mk_limit(n),
+                         checked=lambda item, n=n: _hist_limit[0] == n, radio=True)
+        for n in (20, 50, 100, 200, 0)
+    ])
     menu = pystray.Menu(
         pystray.MenuItem("TBH 相場OCR  ( ゲーム前面で戻るボタン )", None, enabled=False),
         pystray.MenuItem("履歴一覧", _toggle_hist, checked=lambda item: _hist_visible[0]),
+        pystray.MenuItem("履歴の上限", limit_menu),
         pystray.MenuItem("終了", _quit),
     )
     pystray.Icon("tbh_price_ocr", tray_image(), "TBH 相場OCR", menu).run()

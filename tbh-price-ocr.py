@@ -380,6 +380,22 @@ def _round_corners(win):
     except Exception:
         pass
 
+def _keep_on_top(win):
+    """フルスクリーンのゲームより前へ。フォーカスは奪わない(SWP_NOACTIVATE)＝ゲーム最小化しない。
+    ゲームが前面に戻っても200ms毎に再主張して背後に回り込むのを防ぐ。"""
+    try: import ctypes
+    except Exception: return
+    HWND_TOPMOST = -1
+    SWP = 0x0001 | 0x0002 | 0x0010   # NOSIZE | NOMOVE | NOACTIVATE
+    def tick():
+        if not win.winfo_exists(): return
+        try:
+            hwnd = win.winfo_id()
+            ctypes.windll.user32.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP)
+        except Exception: pass
+        win.after(200, tick)
+    tick()
+
 def round_pill(parent, text, fill, fg, cmd, font, padx=14, pady=6):
     """角丸（ピル型）ボタン。canvasで描画。"""
     tw, th = font.measure(text), font.metrics("linespace")
@@ -427,7 +443,7 @@ def show_popup(results, xy, text, root):
         b = tk.Frame(win, bg=C_ACCENT); b.pack()
         c = tk.Frame(b, bg=C_CARD); c.pack(padx=3, pady=3)
         tk.Label(c, text=lb["reading"], bg=C_CARD, fg=C_ACCENT, font=f_name, padx=18, pady=12).pack()
-        _place(win, xy); _round_corners(win); _open.append(win)
+        _place(win, xy); _round_corners(win); _keep_on_top(win); _open.append(win)
         win.after(int(POPUP_SECONDS * 1000), lambda: (win.winfo_exists() and win.destroy()))
         return
 
@@ -546,6 +562,7 @@ def show_popup(results, xy, text, root):
 
     render(e)
     _round_corners(win)        # Win11のOS角丸（透過なし＝クリックで消えない）
+    _keep_on_top(win)          # ゲームの前へ。背後に回り込むのを防ぐ
     _open.append(win)
 
 

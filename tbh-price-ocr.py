@@ -377,6 +377,7 @@ _hist_win = [None]         # 履歴ウィンドウ
 _hist_inner = [None]       # (canvas, inner) の参照
 _hist_visible = [False]    # トレイのオン/オフ状態
 _hist_limit = [50]         # 履歴の上限（0=無制限）。お気に入りは上限の対象外
+_hist_status = [None]      # ヘッダの「更新中/更新時刻」ラベル
 
 def _hist_trim():
     lim = _hist_limit[0]
@@ -683,7 +684,15 @@ def _hist_rename(rec):
 
 def _hist_update_all():
     recs = list(_hist)
+    total = sum(1 for r in recs if r.get("hash"))
+    def setstat(txt):
+        def _s():
+            if _hist_status[0] and _hist_status[0].winfo_exists():
+                _hist_status[0].config(text=txt)
+        _hist_after(_s)
     def work():
+        n = 0
+        setstat(("更新中 0/%d…" % total) if _ui_lang == "ja" else "Updating 0/%d…" % total)
         for rec in recs:
             h = rec.get("hash")
             if not h: continue
@@ -693,6 +702,12 @@ def _hist_update_all():
                 if low is not None: rec["sell"] = low
                 if med is not None: rec["median"] = med
                 if vol is not None: rec["volume"] = vol
+            n += 1
+            setstat(("更新中 %d/%d…" % (n, total)) if _ui_lang == "ja" else "Updating %d/%d…" % (n, total))
+            _hist_after(_refresh_history)         # 1件ずつ反映＝変化が見える
+            time.sleep(0.3)                        # Steamのレート制限回避
+        done = time.strftime("%H:%M:%S")
+        setstat((f"更新 {done}") if _ui_lang == "ja" else f"Updated {done}")
         _hist_after(_refresh_history)
     threading.Thread(target=work, daemon=True).start()
 
@@ -782,11 +797,14 @@ def show_history(root):
     win.geometry("360x460"); win.attributes("-topmost", True)
     win.protocol("WM_DELETE_WINDOW", lambda: toggle_history(root))   # ×でオフに同期
     f_hbtn = tkfont.Font(family="Yu Gothic UI", size=9)
-    hdr = tk.Frame(win, bg=C_CARD); hdr.pack(fill="x", padx=12, pady=(10, 2))
+    hdr = tk.Frame(win, bg=C_CARD); hdr.pack(fill="x", padx=12, pady=(10, 0))
     tk.Label(hdr, text="価格履歴" if _ui_lang == "ja" else "Price history", bg=C_CARD, fg=C_NAME,
              font=("Yu Gothic UI", 13, "bold"), anchor="w").pack(side="left")
     round_pill(hdr, "↻ " + ("全部更新" if _ui_lang == "ja" else "Update all"),
                C_ACCENT, "#0c0c0c", _hist_update_all, f_hbtn).pack(side="right")
+    _hist_status[0] = tk.Label(win, text="", bg=C_CARD, fg=C_ACCENT,
+                               font=("Yu Gothic UI", 9), anchor="w")
+    _hist_status[0].pack(fill="x", padx=12, pady=(0, 2))
     body = tk.Frame(win, bg=C_CARD); body.pack(fill="both", expand=True, padx=6, pady=(0, 8))
     canvas = tk.Canvas(body, bg=C_CARD, highlightthickness=0)
     sb = tk.Scrollbar(body, orient="vertical", command=canvas.yview)

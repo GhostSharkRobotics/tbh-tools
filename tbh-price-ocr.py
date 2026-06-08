@@ -896,7 +896,7 @@ def show_popup(results, xy, text, root):
 
     # アイテム名：読むだけのプレーンテキスト（編集は前面を奪うので不可。等級はマウスで選び直し可）
     name_lbl = tk.Label(content, text=init_name or "—", bg=C_CARD, fg=C_NAME, font=f_name, anchor="w")
-    name_lbl.grid(row=0, column=0, sticky="we", padx=14, pady=(14, 6))
+    name_lbl.grid(row=0, column=0, sticky="we", padx=(14, 30), pady=(14, 6))   # 右上の✕分の余白
 
     rar_holder = tk.Frame(content, bg=C_CARD); rar_holder.grid(row=1, column=0, sticky="w", padx=14, pady=2)
     rar_menu = tk.Menu(win, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
@@ -930,7 +930,12 @@ def show_popup(results, xy, text, root):
         _hist_visible[0] = True; show_history(root)
     round_pill(btnf, "🕘 " + T("history"),
                "#2a2f3a", C_NAME, open_history, f_meta).pack(side="left", padx=(6, 0))
-    round_pill(btnf, "✕", "#2a2f3a", C_NAME, win.destroy, f_meta, padx=12).pack(side="right")
+    # 閉じる：右上の角に配置（標準的な位置）
+    xbtn = tk.Label(content, text="✕", bg=C_CARD, fg=C_META, font=f_meta, cursor="hand2")
+    xbtn.place(relx=1.0, x=-10, y=8, anchor="ne")
+    xbtn.bind("<Button-1>", lambda e: win.destroy())
+    xbtn.bind("<Enter>", lambda e: xbtn.config(fg=C_NAME))
+    xbtn.bind("<Leave>", lambda e: xbtn.config(fg=C_META))
 
     def render(ent):
         state["entry"] = ent

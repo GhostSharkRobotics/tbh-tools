@@ -567,6 +567,7 @@ _hist_visible = [False]    # トレイのオン/オフ状態
 _hist_limit = [50]         # 履歴の上限（0=無制限）。お気に入りは上限の対象外
 _hist_status = [None]      # ヘッダの「更新中/更新時刻」ラベル
 _hist_geo = [None]         # 履歴ウィンドウの位置・サイズ（記憶して次回復元）
+_hist_rows = []            # 表示中の行 [{rec,frame,sep,price,icon,name,ts}…]（増分更新でリストを消さない）
 HIST_FILE = os.path.join(HERE, "tbh-price-history.json")   # 履歴の保存先（再起動で消えないように）
 SET_FILE = os.path.join(HERE, "tbh-price-settings.json")   # 設定の保存先
 
@@ -1097,34 +1098,40 @@ def _hist_rename(rec):
               rec.get("ja") or rec.get("en") or "", on_ok)
 
 def _hist_update_all():
-    recs = list(_hist)
-    total = sum(1 for r in recs if r.get("hash"))
+    recs = [r for r in list(_hist) if r.get("hash")]
+    total = len(recs)
+    if not total: return
     def setstat(txt):
         def _s():
             if _hist_status[0] and _hist_status[0].winfo_exists():
                 _hist_status[0].config(text=txt)
         _hist_after(_s)
-    def work():
-        n = 0
-        setstat(T("updating", n=0, total=total))
-        for rec in recs:
-            h = rec.get("hash")
-            if not h: continue
-            lp = live_price(h, force=True)
+    setstat(T("updating", n=0, total=total))
+    import queue as _q
+    work_q = _q.Queue()
+    for r in recs: work_q.put(r)
+    done = [0]; lock = threading.Lock()
+    def worker():
+        while True:
+            try: rec = work_q.get_nowait()
+            except _q.Empty: return
+            lp = live_price(rec["hash"], force=True)
             if lp:
                 low, med, vol = lp
                 if low is not None: rec["sell"] = low
                 if med is not None: rec["median"] = med
                 if vol is not None: rec["volume"] = vol
-            n += 1
+            _hist_after(lambda rec=rec: _hist_update_price(rec))   # その場で1行だけ更新
+            with lock:
+                done[0] += 1; n = done[0]
             setstat(T("updating", n=n, total=total))
-            _hist_after(_refresh_history)         # 1件ずつ反映＝変化が見える
-            time.sleep(0.3)                        # Steamのレート制限回避
+    threads = [threading.Thread(target=worker, daemon=True) for _ in range(5)]  # 並列で速く
+    for t in threads: t.start()
+    def waiter():
+        for t in threads: t.join()
         _save_hist()
-        done = time.strftime("%H:%M:%S")
-        setstat(T("updated", t=done))
-        _hist_after(_refresh_history)
-    threading.Thread(target=work, daemon=True).start()
+        setstat(T("updated", t=time.strftime("%H:%M:%S")))
+    threading.Thread(target=waiter, daemon=True).start()
 
 def _ask_text(title, initial, on_ok):
     """履歴上で使う小さな入力ダイアログ（前面フォーカスを取って打てる）。"""
@@ -1165,56 +1172,108 @@ def _row_menu(ev, rec):
     m.tk_popup(ev.x_root, ev.y_root)
 
 
+def _set_row_price(rd):
+    rec = rd["rec"]
+    if rec.get("sell") is not None:
+        rd["price"].config(text=f"{T('low')} {price(rec['sell'])}   {T('med')} {price(rec['median'])}", fg=C_PRICE)
+    else:
+        rd["price"].config(text=T("noprice"), fg=C_META)
+
+def _build_hist_row(rec):
+    """1行ぶんのウィジェットを作って返す（packは呼び出し側）。"""
+    inner = _hist_inner[0][1]
+    ar = rarity_color(rec.get("rarity_en") or "")
+    nm = disp_name(rec) or "?"; rj = disp_rarity(rec); star = "★ " if rec.get("fav") else ""
+    row = tk.Frame(inner, bg=C_CARD, cursor="hand2")
+    icon_lbl = tk.Label(row, bg=C_CARD, image=_blank_icon[0]); icon_lbl.pack(side="left", padx=(2, 8))
+    col = tk.Frame(row, bg=C_CARD); col.pack(side="left", fill="x", expand=True)
+    top = tk.Frame(col, bg=C_CARD); top.pack(fill="x")
+    name_lbl = tk.Label(top, text=star + nm + (("  " + rj) if rj else ""), bg=C_CARD, fg=ar,
+                        font=("Yu Gothic UI", 10, "bold"), anchor="w"); name_lbl.pack(side="left")
+    ts_lbl = tk.Label(top, text=rec.get("ts", ""), bg=C_CARD, fg=C_META,
+                      font=("Yu Gothic UI", 8), anchor="e"); ts_lbl.pack(side="right")
+    price_lbl = tk.Label(col, text="", bg=C_CARD, font=("Yu Gothic UI", 9), anchor="w"); price_lbl.pack(fill="x")
+    tk.Label(col, text=disp_type(rec), bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(fill="x")
+    sep = tk.Frame(inner, bg="#2a2f3a", height=1)
+    rd = {"rec": rec, "frame": row, "sep": sep, "price": price_lbl, "icon": icon_lbl, "name": name_lbl, "ts": ts_lbl}
+    _set_row_price(rd)
+    if rec.get("icon"):
+        _get_icon(rec["icon"], lambda ph, L=icon_lbl: L.winfo_exists() and L.config(image=ph))
+    def _open_mkt(ev, h=rec.get("hash")):
+        if h:
+            try: webbrowser.open(f"https://steamcommunity.com/market/listings/{APPID}/" + urllib.parse.quote(h))
+            except Exception: pass
+    stack = [row]
+    while stack:
+        w = stack.pop(); stack += w.winfo_children()
+        w.bind("<Button-1>", _open_mkt)
+        w.bind("<Button-3>", lambda ev, r=rec: _row_menu(ev, r))
+    return rd
+
+def _hist_scroll():
+    c = _hist_inner[0][0] if _hist_inner[0] else None
+    if c:
+        try: c.update_idletasks(); c.configure(scrollregion=c.bbox("all"))
+        except Exception: pass
+
 def _refresh_history():
+    """全再構築（開いた時・削除/お気に入り/改名/等級変更/言語/上限変更など構造が変わる時のみ）。"""
     if not (_hist_win[0] and _hist_win[0].winfo_exists() and _hist_inner[0]): return
-    canvas, inner = _hist_inner[0]
+    inner = _hist_inner[0][1]
     for w in inner.winfo_children():
         try: w.destroy()
         except Exception: pass
-    if not _hist:
-        tk.Label(inner, text=T("hist_empty"),
-                 bg=C_CARD, fg=C_META, anchor="w").pack(fill="x", padx=12, pady=10)
+    _hist_rows.clear()
     if _blank_icon[0] is None:
         try:
             from PIL import ImageTk
             _blank_icon[0] = ImageTk.PhotoImage(Image.new("RGBA", (28, 28), (0, 0, 0, 0)))
         except Exception: pass
-    def _descendants(w):
-        out = [w]
-        for c in w.winfo_children(): out += _descendants(c)
-        return out
+    if not _hist:
+        tk.Label(inner, text=T("hist_empty"), bg=C_CARD, fg=C_META, anchor="w").pack(fill="x", padx=12, pady=10)
+        _hist_scroll(); return
     for rec in sorted(_hist, key=lambda r: (not r.get("fav"),)):   # お気に入りを上に
-        ar = rarity_color(rec.get("rarity_en") or "")
-        nm = disp_name(rec) or "?"
-        rj = disp_rarity(rec)
-        star = "★ " if rec.get("fav") else ""
-        row = tk.Frame(inner, bg=C_CARD, cursor="hand2"); row.pack(fill="x", padx=6, pady=(4, 0))
-        icon_lbl = tk.Label(row, bg=C_CARD, image=_blank_icon[0]); icon_lbl.pack(side="left", padx=(2, 8))
-        col = tk.Frame(row, bg=C_CARD); col.pack(side="left", fill="x", expand=True)
-        top = tk.Frame(col, bg=C_CARD); top.pack(fill="x")
-        tk.Label(top, text=star + nm + (("  " + rj) if rj else ""), bg=C_CARD, fg=ar,
-                 font=("Yu Gothic UI", 10, "bold"), anchor="w").pack(side="left")
-        tk.Label(top, text=rec.get("ts", ""), bg=C_CARD, fg=C_META,
-                 font=("Yu Gothic UI", 8), anchor="e").pack(side="right")
-        if rec.get("sell") is not None:
-            ptxt = f"{T('low')} {price(rec['sell'])}   {T('med')} {price(rec['median'])}"
-            pcol = C_PRICE
-        else:
-            ptxt = T("noprice"); pcol = C_META
-        cat = disp_type(rec)
-        tk.Label(col, text=ptxt, bg=C_CARD, fg=pcol, font=("Yu Gothic UI", 9), anchor="w").pack(fill="x")
-        tk.Label(col, text=cat, bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(fill="x")
-        tk.Frame(inner, bg="#2a2f3a", height=1).pack(fill="x", padx=6, pady=(4, 0))
-        if rec.get("icon"):                          # アイコンを非同期取得（CDN→キャッシュ）
-            _get_icon(rec["icon"], lambda ph, L=icon_lbl: L.winfo_exists() and L.config(image=ph))
-        def _open_mkt(ev, h=rec.get("hash")):
-            if h:
-                try: webbrowser.open(f"https://steamcommunity.com/market/listings/{APPID}/" + urllib.parse.quote(h))
-                except Exception: pass
-        for wdg in _descendants(row):
-            wdg.bind("<Button-1>", _open_mkt)
-            wdg.bind("<Button-3>", lambda ev, r=rec: _row_menu(ev, r))   # 右クリックでメニュー
-    canvas.update_idletasks(); canvas.configure(scrollregion=canvas.bbox("all"))
+        rd = _build_hist_row(rec)
+        rd["frame"].pack(fill="x", padx=6, pady=(4, 0)); rd["sep"].pack(fill="x", padx=6, pady=(4, 0))
+        _hist_rows.append(rd)
+    _hist_scroll()
+
+def _hist_update_price(rec):
+    """1件の価格だけ、その場で書き換える（リストは消さない）。"""
+    for rd in _hist_rows:
+        if rd["rec"] is rec:
+            if rd["price"].winfo_exists(): _set_row_price(rd)
+            return
+
+def _hist_sync_top():
+    """レンズ時：最新の1件だけ反映。既存なら価格/時刻を更新、新規なら1行だけ差し込む（全消ししない）。"""
+    if not (_hist_win[0] and _hist_win[0].winfo_exists() and _hist_inner[0] and _hist): return
+    inner = _hist_inner[0][1]
+    rec = _hist[0]
+    for rd in _hist_rows:                            # 既出（同一recの再レンズ）→その場更新
+        if rd["rec"] is rec:
+            if rd["price"].winfo_exists(): _set_row_price(rd); rd["ts"].config(text=rec.get("ts", ""))
+            return
+    if not _hist_rows:                               # 空表示ラベルがあれば消す
+        for w in inner.winfo_children():
+            try: w.destroy()
+            except Exception: pass
+    rd = _build_hist_row(rec)                         # 新規→お気に入りの下（非お気に入りの先頭）に差し込む
+    anchor = next((r for r in _hist_rows if not r["rec"].get("fav")), None)
+    if anchor:
+        rd["frame"].pack(fill="x", padx=6, pady=(4, 0), before=anchor["frame"])
+        rd["sep"].pack(fill="x", padx=6, pady=(4, 0), before=anchor["frame"])
+        _hist_rows.insert(_hist_rows.index(anchor), rd)
+    else:
+        rd["frame"].pack(fill="x", padx=6, pady=(4, 0)); rd["sep"].pack(fill="x", padx=6, pady=(4, 0))
+        _hist_rows.append(rd)
+    present = {id(r) for r in _hist}                  # 上限で押し出された行を撤去
+    for rd2 in _hist_rows[:]:
+        if id(rd2["rec"]) not in present:
+            try: rd2["frame"].destroy(); rd2["sep"].destroy()
+            except Exception: pass
+            _hist_rows.remove(rd2)
+    _hist_scroll()
 
 def show_history(root):
     if _hist_win[0] and _hist_win[0].winfo_exists():
@@ -1476,9 +1535,9 @@ def poll(root):
                 show_debug(xy, root)        # xy にデバッグ画像が入っている
                 continue
             show_popup(results, xy, text, root)
-            # 履歴更新は実際の結果の時だけ（読み取り中ポップでは更新しない＝チラつき低減）
+            # レンズ時は最新1件だけ増分反映（全消ししない＝チラつかない）。読み取り中は何もしない。
             if _hist_visible[0] and results != "__processing__":
-                _refresh_history()
+                _hist_sync_top()
     except queue.Empty:
         pass
     root.after(80, lambda: poll(root))

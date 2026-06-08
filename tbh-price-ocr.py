@@ -214,11 +214,11 @@ def ocr_worker():
                         d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
                         cands.append((r[0]["score"], d2, sx, sy, r))
             found = []
-            if cands:
-                top = max(c[0] for c in cands)
-                near = [c for c in cands if c[0] >= top - 0.06]   # 高スコア帯は同等扱い
-                best = min(near, key=lambda c: c[1])              # カーソル最近を採用
-                found = best[4]
+            conf = [c for c in cands if c[0] >= 0.85]   # 確信できる一致のみ
+            if conf:
+                found = min(conf, key=lambda c: c[1])[4]   # その中でカーソル最近を最優先
+            elif cands:
+                found = max(cands, key=lambda c: c[0])[4]  # 確信無ければ最高スコア
             if CALIBRATE:
                 try:
                     with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:

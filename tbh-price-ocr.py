@@ -34,6 +34,7 @@ CALIBRATE     = True               # Trueで撮影画像を保存（調整用）
 DEBUG_UI      = True               # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
+_KEYCLR = "#ff00fe"   # 角丸の外側を透過させる魔法色（どの配色とも被らない）
 C_NAME, C_JA, C_PRICE, C_META, C_ERR = "#ffffff", "#8ab4f8", "#34d399", "#8b909a", "#f87171"
 RARITY_COLORS = {"Common": "#c8c8c8", "Uncommon": "#5ce65c", "Rare": "#5b9bff",
                  "Legendary": "#f5a623", "Immortal": "#ff5252", "Arcana": "#c061ff",
@@ -395,6 +396,15 @@ def recolor_pill(cv, color):
     try: cv.itemconfig("bg", fill=color, outline=color)
     except Exception: pass
 
+def _rrect(cv, x1, y1, x2, y2, r, fill, tag):
+    """canvasに角丸矩形を描く（四隅arc＋十字rect）。"""
+    cv.create_arc(x1, y1, x1 + 2*r, y1 + 2*r, start=90, extent=90, fill=fill, outline=fill, tags=tag)
+    cv.create_arc(x2 - 2*r, y1, x2, y1 + 2*r, start=0, extent=90, fill=fill, outline=fill, tags=tag)
+    cv.create_arc(x1, y2 - 2*r, x1 + 2*r, y2, start=180, extent=90, fill=fill, outline=fill, tags=tag)
+    cv.create_arc(x2 - 2*r, y2 - 2*r, x2, y2, start=270, extent=90, fill=fill, outline=fill, tags=tag)
+    cv.create_rectangle(x1 + r, y1, x2 - r, y2, fill=fill, outline=fill, tags=tag)
+    cv.create_rectangle(x1, y1 + r, x2, y2 - r, fill=fill, outline=fill, tags=tag)
+
 def _place(win, xy):
     win.update_idletasks()
     sw, sh = win.winfo_screenwidth(), win.winfo_screenheight()
@@ -408,16 +418,12 @@ def show_popup(results, xy, text, root):
         _open.remove(w)
     lb = LBL.get(_ui_lang, LBL["ja"])
     win = tk.Toplevel(root)
-    win.overrideredirect(True); win.attributes("-topmost", True); win.config(bg=C_CARD)
+    win.overrideredirect(True); win.attributes("-topmost", True); win.config(bg=_KEYCLR)
+    try: win.attributes("-transparentcolor", _KEYCLR)   # 角の外を透過＝本物の角丸
+    except Exception: win.config(bg=C_CARD)
     f_name = tkfont.Font(family="Yu Gothic UI", size=14, weight="bold")
     f_price = tkfont.Font(family="Yu Gothic UI", size=17, weight="bold")
     f_meta = tkfont.Font(family="Yu Gothic UI", size=9)
-    try:
-        st = ttk.Style(); st.theme_use("clam")
-        st.configure("D.TCombobox", fieldbackground="#0d1016", background="#0d1016",
-                     foreground=C_NAME, arrowcolor=C_NAME, bordercolor="#0d1016")
-    except Exception:
-        pass
 
     if results == "__processing__":
         b = tk.Frame(win, bg=C_ACCENT); b.pack()
@@ -431,19 +437,21 @@ def show_popup(results, xy, text, root):
     init_name = (e.get("en") if _ui_lang == "en" else e.get("ja")) if e else (text or "").strip()
     init_rar = (e.get("rarity_en") if e else "") or ""
     en2ja = {en: ja for en, ja in RARITIES}
+    R, PAD = 16, 16
+    state = {"entry": e, "rarity": init_rar, "border": rarity_color(init_rar)}
 
-    border = tk.Frame(win, bg=rarity_color(init_rar)); border.pack()
-    card = tk.Frame(border, bg=C_CARD); card.pack(padx=3, pady=3)
-    card.columnconfigure(0, weight=1)
-    state = {"entry": e, "rarity": init_rar}
+    cv = tk.Canvas(win, bg=_KEYCLR, highlightthickness=0, bd=0); cv.pack()
+    content = tk.Frame(win, bg=C_CARD)   # 角丸キャンバスの上に乗せる中身（角は同色C_CARDで隠れる）
+    content.columnconfigure(0, weight=1)
 
     name_var = tk.StringVar(value=init_name)
-    name_ent = tk.Entry(card, textvariable=name_var, font=f_name, width=22,
+    name_ent = tk.Entry(content, textvariable=name_var, font=f_name, width=22,
                         bg="#0d1016", fg=C_NAME, insertbackground=C_NAME, relief="flat")
-    name_ent.grid(row=0, column=0, sticky="we", padx=14, pady=(14, 6), ipady=5)
+    name_ent.grid(row=0, column=0, sticky="we", pady=(0, 6), ipady=5, ipadx=4)
+    # クリックしたら初めてフォーカスを奪う（出現時に自動で奪うとゲーム最前面が外れて消える）
+    name_ent.bind("<Button-1>", lambda ev: (win.focus_force(), name_ent.focus_set()))
 
-    # レア度: 色付きピル → ダーク色付きメニュー
-    rar_holder = tk.Frame(card, bg=C_CARD); rar_holder.grid(row=1, column=0, sticky="w", padx=14, pady=2)
+    rar_holder = tk.Frame(content, bg=C_CARD); rar_holder.grid(row=1, column=0, sticky="w", pady=2)
     rar_menu = tk.Menu(win, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
                        activeforeground="#ffffff", bd=0, relief="flat")
     for en, ja in RARITIES:
@@ -451,20 +459,19 @@ def show_popup(results, xy, text, root):
                              command=lambda en=en: set_rarity(en))
     _rp = {"w": None}
     def build_rar_pill():
-        if _rp["w"]:
-            _rp["w"].destroy()
+        if _rp["w"]: _rp["w"].destroy()
         r = state["rarity"]
-        txt = "▼ " + ((en2ja.get(r, r) if _ui_lang == "ja" else r) if r else ("等級" if _ui_lang == "ja" else "Rarity"))
+        txt = "▾ " + ((en2ja.get(r, r) if _ui_lang == "ja" else r) if r else ("等級" if _ui_lang == "ja" else "Rarity"))
         p = round_pill(rar_holder, txt, rarity_color(r), "#0c0c0c",
                        lambda: rar_menu.tk_popup(p.winfo_rootx(), p.winfo_rooty() + p.winfo_height()), f_meta)
         p.pack(anchor="w"); _rp["w"] = p
 
-    price_lbl = tk.Label(card, text="", bg=C_CARD, font=f_price, anchor="w")
-    price_lbl.grid(row=2, column=0, sticky="we", padx=14, pady=(8, 2))
-    meta_lbl = tk.Label(card, text="", bg=C_CARD, fg=C_META, font=f_meta, anchor="w")
-    meta_lbl.grid(row=3, column=0, sticky="we", padx=14, pady=(0, 8))
+    price_lbl = tk.Label(content, text="", bg=C_CARD, font=f_price, anchor="w")
+    price_lbl.grid(row=2, column=0, sticky="we", pady=(8, 2))
+    meta_lbl = tk.Label(content, text="", bg=C_CARD, fg=C_META, font=f_meta, anchor="w")
+    meta_lbl.grid(row=3, column=0, sticky="we", pady=(0, 10))
 
-    btnf = tk.Frame(card, bg=C_CARD); btnf.grid(row=4, column=0, sticky="we", padx=14, pady=(2, 14))
+    btnf = tk.Frame(content, bg=C_CARD); btnf.grid(row=4, column=0, sticky="we")
     def open_market():
         ent = state["entry"]
         if ent and ent.get("hash"):
@@ -474,10 +481,24 @@ def show_popup(results, xy, text, root):
     mkt_pill.pack(side="left")
     round_pill(btnf, "✕", "#2a2f3a", C_NAME, win.destroy, f_meta, padx=12).pack(side="right")
 
+    winid = cv.create_window(0, 0, window=content, anchor="center")
+    def resize():
+        if not win.winfo_exists(): return
+        content.update_idletasks()
+        cw, ch = content.winfo_reqwidth(), content.winfo_reqheight()
+        W, H = cw + PAD * 2, ch + PAD * 2
+        cv.config(width=W, height=H)
+        cv.delete("bg")
+        _rrect(cv, 1, 1, W - 1, H - 1, R, state["border"], "bg")        # 外枠＝レア度色
+        _rrect(cv, 4, 4, W - 4, H - 4, R - 3, C_CARD, "bg")            # 内側＝ダークカード
+        cv.tag_lower("bg")
+        cv.coords(winid, W / 2, H / 2)
+        _place(win, xy)
+
     def render(ent):
         state["entry"] = ent
         ar = rarity_color(state["rarity"] or (ent.get("rarity_en") if ent else ""))
-        border.config(bg=ar); price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
+        state["border"] = ar; price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
         if ent and ent.get("sell") is not None:
             price_lbl.config(text=f"{lb['low']} {price(ent['sell'])}   {lb['med']} {price(ent['median'])}")
             cat = ent.get("type_en" if _ui_lang == "en" else "type_ja") or ent.get("type", "")
@@ -486,6 +507,7 @@ def show_popup(results, xy, text, root):
             price_lbl.config(text=lb["noprice"]); meta_lbl.config(text=ent.get("type_ja", "") or ent.get("type_en", ""))
         else:
             price_lbl.config(text=lb["nomatch"]); meta_lbl.config(text="")
+        resize()
 
     def relookup(*_):
         nm = name_var.get().strip(); rj = state["rarity"]
@@ -499,7 +521,7 @@ def show_popup(results, xy, text, root):
                     if low is not None: ent["sell"] = low
                     if med is not None: ent["median"] = med
                     if vol is not None: ent["volume"] = vol
-            win.after(0, lambda: (render(ent), _place(win, xy)))
+            win.after(0, lambda: render(ent))
         threading.Thread(target=work, daemon=True).start()
 
     def set_rarity(en):
@@ -510,8 +532,6 @@ def show_popup(results, xy, text, root):
     win.bind("<Escape>", lambda ev: win.destroy())
 
     render(e)
-    _place(win, xy); _round_corners(win)
-    win.after(60, lambda: (win.winfo_exists() and (win.focus_force(), name_ent.focus_set())))  # 編集可能に
     _open.append(win)
 
 

@@ -23,7 +23,7 @@ def norm(s: str) -> str:
     s = unicodedata.normalize("NFD", s).replace("゙", "").replace("゚", "")
     s = s.translate(_LOOK)
     s = s.replace("等級", "")                       # 「○○等級」の等級は除去
-    s = re.sub(r"[\s　ー\-ｰ~一()\[\]（）【】・,._/:：]+", "", s)
+    s = re.sub(r"[\s　ー\-ｰ~一'’!?;()\[\]（）【】・,._/:：]+", "", s)
     return s
 
 

@@ -17,7 +17,7 @@ def norm(s: str) -> str:
     s = s.translate(_SMALL)           # 小書き→大書き
     s = unicodedata.normalize("NFD", s).replace("゙", "").replace("゚", "")  # 濁点/半濁点除去
     s = s.translate(_LOOK)            # 漢字/類似字→カナ
-    s = re.sub(r"[\s　ー\-ｰ~一()\[\]（）【】・,._/:：]+", "", s)   # 記号・長音・空白除去
+    s = re.sub(r"[\s　ー\-ｰ~一'’!?;()\[\]（）【】・,._/:：]+", "", s)   # 記号・長音・空白除去（'も）
     return s
 
 class Matcher:

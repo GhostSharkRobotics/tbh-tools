@@ -130,6 +130,19 @@ def main():
 
     entries = list(entries.values())
 
+    # Steamマーケットから取得したアイコン（market-icons.json があれば優先）。抽出辞書より正確で網羅的。
+    mi_path = os.path.join(ROOT, "market-icons.json")
+    if os.path.exists(mi_path):
+        try:
+            mi = json.load(open(mi_path, encoding="utf-8"))
+            n = 0
+            for e in entries:
+                if mi.get(e.get("hash")):
+                    e["icon"] = mi[e["hash"]]; n += 1
+            print(f"market-icons適用: {n}件")
+        except Exception as ex:
+            print("market-icons読込失敗:", ex)
+
     # 索引: 名前＋等級 / 名前 / 英名＋等級 / 英名（normで）
     index = {}
     def add(key, i):

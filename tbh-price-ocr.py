@@ -1022,7 +1022,7 @@ def run_tray(root):
         for n in (20, 50, 100, 200, 0)
     ])
     menu = pystray.Menu(
-        pystray.MenuItem(lambda item: f"発動: {_trigger_label()}  (ゲーム前面で)", None, enabled=False),
+        pystray.MenuItem(lambda item: f"キー：{_trigger_label()}", None, enabled=False),
         pystray.MenuItem("設定（ショートカット）", lambda icon, item: PQ.put(("__settings__", None, None))),
         pystray.MenuItem("履歴一覧", _toggle_hist, checked=lambda item: _hist_visible[0]),
         pystray.MenuItem("履歴の上限", limit_menu),

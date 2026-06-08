@@ -42,6 +42,8 @@ DEBUG_UI      = False              # Trueで押下毎に「撮影＋枠＋読取
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 _KEYCLR = "#ff00fe"   # 角丸の外側を透過させる魔法色（どの配色とも被らない）
 C_NAME, C_JA, C_PRICE, C_META, C_ERR = "#ffffff", "#8ab4f8", "#34d399", "#8b909a", "#f87171"
+C_PRICE_DIM = "#6f8a80"   # 暫定価格（リアルタイム確定前）。確定=C_PRICE鮮明 / 暫定=この控えめ色＋🕓
+C_WAIT = "#e0a040"        # 待機中（レート制限＝ペース調整, BANではない）のアンバー
 RARITY_COLORS = {"Common": "#c8c8c8", "Uncommon": "#5ce65c", "Rare": "#5b9bff",
                  "Legendary": "#f5a623", "Immortal": "#ff5252", "Arcana": "#c061ff",
                  "Beyond": "#ff5fb0", "Celestial": "#34d6e6", "Divine": "#ffe14d", "Cosmic": "#ff8a5c"}
@@ -58,7 +60,7 @@ TR = {
         "nomatch": "該当なし", "reading": "🔍 読み取り中…", "read": "読取",
         "rarity": "等級", "history": "履歴",
         "hist_title": "価格履歴", "update_all": "全部更新", "hist_empty": "まだ履歴がありません",
-        "updating": "更新中 {n}/{total}…", "updated": "更新 {t}", "updating_btn": "更新中…", "updating_btn": "更新中…",
+        "updating": "更新中 {n}/{total}…", "updated": "更新 {t}", "updating_btn": "更新中…",
         "fav": "☆ お気に入り", "unfav": "★ お気に入り解除", "rename": "アイテム名変更",
         "rarity_change": "レア度変更", "delete": "削除", "rename_title": "アイテム名変更",
         "ok": "OK", "cancel": "キャンセル",
@@ -130,7 +132,7 @@ TR = {
         "nomatch": "无匹配", "reading": "🔍 识别中…", "read": "识别",
         "rarity": "品质", "history": "历史",
         "hist_title": "价格历史", "update_all": "全部更新", "hist_empty": "暂无历史",
-        "updating": "更新中 {n}/{total}…", "updated": "更新 {t}",
+        "updating": "更新中 {n}/{total}…", "updated": "更新 {t}", "updating_btn": "更新中…",
         "fav": "☆ 收藏", "unfav": "★ 取消收藏", "rename": "重命名",
         "rarity_change": "修改品质", "delete": "删除", "rename_title": "重命名物品",
         "ok": "确定", "cancel": "取消",
@@ -293,6 +295,21 @@ def _rl_allow():
             return False
         _rl_times.append(now)
         return True
+
+_SPIN = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"          # 待機/処理中の回転スピナー（動き＝生きてる、の可視化）
+
+def _rl_state():
+    """レート制限の今の状態を返す。('blocked'|'throttle'|'ok', 解除までの秒)。
+    UIで「待機中（=ペース調整、BANではない）」を見せるために使う。"""
+    now = time.time()
+    with _rl_lock:
+        if now < _rl_blocked[0]:
+            return "blocked", _rl_blocked[0] - now          # 429バックオフ中＝全停止
+        cut = now - _RL_WIN
+        t = [x for x in _rl_times if x >= cut]
+        if len(t) >= _RL_MAX:
+            return "throttle", max(0.0, (t[0] + _RL_WIN) - now)   # 枠いっぱい＝少し待つ
+        return "ok", 0.0
 
 def live_price(hash_name, force=False, cur=None, cache_only=False, wait_rl=False):
     """Steamマーケットの現在価格を取得。cur未指定なら表示言語の通貨。失敗時None。5分(hash,通貨)キャッシュ。
@@ -613,6 +630,8 @@ _hist_inner = [None]       # (canvas, inner) の参照
 _hist_visible = [False]    # トレイのオン/オフ状態
 _hist_limit = [50]         # 履歴の上限（0=無制限）。お気に入りは上限の対象外
 _hist_status = [None]      # ヘッダの「更新中/更新時刻」ラベル
+_hist_prog = [None]        # 進捗バー（Canvas）。更新中だけ可視化
+_hist_prog_state = {"done": 0, "total": 0, "on": False, "phase": 0}   # 進捗とアニメ位相
 _hist_geo = [None]         # 履歴ウィンドウの位置・サイズ（記憶して次回復元）
 _hist_rows = []            # 表示中の行 [{rec,frame,sep,price,icon,name,ts}…]（増分更新でリストを消さない）
 HIST_FILE = os.path.join(HERE, "tbh-price-history.json")   # 履歴の保存先（再起動で消えないように）
@@ -785,8 +804,10 @@ def _capture_trigger(on_done, on_progress=None):
 
 def _save_hist():
     try:
+        # _live は「この起動でSteamから取れた」フラグ＝保存しない（次回起動の値はもう実時刻でない＝暫定🕓に戻す）
+        saved = [{k: v for k, v in r.items() if k != "_live"} for r in _hist]
         with open(HIST_FILE, "w", encoding="utf-8") as f:
-            json.dump({"limit": _hist_limit[0], "hist": _hist}, f, ensure_ascii=False)
+            json.dump({"limit": _hist_limit[0], "hist": saved}, f, ensure_ascii=False)
     except Exception: pass
 
 def _load_hist():
@@ -821,7 +842,7 @@ def _icon_by_hash():
 def _record_history(ent):
     if not ent: return
     rec = {k: ent.get(k) for k in ("ja", "en", "zh", "zh_hant", "icon", "rarity_en", "rarity_ja",
-                                   "sell", "median", "volume", "cur", "hash", "type_ja", "type_en", "type")}
+                                   "sell", "median", "volume", "cur", "hash", "type_ja", "type_en", "type", "_live")}
     rec["ts"] = time.strftime("%H:%M")
     if not rec.get("icon"):                         # 価格側エントリにicon無し→ハッシュから補完
         rec["icon"] = _icon_by_hash().get(rec.get("hash"), "")
@@ -978,7 +999,14 @@ def show_popup(results, xy, text, root):
 
     if results == "__processing__":
         c = tk.Frame(win, bg=C_CARD); c.pack()      # 色枠なし＝結果ポップと統一
-        tk.Label(c, text=T("reading"), bg=C_CARD, fg=C_ACCENT, font=f_name, padx=18, pady=12).pack()
+        lab = tk.Label(c, text="", bg=C_CARD, fg=C_ACCENT, font=f_name, padx=18, pady=12); lab.pack()
+        _spin_i = [0]
+        def _anim():                                # スピナーを回す＝処理中だと一目でわかる（静止文字にしない）
+            if not lab.winfo_exists(): return
+            lab.config(text=f"{_SPIN[_spin_i[0] % len(_SPIN)]}  {T('reading')}")
+            _spin_i[0] += 1
+            lab.after(90, _anim)
+        _anim()
         _place(win, xy); _round_corners(win); _keep_on_top(win); _open.append(win)
         win.after(int(POPUP_SECONDS * 1000), lambda: (win.winfo_exists() and win.destroy()))
         return
@@ -1043,7 +1071,11 @@ def show_popup(results, xy, text, root):
             name_lbl.config(text=disp_name(ent) or "—")
         if ent and ent.get("sell") is not None:
             sc = ent.get("cur", 1)
-            price_lbl.config(text=f"{T('low')} {price(ent['sell'], sc)}   {T('med')} {price(ent['median'], sc)}")
+            txt = f"{T('low')} {price(ent['sell'], sc)}   {T('med')} {price(ent['median'], sc)}"
+            if ent.get("_live"):                    # Steamから今取れた＝確定。レア度色で鮮明に
+                price_lbl.config(text=txt, fg=ar)
+            else:                                   # 確定前（Steam混雑/キャッシュ）＝🕓＋控えめ色。リアルタイムでないと一目でわかる
+                price_lbl.config(text="🕓 " + txt, fg=C_META)
             cat = disp_type(ent)
             meta_lbl.config(text=f"{cat}   {T('sold')}{ent.get('volume','—')}")
         elif ent:
@@ -1052,7 +1084,14 @@ def show_popup(results, xy, text, root):
             price_lbl.config(text=T("nomatch")); meta_lbl.config(text="")
         _place(win, xy)
 
+    _fetching = [False]
     def _lookup(nm, rar_en):                        # 名前＋等級で引き直し→現在価格を取得→描画
+        _fetching[0] = True                         # 取得中はスピナーを回す（押した手応え＝動き）
+        def spin(i=0):
+            if not (_fetching[0] and price_lbl.winfo_exists()): return
+            price_lbl.config(text=_SPIN[i % len(_SPIN)], fg=C_META)
+            price_lbl.after(90, lambda: spin(i + 1))
+        spin()
         def work():
             r = matcher.match_item(nm, en2ja.get(rar_en, rar_en) if rar_en else "")
             ent = r[0] if r else None
@@ -1063,8 +1102,10 @@ def show_popup(results, xy, text, root):
                     if low is not None: ent["sell"] = low
                     if med is not None: ent["median"] = med
                     if vol is not None: ent["volume"] = vol
-                    ent["cur"] = _cur_code()
-            win.after(0, lambda: render(ent))
+                    ent["cur"] = _cur_code(); ent["_live"] = True
+            def _done():
+                _fetching[0] = False; render(ent)
+            win.after(0, _done)
         threading.Thread(target=work, daemon=True).start()
 
     def set_rarity(en):                             # 等級を選び直し→同名×新等級で引き直し
@@ -1088,6 +1129,61 @@ def _hist_after(fn):
     if w and w.winfo_exists():
         try: w.after(0, fn)
         except Exception: pass
+
+def _prog_draw():
+    """進捗バーを描く。進んだぶん=テールカラー実線、待機中=アンバーの流れるストライプ
+    （=ペース調整中でBANでないと一目でわかる）。更新していない時は空（見えない）。"""
+    cv = _hist_prog[0]
+    if not (cv and cv.winfo_exists()): return
+    st = _hist_prog_state
+    try: w = cv.winfo_width()
+    except Exception: return
+    if w < 4: w = 320
+    h = 6
+    cv.delete("all")
+    if not st["on"]: return
+    cv.create_rectangle(0, 0, w, h, fill="#222831", outline="")          # トラック
+    done, total = st["done"], st["total"]
+    frac = (done / total) if total else 0
+    if frac > 0:                                                          # 確定した取得ぶん
+        cv.create_rectangle(0, 0, max(h, int(w * frac)), h, fill=C_ACCENT, outline="")
+    rl, _ = _rl_state()
+    if rl != "ok" and done < total:                                      # 待機中＝流れるアンバー帯
+        seg = max(40, w // 5)
+        x = int(st["phase"] * (w + seg) / 24.0) % (w + seg) - seg
+        cv.create_rectangle(max(0, x), 0, min(w, x + seg), h, fill=C_WAIT, outline="")
+
+def _prog_anim():
+    """更新中だけ回り続けるアニメ：ボタンのスピナー＋件数、待機中のカウントダウン、進捗バー。"""
+    st = _hist_prog_state
+    if not st["on"]:
+        _prog_draw(); return                                             # 終了→最後に1回消す
+    st["phase"] += 1
+    b = _hist_update_btn[0]
+    if b and b.winfo_exists():                                           # ボタン＝スピナー＋n/total（動き＝処理中）
+        sp = _SPIN[st["phase"] % len(_SPIN)]
+        _pill_set_text(b, f"{sp} {st['done']}/{st['total']}")
+    s = _hist_status[0]
+    if s and s.winfo_exists():
+        rl, remain = _rl_state()
+        if rl == "blocked":                                             # 全停止中＝残り秒（数字=言語非依存のUI）
+            s.config(text=f"⏳ {int(remain)+1}s", fg=C_WAIT)
+        elif rl == "throttle":
+            s.config(text="⏳", fg=C_WAIT)
+        else:
+            s.config(text=f"{st['done']} / {st['total']}", fg=C_ACCENT)
+    _prog_draw()
+    w = _hist_win[0]
+    if w and w.winfo_exists():
+        w.after(100, _prog_anim)
+
+def _flash_price(rd):
+    """価格が更新された瞬間に一瞬だけ明るく光らせる＝どの行が今更新されたか目で追える。"""
+    lbl = rd.get("price")
+    if not (lbl and lbl.winfo_exists()): return
+    base = lbl.cget("fg")
+    lbl.config(fg="#bdffe0")
+    lbl.after(260, lambda: lbl.winfo_exists() and lbl.config(fg=base))
 
 ICON_DIR = os.path.join(HERE, "iconcache")    # アイコンのローカルキャッシュ（CDNから取得→保存）
 ICON_PX = 56                                  # 履歴セルいっぱいの表示サイズ（ドット絵=NEAREST）
@@ -1211,14 +1307,9 @@ def _hist_update_all(force=True):
     def _btn(text):                                    # ボタン表示を実行中⇄通常で切替（押せない理由を可視化）
         b = _hist_update_btn[0]
         if b and b.winfo_exists(): _pill_set_text(b, text)
-    _hist_after(lambda: _btn("⏳ " + T("updating_btn")))
     def alive(): return gen == _hist_gen[0]
-    def setstat(txt):
-        def _s():
-            if alive() and _hist_status[0] and _hist_status[0].winfo_exists():
-                _hist_status[0].config(text=txt)
-        _hist_after(_s)
-    setstat(T("updating", n=0, total=total))
+    _hist_prog_state.update(done=0, total=total, on=True, phase=0)   # 進捗バー＋スピナー開始
+    _hist_after(_prog_anim)
     import queue as _q
     work_q = _q.Queue()
     for r in recs: work_q.put(r)
@@ -1234,20 +1325,30 @@ def _hist_update_all(force=True):
                 if low is not None: rec["sell"] = low
                 if med is not None: rec["median"] = med
                 if vol is not None: rec["volume"] = vol
-                rec["cur"] = cur
-                _hist_after(lambda rec=rec: _hist_update_price(rec))   # その場で1行だけ更新
+                rec["cur"] = cur; rec["_live"] = True   # この更新で確定＝鮮明表示
+                _hist_after(lambda rec=rec: _hist_update_price(rec))   # その場で1行だけ更新＋光らせる
             with lock:
-                done[0] += 1; n = done[0]
-            setstat(T("updating", n=n, total=total))
+                done[0] += 1
+            _hist_prog_state["done"] = done[0]         # 進捗バー/スピナーが拾う（アニメ側が描画）
     threads = [threading.Thread(target=worker, daemon=True) for _ in range(3)]  # 並列(控えめ=429回避)
     for t in threads: t.start()
     def waiter():
         for t in threads: t.join()
         _hist_updating[0] = False                      # 完了→再度押せる
-        _hist_after(lambda: _btn("↻ " + T("update_all")))
-        if not alive(): return
+        _hist_prog_state["on"] = False                 # バー消灯＋アニメ停止
+        if not alive():
+            _hist_after(lambda: _btn("↻ " + T("update_all")))
+            return
         _save_hist()
-        setstat(T("updated", t=time.strftime("%H:%M:%S")))
+        def _fin():                                    # ✓を一瞬見せてから通常表示へ（完了の手応え）
+            _btn("✓ " + T("update_all"))
+            s = _hist_status[0]
+            if s and s.winfo_exists():
+                s.config(text="✓ " + time.strftime("%H:%M:%S"), fg=C_ACCENT)
+            b = _hist_update_btn[0]
+            if b and b.winfo_exists():
+                b.after(1400, lambda: b.winfo_exists() and _pill_set_text(b, "↻ " + T("update_all")))
+        _hist_after(_fin)
     threading.Thread(target=waiter, daemon=True).start()
 
 def _ask_text(title, initial, on_ok):
@@ -1293,7 +1394,11 @@ def _set_row_price(rd):
     rec = rd["rec"]
     if rec.get("sell") is not None:
         sc = rec.get("cur", 1)
-        rd["price"].config(text=f"{T('low')} {price(rec['sell'], sc)}   {T('med')} {price(rec['median'], sc)}", fg=C_PRICE)
+        txt = f"{T('low')} {price(rec['sell'], sc)}   {T('med')} {price(rec['median'], sc)}"
+        if rec.get("_live"):                       # この起動で取得確定＝鮮明な緑
+            rd["price"].config(text=txt, fg=C_PRICE)
+        else:                                      # 暫定（前回保存/混雑で未取得）＝🕓＋控えめ色。更新で確定に変わる
+            rd["price"].config(text="🕓 " + txt, fg=C_PRICE_DIM)
     else:
         rd["price"].config(text=T("noprice"), fg=C_META)
 
@@ -1358,10 +1463,10 @@ def _refresh_history():
     _hist_scroll()
 
 def _hist_update_price(rec):
-    """1件の価格だけ、その場で書き換える（リストは消さない）。"""
+    """1件の価格だけ、その場で書き換える（リストは消さない）＋一瞬光らせて更新を可視化。"""
     for rd in _hist_rows:
         if rd["rec"] is rec:
-            if rd["price"].winfo_exists(): _set_row_price(rd)
+            if rd["price"].winfo_exists(): _set_row_price(rd); _flash_price(rd)
             return
 
 def _hist_sync_top():
@@ -1414,7 +1519,10 @@ def show_history(root):
     _hist_update_btn[0].pack(side="right")
     _hist_status[0] = tk.Label(win, text="", bg=C_CARD, fg=C_ACCENT,
                                font=("Yu Gothic UI", 9), anchor="w")
-    _hist_status[0].pack(fill="x", padx=12, pady=(0, 2))
+    _hist_status[0].pack(side="top", fill="x", padx=12, pady=(0, 2))
+    _hist_prog[0] = tk.Canvas(win, height=6, bg=C_CARD, highlightthickness=0)   # 進捗バー（更新中だけ見える）
+    _hist_prog[0].pack(side="top", fill="x", padx=12, pady=(0, 4))
+    if _hist_updating[0]: _prog_anim()                 # 開き直した時に更新中なら即アニメ再開
     body = tk.Frame(win, bg=C_CARD); body.pack(fill="both", expand=True, padx=6, pady=(0, 8))
     canvas = tk.Canvas(body, bg=C_CARD, highlightthickness=0)
     sb = tk.Scrollbar(body, orient="vertical", command=canvas.yview)

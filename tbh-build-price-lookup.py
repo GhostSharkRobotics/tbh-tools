@@ -31,6 +31,28 @@ def main():
     data = json.load(open(os.path.join(ROOT, "tbh-data.json"), encoding="utf-8"))
     prices = json.load(open(os.path.join(ROOT, "tbh-prices.json"), encoding="utf-8"))["prices"]
 
+    # ゲーム本体ロケから en/ja -> 中国語(簡体zh-hans / 繁体zh-hant) を引くマップ
+    EN2ZH = {}; JA2ZH = {}; EN2ZHT = {}; JA2ZHT = {}
+    try:
+        loc = json.load(open(os.path.join(ROOT, "tools/extracted/localization.json"), encoding="utf-8"))
+        for k, v in loc.items():
+            if not k.startswith("ItemName_") or not isinstance(v, dict): continue
+            hs, ht = v.get("zh-hans"), v.get("zh-hant")
+            if v.get("en-us"):
+                e = v["en-us"].strip().lower()
+                if hs: EN2ZH[e] = hs
+                if ht: EN2ZHT[e] = ht
+            if v.get("ja-jp"):
+                j = v["ja-jp"].strip()
+                if hs: JA2ZH[j] = hs
+                if ht: JA2ZHT[j] = ht
+    except Exception as ex:
+        print("localization読込失敗(中国語名なしで継続):", ex)
+    def zh_of(en, ja):
+        return EN2ZH.get((en or "").strip().lower()) or JA2ZH.get((ja or "").strip()) or ""
+    def zht_of(en, ja):
+        return EN2ZHT.get((en or "").strip().lower()) or JA2ZHT.get((ja or "").strip()) or ""
+
     # レアリティ en->ja（rarityOrder と equipRarities が同順）
     rorder = data.get("rarityOrder", [])
     rja = [r["name"] for r in data.get("equipRarities", [])]
@@ -46,7 +68,8 @@ def main():
         k = (ja, rja_, en)
         e = entries.get(k)
         if e is None:
-            e = {"ja": ja, "en": en, "rarity_ja": rja_, "rarity_en": rarity_en or "",
+            e = {"ja": ja, "en": en, "zh": zh_of(en, ja), "zh_hant": zht_of(en, ja),
+                 "rarity_ja": rja_, "rarity_en": rarity_en or "",
                  "type_ja": type_ja or "", "type_en": type_en or type_ja or "", "type": type_ja or "",
                  "hash": hashkey, "variant": variant,
                  "sell": None, "median": None, "listings": None, "volume": None}
@@ -91,7 +114,9 @@ def main():
         k = (pr.get("name_ja", ""), RMAP.get(rar, ""), en_base)
         if k in entries: continue
         tp = pr.get("type", "")
-        entries[k] = {"ja": pr.get("name_ja", ""), "en": en_base, "rarity_ja": RMAP.get(rar, ""),
+        entries[k] = {"ja": pr.get("name_ja", ""), "en": en_base,
+                      "zh": zh_of(en_base, pr.get("name_ja", "")), "zh_hant": zht_of(en_base, pr.get("name_ja", "")),
+                      "rarity_ja": RMAP.get(rar, ""),
                       "rarity_en": rar or "", "type_ja": tp, "type_en": tp, "type": tp,
                       "hash": hk, "variant": var,
                       "sell": pr.get("sell"), "median": pr.get("median"),
@@ -111,6 +136,8 @@ def main():
         add(norm(ja), i)
         add(norm(en + re_), i)
         add(norm(en), i)
+        add(norm(e.get("zh", "")), i)              # 中国語(簡体)名でも引けるように
+        add(norm(e.get("zh_hant", "")), i)         # 繁体名でも
 
     out = {"marketUpdated": json.load(open(os.path.join(ROOT, "tbh-prices.json"), encoding="utf-8")).get("marketUpdated"),
            "entries": entries, "index": index}

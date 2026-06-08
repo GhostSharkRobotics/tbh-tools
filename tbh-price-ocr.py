@@ -196,10 +196,9 @@ def ocr_worker():
             if foreground_exe() != GAME_EXE:
                 continue                        # 他アプリでは何もしない＝「戻る」は普通に効く
             xy = cursor_pos()
-            PQ.put(("__close__", None, None))   # ① 古いポップを消す（前の結果を撮らない＝stale防止）
-            time.sleep(0.12)
-            img, (ox, oy) = grab(NAME_REGIONS[0])   # ② ポップ無しで先に撮影（上部ウィンドウ全体）
-            PQ.put(("__processing__", xy, None))    # ③ 撮影後に「読み取り中」
+            img, (ox, oy) = grab(NAME_REGIONS[0])   # ① 即撮影（戻るボタンでゲームが詳細を閉じる前に）
+            PQ.put(("__close__", None, None))       # ② 古いポップを消す（枠テンプレは自分のポップに反応しないので順番は後でOK）
+            PQ.put(("__processing__", xy, None))    # ③ 読み取り中
             if CALIBRATE:
                 try: img.save(os.path.join(HERE, "cap0.png"))
                 except Exception: pass

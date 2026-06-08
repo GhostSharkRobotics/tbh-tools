@@ -53,6 +53,7 @@ try:
     import mss
     from PIL import Image, ImageDraw, ImageFilter
     import numpy as np
+    import cv2
     import winocr
     import mouse
     import pystray
@@ -68,6 +69,10 @@ except Exception as e:
     sys.exit(1)
 
 matcher = Matcher(os.path.join(HERE, "tbh-price-lookup.json"))
+try:
+    _TPL = cv2.imread(os.path.join(HERE, "frame_tpl.png"))   # 名前枠の左角テンプレート（定数ピクセル）
+except Exception:
+    _TPL = None
 PQ = queue.Queue()          # ポップ要求キュー（別スレッド→メインスレッド）
 
 
@@ -132,46 +137,42 @@ def grab(frac):
     return Image.frombytes("RGB", raw.size, raw.bgra, "raw", "BGRX"), (left, top)
 
 
-def _variants(img):
-    """複数の前処理を返す（どれかが名前/等級を読めるように＝同時多手）。"""
-    v = img.convert("HSV").split()[2]                 # 明度 = max(R,G,B)
+def _adapt(c):
+    """局所適応二値化（色付き/暗い名前も白黒高コントラスト化）。"""
+    v = c.convert("HSV").split()[2]
     mean = v.filter(ImageFilter.BoxBlur(14))
     a = np.asarray(v, dtype=np.int16); m = np.asarray(mean, dtype=np.int16)
-    adapt = Image.fromarray(((a > m + 8) * 255).astype("uint8"), "L")   # 局所適応二値化
-    return [adapt, ImageOps.autocontrast(v), ImageOps.autocontrast(img.convert("L"))]
+    return Image.fromarray(((a > m + 8) * 255).astype("uint8"), "L").convert("RGB")
 
 
-def ocr_lines(img):
-    """3種の前処理×OCRの行を全部合算して (テキスト, x, y) を返す（重複は除去）。"""
-    scale = 3 if img.width < 700 else 1
-    seen, out = set(), []
-    for vi, proc in enumerate(_variants(img)):
-        if scale > 1:
-            proc = proc.resize((proc.width * scale, proc.height * scale), Image.LANCZOS)
-        if CALIBRATE and vi == 0:
-            try: proc.save(os.path.join(HERE, "tbh-ocr-proc.png"))
-            except Exception: pass
-        rgb = proc.convert("RGB")
-        for lang in OCR_LANGS:
-            try:
-                r = winocr.recognize_pil_sync(rgb, lang)
-            except Exception:
-                continue
-            for ln in (r.get("lines") if isinstance(r, dict) else []) or []:
-                ws = ln.get("words") or []
-                if not ws:
-                    continue
-                xs = [w["bounding_rect"]["x"] for w in ws]
-                rs = [w["bounding_rect"]["x"] + w["bounding_rect"]["width"] for w in ws]
-                ys = [w["bounding_rect"]["y"] for w in ws]
-                bs = [w["bounding_rect"]["y"] + w["bounding_rect"]["height"] for w in ws]
-                cx = (min(xs) + max(rs)) / 2 / scale
-                cy = (min(ys) + max(bs)) / 2 / scale
-                t = ln.get("text", "")
-                key = (t, round(cx / 25), round(cy / 25))
-                if key in seen:
-                    continue
-                seen.add(key); out.append((t, cx, cy))
+def _ocr(c):
+    try:
+        r = winocr.recognize_pil_sync(_adapt(c), "ja")
+        return " ".join(l.get("text", "") for l in (r.get("lines") if isinstance(r, dict) else []) or [])
+    except Exception:
+        return ""
+
+
+def detect_boxes(img):
+    """名前枠テンプレートで枠を位置特定し、各枠の (名前＋等級テキスト, 枠中心x, 中心y) を返す。
+    枠は毎回同じピクセル＝位置が左右・上下に動いてもテンプレートマッチで見つかる。"""
+    if _TPL is None:
+        return []
+    arr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    res = cv2.matchTemplate(arr, _TPL, cv2.TM_CCOEFF_NORMED)
+    ys, xs = np.where(res >= 0.72)
+    peaks = sorted(zip(xs.tolist(), ys.tolist(), res[ys, xs].tolist()), key=lambda p: -p[2])
+    picked = []
+    for x, y, s in peaks:                       # 近接ピークをまとめる
+        if all(abs(x - px) > 40 or abs(y - py) > 24 for px, py, _ in picked):
+            picked.append((x, y, s))
+        if len(picked) >= 8:
+            break
+    out = []
+    for x, y, s in picked:
+        name = _ocr(img.crop((x + 10, y + 8, x + 600, y + 58)))    # 枠内＝名前
+        rank = _ocr(img.crop((x + 10, y + 58, x + 600, y + 122)))  # 枠直下＝等級
+        out.append((name + " " + rank, x + 300, y + 30))
     return out
 
 
@@ -201,45 +202,33 @@ def ocr_worker():
             if CALIBRATE:
                 try: img.save(os.path.join(HERE, "cap0.png"))
                 except Exception: pass
-            lines = ocr_lines(img)
-            texts = [t for t, _, _ in lines]
-            # 照合プローブ: 各行単独＋「真下にある行」を空間的に結合（名前＋等級）。
-            # winocrの行順は画面順でないので、座標で“直下の行”を探して結合する。
-            probes = []
-            for (t, cx, cy) in lines:
-                probes.append((t, cx, cy))
-                for (tt, xx, yy) in lines:
-                    if 6 < yy - cy < 90 and abs(xx - cx) < 240:   # 直下＆横位置が近い＝等級行
-                        probes.append((t + tt, cx, cy))
+            boxes = detect_boxes(img)            # 枠テンプレートで名前枠を位置特定→各枠OCR
             cands = []
-            for (text, cx, cy) in probes:
+            for text, bx, by in boxes:
                 r = matcher.match(text)
                 if r:
-                    sx, sy = ox + cx, oy + cy
+                    sx, sy = ox + bx, oy + by
                     d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
-                    cands.append((r[0]["score"], d2, sx, sy, r))
+                    cands.append((r[0]["score"], d2, sx, sy, r, text))
             found = []
             if cands:
-                # ① カーソル最近の候補＝あなたが指してる位置（アンカー）
-                ax, ay = min(cands, key=lambda c: c[1])[2:4]
-                # ② その位置(≒同一アイテム)の候補のうち最高スコア（名前＋等級ペアを優先）
-                same = [c for c in cands if (c[2] - ax) ** 2 + (c[3] - ay) ** 2 < 70 ** 2]
+                ax, ay = min(cands, key=lambda c: c[1])[2:4]   # カーソル最近の枠＝指してる位置
+                same = [c for c in cands if (c[2] - ax) ** 2 + (c[3] - ay) ** 2 < 80 ** 2]
                 best = max(same, key=lambda c: c[0])
-                # ③ 確信(0.85)できる時だけ採用。無ければ該当なし（遠い装備中に飛ばない）
                 if best[0] >= 0.85:
                     found = best[4]
             if CALIBRATE:
                 try:
                     with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
-                        f.write(f"cursor={xy}  win_off=({ox},{oy})\n--CANDIDATES--\n")
-                        for sc, d2, sx, sy, r in sorted(cands, key=lambda c: c[1]):
-                            f.write(f"{r[0].get('ja','?')}（{r[0].get('rarity_ja','')}）¥{r[0].get('sell')}  score={sc} dist={int(d2**0.5)} @({int(sx)},{int(sy)})\n")
-                        f.write("--LINES--\n")
-                        for t, cx, cy in lines:
-                            f.write(f"({int(ox+cx)},{int(oy+cy)}) {t}\n")
+                        f.write(f"cursor={xy} win_off=({ox},{oy}) 枠数={len(boxes)}\n--CANDIDATES--\n")
+                        for sc, d2, sx, sy, r, tx in sorted(cands, key=lambda c: c[1]):
+                            f.write(f"{r[0].get('ja','?')}（{r[0].get('rarity_ja','')}）¥{r[0].get('sell')} s={sc} d={int(d2**0.5)} @({int(sx)},{int(sy)}) [{tx[:30]}]\n")
+                        f.write("--BOXES--\n")
+                        for text, bx, by in boxes:
+                            f.write(f"({int(ox+bx)},{int(oy+by)}) {text[:40]}\n")
                 except Exception:
                     pass
-            PQ.put((found, xy, "\n".join(texts)))
+            PQ.put((found, xy, ""))
         except Exception:
             log_fatal("worker error:\n" + traceback.format_exc())
 

@@ -82,7 +82,7 @@ def main():
             e["icon"] = icon
         pr = price_of(hashkey)
         if pr and e["sell"] is None:
-            e.update(sell=pr.get("sell"), median=pr.get("median"),
+            e.update(sell=pr.get("sell"), median=pr.get("median"), cur=1,   # 事前取得はUSD(通貨ID1)
                      listings=pr.get("listings"), volume=pr.get("volume"), hash=hashkey)
             if pr.get("type"): e["type_en"] = pr["type"]   # 価格側の英語種別(例 Bow - Lv. 20)
 
@@ -124,7 +124,7 @@ def main():
                       "zh": zh_of(en_base, pr.get("name_ja", "")), "zh_hant": zht_of(en_base, pr.get("name_ja", "")),
                       "rarity_ja": RMAP.get(rar, ""),
                       "rarity_en": rar or "", "type_ja": tp, "type_en": tp, "type": tp,
-                      "hash": hk, "variant": var,
+                      "hash": hk, "variant": var, "cur": 1,
                       "sell": pr.get("sell"), "median": pr.get("median"),
                       "listings": pr.get("listings"), "volume": pr.get("volume")}
 

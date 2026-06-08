@@ -521,6 +521,7 @@ def ocr_worker():
                     if low is not None: found[0]["sell"] = low
                     if med is not None: found[0]["median"] = med
                     if vol is not None: found[0]["volume"] = vol
+                    found[0]["cur"] = _cur_code()
                     found[0]["_live"] = True
                 _record_history(found[0])         # 履歴に記録
             if CALIBRATE:                         # 失敗時の画像とログを残す（私が原因を見る用）
@@ -768,7 +769,7 @@ def _icon_by_hash():
 def _record_history(ent):
     if not ent: return
     rec = {k: ent.get(k) for k in ("ja", "en", "zh", "zh_hant", "icon", "rarity_en", "rarity_ja",
-                                   "sell", "median", "volume", "hash", "type_ja", "type_en", "type")}
+                                   "sell", "median", "volume", "cur", "hash", "type_ja", "type_en", "type")}
     rec["ts"] = time.strftime("%H:%M")
     if not rec.get("icon"):                         # 価格側エントリにicon無し→ハッシュから補完
         rec["icon"] = _icon_by_hash().get(rec.get("hash"), "")
@@ -988,7 +989,10 @@ def show_popup(results, xy, text, root):
         price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
         if ent:
             name_lbl.config(text=disp_name(ent) or "—")
-        if ent and ent.get("sell") is not None:
+        if ent and ent.get("sell") is not None and ent.get("cur") not in (None, _cur_code()):
+            price_lbl.config(text="…")               # 別通貨で取得済み（ライブ取得待ち）
+            meta_lbl.config(text=disp_type(ent))
+        elif ent and ent.get("sell") is not None:
             price_lbl.config(text=f"{T('low')} {price(ent['sell'])}   {T('med')} {price(ent['median'])}")
             cat = disp_type(ent)
             meta_lbl.config(text=f"{cat}   {T('sold')}{ent.get('volume','—')}")
@@ -1009,6 +1013,7 @@ def show_popup(results, xy, text, root):
                     if low is not None: ent["sell"] = low
                     if med is not None: ent["median"] = med
                     if vol is not None: ent["volume"] = vol
+                    ent["cur"] = _cur_code()
             win.after(0, lambda: render(ent))
         threading.Thread(target=work, daemon=True).start()
 
@@ -1109,6 +1114,7 @@ def _hist_apply(rec, name, rarity_en):
                 if low is not None: ent["sell"] = low
                 if med is not None: ent["median"] = med
                 if vol is not None: ent["volume"] = vol
+                ent["cur"] = _cur_code()
             new = {k: ent.get(k) for k in ("ja", "en", "rarity_en", "rarity_ja", "sell", "median",
                                            "volume", "hash", "type_ja", "type_en", "type")}
             new["fav"], new["ts"] = fav, ts
@@ -1150,6 +1156,7 @@ def _hist_update_all():
                 if low is not None: rec["sell"] = low
                 if med is not None: rec["median"] = med
                 if vol is not None: rec["volume"] = vol
+                rec["cur"] = _cur_code()
             _hist_after(lambda rec=rec: _hist_update_price(rec))   # その場で1行だけ更新
             with lock:
                 done[0] += 1; n = done[0]
@@ -1203,7 +1210,9 @@ def _row_menu(ev, rec):
 
 def _set_row_price(rd):
     rec = rd["rec"]
-    if rec.get("sell") is not None:
+    if rec.get("sell") is not None and rec.get("cur") not in (None, _cur_code()):
+        rd["price"].config(text="…", fg=C_META)          # 別通貨で取得済み→更新待ち
+    elif rec.get("sell") is not None:
         rd["price"].config(text=f"{T('low')} {price(rec['sell'])}   {T('med')} {price(rec['median'])}", fg=C_PRICE)
     else:
         rd["price"].config(text=T("noprice"), fg=C_META)
@@ -1460,7 +1469,9 @@ def show_settings(root):
                     if hasattr(w[0], "destroy"): w[0].destroy()
                 except Exception: pass
                 w[0] = None
-        if _hist_visible[0]: show_history(root)     # 履歴は開いていたら新言語で開き直す
+        if _hist_visible[0]:
+            show_history(root)                       # 履歴は開いていたら新言語で開き直す
+            _hist_update_all()                       # 価格を新しい通貨で取り直す（その場更新）
         geo = win.geometry()
         pos = ("+" + geo.split("+", 1)[1]) if "+" in geo else ""   # 位置を保持して建て直し（動かない）
         win.destroy(); _set_win[0] = None; show_settings(root)

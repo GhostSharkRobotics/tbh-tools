@@ -51,8 +51,8 @@ def log_fatal(msg):
 # ---- 依存 ----------------------------------------------------------------
 try:
     import mss
-    from PIL import Image, ImageDraw
-    from PIL import ImageOps
+    from PIL import Image, ImageDraw, ImageFilter
+    import numpy as np
     import winocr
     import mouse
     import pystray
@@ -133,14 +133,17 @@ def grab(frac):
 
 
 def preprocess(img):
-    """色付き文字対策: 明度(V=max(R,G,B))チャンネル＋コントラスト強調。
-    マゼンタ/オレンジ等のレア色名でも白黒高コントラストになりOCRが安定。小領域のみ拡大。"""
-    v = img.convert("HSV").split()[2]
+    """局所適応二値化: 明度(V)で、局所平均より明るい画素＝文字 を白にする。
+    暗い赤(イモータル)等どんなレア色名でも、全体の明暗に左右されず文字が出る。小領域は拡大。"""
+    v = img.convert("HSV").split()[2]          # 明度 = max(R,G,B)
     w, h = v.size
-    if w < 700:                      # 小さい領域だけ拡大（大きい全体撮影は等倍で速度維持）
+    if w < 700:
         v = v.resize((w * 3, h * 3), Image.LANCZOS)
-    v = ImageOps.autocontrast(v)
-    return v.convert("RGB")
+    mean = v.filter(ImageFilter.BoxBlur(14))   # 局所平均（背景）
+    a = np.asarray(v, dtype=np.int16)
+    m = np.asarray(mean, dtype=np.int16)
+    binimg = ((a > m + 10) * 255).astype("uint8")   # 局所背景より明るい＝文字
+    return Image.fromarray(binimg, "L").convert("RGB")
 
 
 def ocr_lines(img):
@@ -217,11 +220,10 @@ def ocr_worker():
                     d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
                     cands.append((r[0]["score"], d2, sx, sy, r))
             found = []
-            conf = [c for c in cands if c[0] >= 0.85]   # 確信できる一致のみ
+            conf = [c for c in cands if c[0] >= 0.85]   # 確信できる一致のみ採用
             if conf:
-                found = min(conf, key=lambda c: c[1])[4]   # その中でカーソル最近を最優先
-            elif cands:
-                found = max(cands, key=lambda c: c[0])[4]  # 確信無ければ最高スコア
+                found = min(conf, key=lambda c: c[1])[4]   # カーソル最近を最優先
+            # 確信できる一致が無ければ「該当なし」（低スコアのゴミは採用しない）
             if CALIBRATE:
                 try:
                     with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:

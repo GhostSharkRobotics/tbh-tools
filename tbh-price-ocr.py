@@ -760,11 +760,24 @@ def _hist_trim():
         elif seen < keep_nonfav: out.append(r); seen += 1
     _hist[:] = out
 
+_icon_map = [None]
+def _icon_by_hash():
+    """ハッシュ -> アイコンCDNハッシュ の辞書（lookupから1回だけ作る）。"""
+    if _icon_map[0] is None:
+        try:
+            _icon_map[0] = {e.get("hash"): e.get("icon") for e in matcher.entries
+                            if e.get("icon") and e.get("hash")}
+        except Exception:
+            _icon_map[0] = {}
+    return _icon_map[0]
+
 def _record_history(ent):
     if not ent: return
-    rec = {k: ent.get(k) for k in ("ja", "en", "rarity_en", "rarity_ja", "sell", "median",
-                                   "volume", "hash", "type_ja", "type_en", "type")}
+    rec = {k: ent.get(k) for k in ("ja", "en", "zh", "zh_hant", "icon", "rarity_en", "rarity_ja",
+                                   "sell", "median", "volume", "hash", "type_ja", "type_en", "type")}
     rec["ts"] = time.strftime("%H:%M")
+    if not rec.get("icon"):                         # 価格側エントリにicon無し→ハッシュから補完
+        rec["icon"] = _icon_by_hash().get(rec.get("hash"), "")
     if _hist and _hist[0].get("hash") == rec["hash"]:   # 直近と同一なら時刻だけ更新（fav保持）
         rec["fav"] = _hist[0].get("fav"); _hist[0] = rec
     else:
@@ -1595,6 +1608,9 @@ def run_tray(root):
 # ---- main ----------------------------------------------------------------
 def main():
     _load_hist()                                               # 保存済み履歴を復元
+    _im = _icon_by_hash()                                       # 既存履歴のアイコンをハッシュから補完
+    for _r in _hist:
+        if not _r.get("icon") and _r.get("hash"): _r["icon"] = _im.get(_r["hash"], "")
     _load_settings()                                           # 保存済み設定を復元
     if _lang_mode[0] is None:                                  # 初回はPCの言語を既定に
         _lang_mode[0] = _detect_pc_lang()

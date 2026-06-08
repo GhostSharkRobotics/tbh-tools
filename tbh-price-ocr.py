@@ -322,15 +322,10 @@ def ocr_worker():
                     sx, sy = ox + cx, oy + cy
                     d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
                     cands.append((best_r[0]["score"], d2, sx, sy, best_r, bx, by, name, rank))
-            # 表示言語：設定が ja/en なら固定、auto ならゲーム言語を判定（ASCII/日本語比率）
+            # 表示言語：設定（PC言語/手動）に従う
             global _ui_lang
             if _lang_mode[0] in ("ja", "en"):
                 _ui_lang = _lang_mode[0]
-            else:
-                alltext = " ".join((n or "") + (r or "") for n, r, *_ in boxes)
-                asc = sum(1 for c in alltext if c.isascii() and c.isalpha())
-                jpn = sum(1 for c in alltext if ord(c) > 0x3040)
-                _ui_lang = "en" if asc > jpn else "ja"
             found, chosen = [], None
             if cands:
                 ax, ay = min(cands, key=lambda c: c[1])[2:4]   # カーソル最近の枠＝指してる位置
@@ -385,8 +380,8 @@ _hist_status = [None]      # ヘッダの「更新中/更新時刻」ラベル
 HIST_FILE = os.path.join(HERE, "tbh-price-history.json")   # 履歴の保存先（再起動で消えないように）
 SET_FILE = os.path.join(HERE, "tbh-price-settings.json")   # 設定の保存先
 
-# ---- 表示言語（auto=ゲームに追従 / ja / en）。起動時はPCの言語を既定に ----
-_lang_mode = [None]        # None=未設定（起動時にPC言語へ）, "auto" / "ja" / "en"
+# ---- 表示言語（ja / en）。起動時はPCの言語を自動取得して既定に ----
+_lang_mode = [None]        # None=未設定（起動時にPC言語へ）, "ja" / "en"
 
 def _detect_pc_lang():
     try:
@@ -431,7 +426,7 @@ def _load_settings():
         t = d.get("trigger") or {}
         if t.get("kind") in ("mouse", "key") and t.get("value"):
             _trigger.update(kind=t["kind"], value=t["value"])
-        if d.get("lang") in ("auto", "ja", "en"):
+        if d.get("lang") in ("ja", "en"):
             _lang_mode[0] = d["lang"]
     except Exception: pass
 
@@ -973,10 +968,16 @@ def show_settings(root):
     c1 = section("表示言語" if ja else "Language")
     langf = tk.Frame(c1, bg="#11141a"); langf.pack(fill="x", padx=14, pady=(0, 14))
     def choose_lang(m):
+        if _lang_mode[0] == m: return
         _apply_lang(m)
         if _hist_visible[0]: _refresh_history()
-        win.destroy(); _set_win[0] = None; show_settings(root)   # 言語反映のため建て直し
-    for m, label in (("auto", "自動" if ja else "Auto"), ("ja", "日本語"), ("en", "English")):
+        geo = win.geometry()
+        pos = ("+" + geo.split("+", 1)[1]) if "+" in geo else ""   # 位置を保持して建て直し（動かない）
+        win.destroy(); _set_win[0] = None; show_settings(root)
+        if pos and _set_win[0]:
+            try: _set_win[0].geometry(pos)
+            except Exception: pass
+    for m, label in (("ja", "日本語"), ("en", "English")):
         on = _lang_mode[0] == m
         round_pill(langf, ("● " if on else "") + label, C_ACCENT if on else "#2a2f3a",
                    "#0c0c0c" if on else C_NAME, lambda m=m: choose_lang(m), fs).pack(side="left", padx=(0, 6))

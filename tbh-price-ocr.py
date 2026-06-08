@@ -229,17 +229,38 @@ except Exception:
 PQ = queue.Queue()          # ポップ要求キュー（別スレッド→メインスレッド）
 
 
-# 表示言語に応じてSteamのその国の通貨で直接取得（為替換算しない＝Steam表示と一致）
+# 価格はSteamのその国の通貨で取得（現地価格＝Steam表示と一致）。取れない時はバンドルUSDを為替で概算表示。
 _CURRENCY = {"en": 1, "ja": 8, "zh": 23}   # Steamの通貨ID: 1=USD, 8=JPY, 23=CNY
+JPY_RATE = 155.0     # USD→JPY（概算フォールバック用）。起動時に最新へ
+CNY_RATE = 7.2       # USD→CNY（概算フォールバック用）
+
+def fetch_rate():
+    global JPY_RATE, CNY_RATE
+    try:
+        with urllib.request.urlopen("https://open.er-api.com/v6/latest/USD", timeout=5) as r:
+            rates = json.load(r)["rates"]
+            JPY_RATE = float(rates.get("JPY", JPY_RATE)); CNY_RATE = float(rates.get("CNY", CNY_RATE))
+    except Exception:
+        pass
 
 def _cur_code():
     return _CURRENCY.get(_ui_lang, 1)
 
-def price(c):                      # 価格はSteamからその通貨で取得済み（×100の整数）。記号だけ言語で。
+def price(c, src=1):
+    """価格表示。src=取得時の通貨ID。表示通貨と同じなら正確、違えば為替で概算(≈)。
+    こうしてSteam取得が出来ない時でもバンドルUSDから必ず価格を出す（「…」を出さない）。"""
     if c is None: return "—"
-    if _ui_lang == "en": return f"${c/100:.2f}"
-    if _ui_lang == "ja": return f"¥{round(c/100):,}"     # 円は小数なし
-    return f"¥{c/100:,.2f}"                                # 人民元は小数2桁
+    cur = _cur_code()
+    if src == cur:                                  # 同通貨＝正確
+        val, approx = c / 100, False
+    else:                                           # 取得済み(USD想定)→表示通貨へ為替換算＝概算
+        usd = c / 100 if src == 1 else c / 100      # バンドルは常にUSD
+        val = usd * (JPY_RATE if cur == 8 else CNY_RATE if cur == 23 else 1.0)
+        approx = (cur != 1)
+    pre = "≈" if approx else ""
+    if cur == 1: return f"{pre}${val:.2f}"
+    if cur == 8: return f"{pre}¥{round(val):,}"      # 円は小数なし
+    return f"{pre}¥{val:,.2f}"                       # 人民元は小数2桁
 
 def disp_name(e):                  # 現在の言語でアイテム名（zh→簡体、無ければen→ja）
     if not e: return ""
@@ -1020,11 +1041,9 @@ def show_popup(results, xy, text, root):
         price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
         if ent:
             name_lbl.config(text=disp_name(ent) or "—")
-        if ent and ent.get("sell") is not None and ent.get("cur") not in (None, _cur_code()):
-            price_lbl.config(text="…")               # 別通貨で取得済み（ライブ取得待ち）
-            meta_lbl.config(text=disp_type(ent))
-        elif ent and ent.get("sell") is not None:
-            price_lbl.config(text=f"{T('low')} {price(ent['sell'])}   {T('med')} {price(ent['median'])}")
+        if ent and ent.get("sell") is not None:
+            sc = ent.get("cur", 1)
+            price_lbl.config(text=f"{T('low')} {price(ent['sell'], sc)}   {T('med')} {price(ent['median'], sc)}")
             cat = disp_type(ent)
             meta_lbl.config(text=f"{cat}   {T('sold')}{ent.get('volume','—')}")
         elif ent:
@@ -1272,10 +1291,9 @@ def _row_menu(ev, rec):
 
 def _set_row_price(rd):
     rec = rd["rec"]
-    if rec.get("sell") is not None and rec.get("cur") not in (None, _cur_code()):
-        rd["price"].config(text="…", fg=C_META)          # 別通貨で取得済み→更新待ち
-    elif rec.get("sell") is not None:
-        rd["price"].config(text=f"{T('low')} {price(rec['sell'])}   {T('med')} {price(rec['median'])}", fg=C_PRICE)
+    if rec.get("sell") is not None:
+        sc = rec.get("cur", 1)
+        rd["price"].config(text=f"{T('low')} {price(rec['sell'], sc)}   {T('med')} {price(rec['median'], sc)}", fg=C_PRICE)
     else:
         rd["price"].config(text=T("noprice"), fg=C_META)
 
@@ -1707,6 +1725,7 @@ def main():
         _lang_mode[0] = _detect_pc_lang()
     _apply_lang(_lang_mode[0])                                 # _ui_langへ反映
     threading.Thread(target=_check_update, daemon=True).start()   # 新版チェック（非同期）
+    threading.Thread(target=fetch_rate, daemon=True).start()      # 為替レート（概算フォールバック用）
     root = tk.Tk()
     root.withdraw()
     threading.Thread(target=ocr_worker, daemon=True).start()    # OCR常駐ワーカー（初期化1回）

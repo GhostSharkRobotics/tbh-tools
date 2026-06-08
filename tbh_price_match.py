@@ -20,7 +20,29 @@ def norm(s: str) -> str:
     s = re.sub(r"[\s　ー\-ｰ~一'’!?;()\[\]（）【】・,._/:：]+", "", s)   # 記号・長音・空白除去（'も）
     return s
 
+RARITIES = [("Common", "コモン"), ("Uncommon", "アンコモン"), ("Rare", "レア"),
+            ("Legendary", "レジェンダリー"), ("Immortal", "イモータル"), ("Arcana", "アルカナ"),
+            ("Beyond", "ビヨンド"), ("Celestial", "セレスティアル"), ("Divine", "ディバイン"),
+            ("Cosmic", "コズミック")]
+
+def extract_rarity(text):
+    """等級行から等級(en)を抽出。最長一致のカバー率で判定（Immortal→lmmorta等の誤読も拾う）。"""
+    nt = norm(text)
+    if not nt: return None
+    best = (None, 0.0)
+    for en, ja in RARITIES:
+        for w in (en, ja):
+            nw = norm(w)
+            if not nw: continue
+            mm = difflib.SequenceMatcher(None, nw, nt).find_longest_match(0, len(nw), 0, len(nt))
+            cov = mm.size / len(nw)
+            if cov > best[1]: best = (en, cov)
+    return best[0] if best[1] >= 0.7 else None
+
+
 class Matcher:
+    RMAP = {en: ja for en, ja in RARITIES}
+
     def __init__(self, path):
         d = json.load(open(path, encoding="utf-8"))
         self.entries = d["entries"]; self.index = d["index"]
@@ -58,6 +80,21 @@ class Matcher:
         score, key, _ = max(cands, key=lambda c: (round(c[0], 3), c[2]))   # 同点なら長い名前
         if score < min_score: return []
         return self._collect(key, score)
+
+    def match_item(self, name_text, rank_text=""):
+        """名前で照合してアイテムを特定し、等級行から等級を補って正しい等級のエントリを返す。"""
+        r = self.match(name_text)
+        if not r:
+            r = self.match((name_text + " " + rank_text).strip())
+            if not r: return []
+        base = r[0]
+        rar = extract_rarity(rank_text)
+        if rar:                                  # 名前×抽出した等級 の具体エントリを引く
+            for key in (norm((base.get("en") or "") + rar),
+                        norm((base.get("ja") or "") + self.RMAP.get(rar, ""))):
+                if key and key in self.index:
+                    return self._collect(key, base.get("score", 1.0))
+        return r
 
 if __name__ == "__main__":
     ROOT = os.path.dirname(os.path.abspath(__file__))

@@ -281,11 +281,7 @@ def ocr_worker():
             boxes = detect_boxes(img)            # 枠テンプレートで名前枠を位置特定→各枠OCR
             cands = []
             for name, rank, bx, by, sc_t in boxes:
-                best_r = None
-                for probe in (name, name + " " + rank):   # 名前単独(素材)と名前＋等級(装備)両方→高い方
-                    rr = matcher.match(probe)
-                    if rr and (best_r is None or rr[0]["score"] > best_r[0]["score"]):
-                        best_r = rr
+                best_r = matcher.match_item(name, rank)   # 名前で特定＋等級行から正しい等級を補う
                 cx, cy = bx + 250, by + 30
                 if best_r:
                     sx, sy = ox + cx, oy + cy

@@ -220,10 +220,15 @@ def ocr_worker():
                     d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
                     cands.append((r[0]["score"], d2, sx, sy, r))
             found = []
-            conf = [c for c in cands if c[0] >= 0.85]   # 確信できる一致のみ採用
-            if conf:
-                found = min(conf, key=lambda c: c[1])[4]   # カーソル最近を最優先
-            # 確信できる一致が無ければ「該当なし」（低スコアのゴミは採用しない）
+            if cands:
+                # ① カーソル最近の候補＝あなたが指してる位置（アンカー）
+                ax, ay = min(cands, key=lambda c: c[1])[2:4]
+                # ② その位置(≒同一アイテム)の候補のうち最高スコア（名前＋等級ペアを優先）
+                same = [c for c in cands if (c[2] - ax) ** 2 + (c[3] - ay) ** 2 < 70 ** 2]
+                best = max(same, key=lambda c: c[0])
+                # ③ 確信(0.85)できる時だけ採用。無ければ該当なし（遠い装備中に飛ばない）
+                if best[0] >= 0.85:
+                    found = best[4]
             if CALIBRATE:
                 try:
                     with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:

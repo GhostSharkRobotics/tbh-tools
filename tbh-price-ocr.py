@@ -29,7 +29,8 @@ NAME_REGIONS = [
 ]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
-CALIBRATE     = True               # Trueで撮影画像を tbh-ocr-capture.png に保存（調整用・一時ON）
+CALIBRATE     = True               # Trueで撮影画像を保存（調整用）
+DEBUG_UI      = True               # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 C_NAME, C_JA, C_PRICE, C_META, C_ERR = "#ffffff", "#8ab4f8", "#34d399", "#8b909a", "#f87171"
@@ -173,8 +174,62 @@ def detect_boxes(img):
     for x, y, s in picked:
         name = _ocr(img.crop((max(0, x - 90), y + 6, x + 560, y + 56)))   # 枠内＝名前（左に広め＝短名対策）
         rank = _ocr(img.crop((max(0, x - 90), y + 56, x + 560, y + 122))) # 枠直下＝等級
-        out.append((name, rank, x + 250, y + 30))
+        out.append((name, rank, x, y, s))   # 枠の左上座標とテンプレ一致度も返す
     return out
+
+
+def _annotate(img, boxes, cands, chosen, xy, off):
+    """デバッグ用: 撮影画像に 検出枠・読取・マッチ結果・カーソル を描いて縮小して返す。"""
+    from PIL import ImageDraw, ImageFont
+    ox, oy = off
+    im = img.convert("RGB").copy()
+    d = ImageDraw.Draw(im)
+    try:
+        fnt = ImageFont.truetype("YuGothM.ttc", 22); fbig = ImageFont.truetype("YuGothB.ttc", 30)
+    except Exception:
+        fnt = ImageFont.load_default(); fbig = fnt
+    for name, rank, bx, by, sc_t in boxes:
+        d.rectangle([bx - 90, by + 6, bx + 560, by + 56], outline=(0, 255, 255), width=3)
+        d.rectangle([bx - 90, by + 56, bx + 560, by + 122], outline=(0, 160, 255), width=2)
+        d.text((bx - 88, by - 26), f"枠 t={sc_t:.2f} 名[{name}] 級[{rank}]", fill=(255, 255, 0), font=fnt)
+    for c in cands:
+        sc, d2, sx, sy, r, bx, by, name, rank = c
+        e = r[0]
+        col = (0, 255, 0) if sc >= 0.85 else (255, 120, 120)
+        d.text((bx - 88, by + 124), f"= {e.get('ja','')}({e.get('rarity_ja','')}) s={sc} d={int(d2**0.5)}", fill=col, font=fnt)
+    if chosen:
+        bx, by = chosen[5], chosen[6]
+        d.rectangle([bx - 94, by + 2, bx + 564, by + 126], outline=(0, 255, 0), width=6)
+    cx, cy = xy[0] - ox, xy[1] - oy
+    d.line([cx - 24, cy, cx + 24, cy], fill=(255, 0, 0), width=3)
+    d.line([cx, cy - 24, cx, cy + 24], fill=(255, 0, 0), width=3)
+    d.ellipse([cx - 16, cy - 16, cx + 16, cy + 16], outline=(255, 0, 0), width=3)
+    res = chosen[4][0] if chosen else None
+    if res and res.get("sell") is not None:
+        head = f"-> {res.get('ja','')}({res.get('rarity_ja','')}) Y{round((res.get('sell') or 0)/100*JPY_RATE):,}"
+    elif res:
+        head = f"-> {res.get('ja','')}({res.get('rarity_ja','')}) 市場価格なし"
+    else:
+        head = "-> 該当なし"
+    d.rectangle([0, 0, im.width, 48], fill=(0, 0, 0))
+    d.text((10, 8), f"枠数={len(boxes)}  {head}", fill=(255, 255, 255), font=fbig)
+    W = 1100
+    return im.resize((W, max(1, int(im.height * W / im.width))), Image.LANCZOS)
+
+
+_dbg_win = [None]
+def show_debug(pim, root):
+    from PIL import ImageTk
+    if _dbg_win[0] is not None:
+        try: _dbg_win[0].destroy()
+        except Exception: pass
+    win = tk.Toplevel(root); win.title("TBH OCR デバッグ")
+    win.attributes("-topmost", True)
+    ph = ImageTk.PhotoImage(pim)
+    lb = tk.Label(win, image=ph, bg="#000"); lb.image = ph; lb.pack()
+    win.bind("<Button-1>", lambda e: win.destroy())
+    win.geometry("+20+20")
+    _dbg_win[0] = win
 
 
 WORKQ = queue.Queue()    # 戻るボタン押下シグナル（常駐ワーカーが処理）
@@ -204,38 +259,29 @@ def ocr_worker():
                 except Exception: pass
             boxes = detect_boxes(img)            # 枠テンプレートで名前枠を位置特定→各枠OCR
             cands = []
-            for name, rank, bx, by in boxes:
+            for name, rank, bx, by, sc_t in boxes:
                 best_r = None
                 for probe in (name, name + " " + rank):   # 名前単独(素材)と名前＋等級(装備)両方→高い方
                     rr = matcher.match(probe)
                     if rr and (best_r is None or rr[0]["score"] > best_r[0]["score"]):
                         best_r = rr
+                cx, cy = bx + 250, by + 30
                 if best_r:
-                    sx, sy = ox + bx, oy + by
+                    sx, sy = ox + cx, oy + cy
                     d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
-                    cands.append((best_r[0]["score"], d2, sx, sy, best_r, name + "|" + rank))
-            found = []
+                    cands.append((best_r[0]["score"], d2, sx, sy, best_r, bx, by, name, rank))
+            found, chosen = [], None
             if cands:
                 ax, ay = min(cands, key=lambda c: c[1])[2:4]   # カーソル最近の枠＝指してる位置
                 same = [c for c in cands if (c[2] - ax) ** 2 + (c[3] - ay) ** 2 < 80 ** 2]
                 best = max(same, key=lambda c: c[0])
                 if best[0] >= 0.85:
-                    found = best[4]
-            if CALIBRATE:
+                    found, chosen = best[4], best
+            if DEBUG_UI:                          # デバッグUI: 撮影画像＋枠＋読取＋結果を1枚に
                 try:
-                    with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
-                        f.write(f"cursor={xy} win_off=({ox},{oy}) 枠数={len(boxes)}\n--CANDIDATES--\n")
-                        for sc, d2, sx, sy, r, tx in sorted(cands, key=lambda c: c[1]):
-                            f.write(f"{r[0].get('ja','?')}（{r[0].get('rarity_ja','')}）¥{r[0].get('sell')} s={sc} d={int(d2**0.5)} @({int(sx)},{int(sy)}) [{tx[:30]}]\n")
-                        f.write("--BOXES--\n")
-                        for name, rank, bx, by in boxes:
-                            f.write(f"({int(ox+bx)},{int(oy+by)}) 名[{name[:20]}] 級[{rank[:14]}]\n")
-                    if not found:        # 該当なしの回は別ファイルに残す（上書きされない）
-                        img.save(os.path.join(HERE, "fail.png"))
-                        import shutil
-                        shutil.copy(os.path.join(HERE, "ocr-text.txt"), os.path.join(HERE, "fail.txt"))
+                    PQ.put(("__debug__", _annotate(img, boxes, cands, chosen, xy, (ox, oy)), None))
                 except Exception:
-                    pass
+                    log_fatal("annotate:\n" + traceback.format_exc())
             PQ.put((found, xy, ""))
         except Exception:
             log_fatal("worker error:\n" + traceback.format_exc())
@@ -322,6 +368,9 @@ def poll(root):
                     try: w.destroy()
                     except Exception: pass
                     _open.remove(w)
+                continue
+            if results == "__debug__":
+                show_debug(xy, root)        # xy にデバッグ画像が入っている
                 continue
             show_popup(results, xy, text, root)
     except queue.Empty:

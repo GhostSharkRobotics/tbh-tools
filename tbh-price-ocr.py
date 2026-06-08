@@ -378,6 +378,20 @@ _hist_inner = [None]       # (canvas, inner) の参照
 _hist_visible = [False]    # トレイのオン/オフ状態
 _hist_limit = [50]         # 履歴の上限（0=無制限）。お気に入りは上限の対象外
 _hist_status = [None]      # ヘッダの「更新中/更新時刻」ラベル
+HIST_FILE = os.path.join(HERE, "tbh-price-history.json")   # 履歴の保存先（再起動で消えないように）
+
+def _save_hist():
+    try:
+        with open(HIST_FILE, "w", encoding="utf-8") as f:
+            json.dump({"limit": _hist_limit[0], "hist": _hist}, f, ensure_ascii=False)
+    except Exception: pass
+
+def _load_hist():
+    try:
+        d = json.load(open(HIST_FILE, encoding="utf-8"))
+        _hist[:] = d.get("hist", []) or []
+        if isinstance(d.get("limit"), int): _hist_limit[0] = d["limit"]
+    except Exception: pass
 
 def _hist_trim():
     lim = _hist_limit[0]
@@ -399,6 +413,7 @@ def _record_history(ent):
         rec["fav"] = _hist[0].get("fav"); _hist[0] = rec
     else:
         _hist.insert(0, rec); _hist_trim()
+    _save_hist()
 
 def _round_corners(win):
     try:
@@ -651,10 +666,10 @@ def _hist_after(fn):
 def _hist_delete(rec):
     try: _hist.remove(rec)
     except ValueError: pass
-    _refresh_history()
+    _save_hist(); _refresh_history()
 
 def _hist_fav(rec):
-    rec["fav"] = not rec.get("fav"); _refresh_history()
+    rec["fav"] = not rec.get("fav"); _save_hist(); _refresh_history()
 
 def _hist_apply(rec, name, rarity_en):
     """name+等級で再照合し、recを新データに置換（fav/tsは保持）。価格も取得。"""
@@ -674,6 +689,7 @@ def _hist_apply(rec, name, rarity_en):
                                            "volume", "hash", "type_ja", "type_en", "type")}
             new["fav"], new["ts"] = fav, ts
             if rec in _hist: _hist[_hist.index(rec)] = new
+            _save_hist()
         _hist_after(_refresh_history)
     threading.Thread(target=work, daemon=True).start()
 
@@ -710,6 +726,7 @@ def _hist_update_all():
             setstat(("更新中 %d/%d…" % (n, total)) if _ui_lang == "ja" else "Updating %d/%d…" % (n, total))
             _hist_after(_refresh_history)         # 1件ずつ反映＝変化が見える
             time.sleep(0.3)                        # Steamのレート制限回避
+        _save_hist()
         done = time.strftime("%H:%M:%S")
         setstat((f"更新 {done}") if _ui_lang == "ja" else f"Updated {done}")
         _hist_after(_refresh_history)
@@ -843,7 +860,7 @@ def poll(root):
                 else: hide_history()
                 continue
             if results == "__hist_trim__":         # 上限変更→切り詰め＋更新
-                _hist_trim(); _refresh_history()
+                _hist_trim(); _save_hist(); _refresh_history()
                 continue
             if results == "__close__":
                 for w in _open[:]:
@@ -906,6 +923,7 @@ def run_tray(root):
 
 # ---- main ----------------------------------------------------------------
 def main():
+    _load_hist()                                               # 保存済み履歴を復元
     threading.Thread(target=fetch_rate, daemon=True).start()   # 円レート取得（非同期）
     root = tk.Tk()
     root.withdraw()

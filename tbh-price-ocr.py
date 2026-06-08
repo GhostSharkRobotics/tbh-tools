@@ -402,9 +402,8 @@ def show_popup(results, xy, text, root):
         else:                                             # 日本語モードは日本語＋英語（市場検索用）
             rows.append((ja_line, C_NAME, f_name, 2)); rows.append((en_line, C_JA, f_sub, 1))
         cat = e.get("type_en" if _ui_lang == "en" else "type_ja") or e.get("type", "")
-        live = "  ● live" if e.get("_live") else ""
         if e.get("sell") is not None:
-            rows.append((f"{lb['low']} {price(e['sell'])}   {lb['med']} {price(e['median'])}{live}", C_PRICE, f_price, 3))
+            rows.append((f"{lb['low']} {price(e['sell'])}   {lb['med']} {price(e['median'])}", C_PRICE, f_price, 3))
             rows.append((f"{cat}  {lb['sold']}{e.get('volume','—')}", C_META, f_meta, 1))
             rows.append((lb["mkt"], C_ACCENT, f_meta, 2))
             url = f"https://steamcommunity.com/market/listings/{APPID}/" + \

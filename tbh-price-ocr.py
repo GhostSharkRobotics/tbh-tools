@@ -251,8 +251,9 @@ def ocr_worker():
             if foreground_exe() != GAME_EXE:
                 continue                        # 他アプリでは何もしない＝「戻る」は普通に効く
             xy = cursor_pos()
-            img, (ox, oy) = grab(NAME_REGIONS[0])   # ① 即撮影（戻るボタンでゲームが詳細を閉じる前に）
-            PQ.put(("__close__", None, None))       # ② 古いポップを消す（枠テンプレは自分のポップに反応しないので順番は後でOK）
+            PQ.put(("__close__", None, None))       # ① 自分の古いポップ・デバッグ窓を消す（撮らないため）
+            time.sleep(0.13)
+            img, (ox, oy) = grab(NAME_REGIONS[0])   # ② 撮影
             PQ.put(("__processing__", xy, None))    # ③ 読み取り中
             if CALIBRATE:
                 try: img.save(os.path.join(HERE, "cap0.png"))
@@ -368,6 +369,10 @@ def poll(root):
                     try: w.destroy()
                     except Exception: pass
                     _open.remove(w)
+                if _dbg_win[0] is not None:          # デバッグ窓も消す（撮影に写り込ませない）
+                    try: _dbg_win[0].destroy()
+                    except Exception: pass
+                    _dbg_win[0] = None
                 continue
             if results == "__debug__":
                 show_debug(xy, root)        # xy にデバッグ画像が入っている

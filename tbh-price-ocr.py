@@ -20,6 +20,10 @@ from tkinter import font as tkfont
 from tkinter import ttk
 
 # ---- 設定 ----------------------------------------------------------------
+APP_NAME      = "TBH MarketLens"
+APP_VERSION   = "1.0"
+APP_AUTHOR    = "Ghost Shark Robotics"
+KOFI_URL      = "https://ko-fi.com/ghostsharkrobotics"   # ※Ko-fi作成後に確定
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応
 APPID         = "3678970"          # TBH の Steam appid（マーケットURL用）
@@ -52,8 +56,12 @@ LBL = {
 }
 # -------------------------------------------------------------------------
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)
+if getattr(sys, "frozen", False):                       # PyInstaller でexe化された場合
+    RES = sys._MEIPASS                                  # 同梱リソース（読み取り専用）
+    HERE = os.path.dirname(sys.executable)              # 書き込み用（exeの隣＝履歴/設定/ログ）
+else:
+    RES = HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, RES)
 LOG = os.path.join(HERE, "error.log")
 
 
@@ -93,9 +101,9 @@ except Exception:
     try: _ctypes.windll.user32.SetProcessDPIAware()
     except Exception: pass
 
-matcher = Matcher(os.path.join(HERE, "tbh-price-lookup.json"))
+matcher = Matcher(os.path.join(RES, "tbh-price-lookup.json"))
 try:
-    _TPL = cv2.imread(os.path.join(HERE, "frame_tpl.png"))   # 名前枠の左角テンプレート（定数ピクセル）
+    _TPL = cv2.imread(os.path.join(RES, "frame_tpl.png"))   # 名前枠の左角テンプレート（定数ピクセル）
 except Exception:
     _TPL = None
 PQ = queue.Queue()          # ポップ要求キュー（別スレッド→メインスレッド）
@@ -1024,7 +1032,15 @@ def show_settings(root):
     round_pill(rf, "既定に戻す（マウス サイド戻る）" if ja else "Reset to default",
                "#2a2f3a", C_NAME, reset, fs).pack(side="left")
 
-    tk.Frame(win, bg=C_CARD, height=8).pack()    # 下余白
+    # ── フッター：クレジット＋控えめな寄付＋免責 ──
+    foot = tk.Frame(win, bg=C_CARD); foot.pack(fill="x", padx=18, pady=(14, 2))
+    tk.Label(foot, text=f"{APP_NAME} v{APP_VERSION} · by {APP_AUTHOR}",
+             bg=C_CARD, fg=C_META, font=fs, anchor="w").pack(side="left")
+    round_pill(foot, "☕ Support", "#2a2f3a", C_NAME,
+               lambda: webbrowser.open(KOFI_URL), fs).pack(side="right")
+    tk.Label(win, text=("非公式ツール · Nugem Studio / Valve とは無関係" if ja else
+                        "Unofficial tool · not affiliated with Nugem Studio or Valve"),
+             bg=C_CARD, fg="#5a5f6a", font=fs, anchor="w").pack(fill="x", padx=18, pady=(0, 14))
     win.update_idletasks()
     win.geometry(f"{win.winfo_reqwidth()}x{win.winfo_reqheight()}")   # 内容ぴったりに固定
     _set_win[0] = win

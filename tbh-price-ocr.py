@@ -360,10 +360,10 @@ def ocr_worker():
                     PQ.put(("__debug__", _annotate(img, boxes, cands, chosen, xy, (ox, oy)), None))
                 except Exception:
                     log_fatal("annotate:\n" + traceback.format_exc())
-            hint = ""                              # 該当なし時は名前欄に読取名をプリフィル（修正用）
-            if not found and boxes:
+            hint = ""                              # カーソル最近枠の読取生テキスト（候補選び直し用）
+            if boxes:
                 bb = min(boxes, key=lambda b: (ox + b[2] + 250 - xy[0]) ** 2 + (oy + b[3] + 30 - xy[1]) ** 2)
-                hint = (bb[0] or "").strip().split("\n")[0][:28]
+                hint = ((bb[0] or "") + " " + (bb[1] or "")).strip()
             PQ.put((found, xy, hint))
         except Exception:
             log_fatal("worker error:\n" + traceback.format_exc())
@@ -444,12 +444,27 @@ def show_popup(results, xy, text, root):
     content = tk.Frame(win, bg=C_CARD)   # 角丸キャンバスの上に乗せる中身（角は同色C_CARDで隠れる）
     content.columnconfigure(0, weight=1)
 
-    name_var = tk.StringVar(value=init_name)
-    name_ent = tk.Entry(content, textvariable=name_var, font=f_name, width=22,
-                        bg="#0d1016", fg=C_NAME, insertbackground=C_NAME, relief="flat")
-    name_ent.grid(row=0, column=0, sticky="we", pady=(0, 6), ipady=5, ipadx=4)
-    # クリックしたら初めてフォーカスを奪う（出現時に自動で奪うとゲーム最前面が外れて消える）
-    name_ent.bind("<Button-1>", lambda ev: (win.focus_force(), name_ent.focus_set()))
+    # アイテム名：キーボード入力はゲーム最前面を奪って消えるので、マウスのみの候補ドロップダウンに。
+    def _disp(ent):
+        nm = (ent.get("en") if _ui_lang == "en" else ent.get("ja")) or ent.get("en") or ent.get("ja") or "?"
+        rj = (ent.get("rarity_ja") if _ui_lang == "ja" else ent.get("rarity_en")) or ""
+        return (nm + ("  " + rj if rj else "")).strip()
+    cand_list = []
+    try: cand_list = matcher.candidates(text or "", 8)
+    except Exception: cand_list = []
+    if e and not any(c.get("ja") == e.get("ja") and c.get("rarity_ja") == e.get("rarity_ja") for c in cand_list):
+        cand_list = [e] + cand_list
+    name_menu = tk.Menu(win, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
+                        activeforeground="#ffffff", bd=0, relief="flat")
+    for c in cand_list:
+        name_menu.add_command(label=_disp(c), foreground=rarity_color(c.get("rarity_en") or ""),
+                              command=lambda c=c: pick(c))
+    name_lbl = tk.Label(content, text=(init_name or "—") + ("  ▾" if cand_list else ""),
+                        bg=C_CARD, fg=C_NAME, font=f_name, anchor="w", cursor="hand2")
+    name_lbl.grid(row=0, column=0, sticky="we", pady=(0, 6))
+    if cand_list:
+        name_lbl.bind("<Button-1>", lambda ev: name_menu.tk_popup(
+            name_lbl.winfo_rootx(), name_lbl.winfo_rooty() + name_lbl.winfo_height()))
 
     rar_holder = tk.Frame(content, bg=C_CARD); rar_holder.grid(row=1, column=0, sticky="w", pady=2)
     rar_menu = tk.Menu(win, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
@@ -499,6 +514,9 @@ def show_popup(results, xy, text, root):
         state["entry"] = ent
         ar = rarity_color(state["rarity"] or (ent.get("rarity_en") if ent else ""))
         state["border"] = ar; price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
+        if ent:
+            name_lbl.config(text=((ent.get("en") if _ui_lang == "en" else ent.get("ja"))
+                                  or ent.get("en") or ent.get("ja") or "—") + ("  ▾" if cand_list else ""))
         if ent and ent.get("sell") is not None:
             price_lbl.config(text=f"{lb['low']} {price(ent['sell'])}   {lb['med']} {price(ent['median'])}")
             cat = ent.get("type_en" if _ui_lang == "en" else "type_ja") or ent.get("type", "")
@@ -509,26 +527,38 @@ def show_popup(results, xy, text, root):
             price_lbl.config(text=lb["nomatch"]); meta_lbl.config(text="")
         resize()
 
-    def relookup(*_):
-        nm = name_var.get().strip(); rj = state["rarity"]
+    def _fetch_live(ent):
         def work():
-            r = matcher.match_item(nm, rj or "")
-            ent = r[0] if r else None
-            if ent:
-                lp = live_price(ent.get("hash"))
-                if lp:
-                    low, med, vol = lp
-                    if low is not None: ent["sell"] = low
-                    if med is not None: ent["median"] = med
-                    if vol is not None: ent["volume"] = vol
+            lp = live_price(ent.get("hash")) if ent else None
+            if lp:
+                low, med, vol = lp
+                if low is not None: ent["sell"] = low
+                if med is not None: ent["median"] = med
+                if vol is not None: ent["volume"] = vol
             win.after(0, lambda: render(ent))
         threading.Thread(target=work, daemon=True).start()
 
-    def set_rarity(en):
-        state["rarity"] = en; build_rar_pill(); relookup()
+    def pick(c):                                   # 候補名を選び直し（マウスのみ）
+        state["rarity"] = c.get("rarity_en") or ""
+        build_rar_pill(); render(c); _fetch_live(c)
+
+    def set_rarity(en):                            # 等級を選び直し→同名×新等級で引き直し
+        state["rarity"] = en; build_rar_pill()
+        cur = state["entry"]
+        nm = (cur.get("ja") or cur.get("en")) if cur else (text or "")
+        def work():
+            r = matcher.match_item(nm, en2ja.get(en, en))
+            ent = r[0] if r else cur
+            lp = live_price(ent.get("hash")) if ent else None
+            if lp and ent:
+                low, med, vol = lp
+                if low is not None: ent["sell"] = low
+                if med is not None: ent["median"] = med
+                if vol is not None: ent["volume"] = vol
+            win.after(0, lambda: render(ent))
+        threading.Thread(target=work, daemon=True).start()
 
     build_rar_pill()
-    name_ent.bind("<Return>", relookup)
     win.bind("<Escape>", lambda ev: win.destroy())
 
     render(e)

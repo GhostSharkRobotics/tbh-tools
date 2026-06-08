@@ -81,6 +81,32 @@ class Matcher:
         if score < min_score: return []
         return self._collect(key, score)
 
+    def candidates(self, ocr_text, n=8, min_score=0.45):
+        """OCR文字に近い候補を上位n件返す（マウスで選び直す用）。キー重複は最良スコアでまとめる。"""
+        parts = [p for p in re.split(r"[\r\n]+", ocr_text) if norm(p)]
+        probes = parts + [parts[i] + parts[i + 1] for i in range(len(parts) - 1)] + [ocr_text]
+        best = {}   # index -> score
+        for probe in probes:
+            q = norm(probe)
+            if len(q) < 2: continue
+            for k in self.keys:
+                if len(k) >= 2 and k in q:
+                    sc = 0.6 + 0.4 * (len(k) / max(len(k), len(q)))
+                    for i in self.index[k]: best[i] = max(best.get(i, 0), sc)
+            for k in difflib.get_close_matches(q, self.keys, n=5, cutoff=min_score):
+                sc = difflib.SequenceMatcher(None, q, k).ratio()
+                for i in self.index[k]: best[i] = max(best.get(i, 0), sc)
+        ranked = sorted(best.items(), key=lambda kv: -kv[1])
+        out, seen = [], set()
+        for i, sc in ranked:
+            e = self.entries[i]
+            dk = (e.get("ja"), e.get("rarity_ja"))
+            if dk in seen: continue
+            seen.add(dk)
+            ee = dict(e); ee["score"] = round(sc, 3); out.append(ee)
+            if len(out) >= n: break
+        return out
+
     def match_item(self, name_text, rank_text=""):
         """名前で照合してアイテムを特定し、等級行から等級を補って正しい等級のエントリを返す。"""
         r = self.match(name_text)

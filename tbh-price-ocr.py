@@ -287,11 +287,10 @@ def live_price(hash_name, force=False):
 
 
 # ---- 前面ウィンドウ判定（ゲームが前面の時だけ反応） ----------------------
-def foreground_exe():
+def _hwnd_exe(hwnd):
     import ctypes
     from ctypes import wintypes
     try:
-        hwnd = ctypes.windll.user32.GetForegroundWindow()
         pid = wintypes.DWORD()
         ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
         h = ctypes.windll.kernel32.OpenProcess(0x1000, False, pid)  # QUERY_LIMITED_INFORMATION
@@ -304,6 +303,34 @@ def foreground_exe():
         return os.path.basename(buf.value).lower()
     except Exception:
         return ""
+
+def foreground_exe():
+    import ctypes
+    return _hwnd_exe(ctypes.windll.user32.GetForegroundWindow())
+
+def window_under_cursor():
+    """カーソル直下のトップレベル窓の (hwnd, exe名)。ゲームを指しているか判定用。"""
+    import ctypes
+    from ctypes import wintypes
+    try:
+        pt = wintypes.POINT(); ctypes.windll.user32.GetCursorPos(ctypes.byref(pt))
+        hwnd = ctypes.windll.user32.WindowFromPoint(pt)
+        root = (ctypes.windll.user32.GetAncestor(hwnd, 2) if hwnd else 0) or hwnd  # GA_ROOT
+        return root, _hwnd_exe(root)
+    except Exception:
+        return 0, ""
+
+def focus_window(hwnd):
+    """指定窓を前面化（フォアグラウンドロックはAttachThreadInputで回避）。"""
+    import ctypes
+    u = ctypes.windll.user32; k = ctypes.windll.kernel32
+    try:
+        fg = u.GetForegroundWindow()
+        ft = u.GetWindowThreadProcessId(fg, None); ct = k.GetCurrentThreadId()
+        if ft and ft != ct: u.AttachThreadInput(ct, ft, True)
+        u.SetForegroundWindow(hwnd); u.BringWindowToTop(hwnd)
+        if ft and ft != ct: u.AttachThreadInput(ct, ft, False)
+    except Exception: pass
 
 
 # ---- 撮影 & OCR ----------------------------------------------------------
@@ -458,7 +485,13 @@ def ocr_worker():
             continue
         try:
             if foreground_exe() != GAME_EXE:
-                continue                        # 他アプリでは何もしない＝「戻る」は普通に効く
+                # ゲームが前面でない時：カーソルがゲーム上なら前面化してから読む（1回で済む）。
+                # ゲームを指していなければ何もしない＝「戻る」は普通に効く。
+                gh, gex = window_under_cursor()
+                if gex != GAME_EXE:
+                    continue
+                focus_window(gh)
+                time.sleep(0.28)                # 前面化＋ツールチップ描画待ち
             xy = cursor_pos()
             PQ.put(("__close__", None, None))       # ① 自分の古いポップ・デバッグ窓を消す（撮らないため）
             time.sleep(0.13)

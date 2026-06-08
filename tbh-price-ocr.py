@@ -1024,6 +1024,37 @@ def _hist_after(fn):
         try: w.after(0, fn)
         except Exception: pass
 
+ICON_DIR = os.path.join(HERE, "iconcache")    # アイコンのローカルキャッシュ（CDNから取得→保存）
+_icon_cache = {}                              # hash -> ImageTk.PhotoImage(28px)
+_blank_icon = [None]                          # 28px透明（アイコン無し行の整列用）
+
+def _get_icon(h, cb):
+    """アイテムアイコン(28px)を非同期取得。SteamのCDN→ローカルキャッシュ。取れたら cb(photo) を呼ぶ。"""
+    if not h: return
+    ph = _icon_cache.get(h)
+    if ph is not None: cb(ph); return
+    def work():
+        try:
+            from PIL import ImageTk
+            os.makedirs(ICON_DIR, exist_ok=True)
+            fp = os.path.join(ICON_DIR, re.sub(r"[^A-Za-z0-9_-]", "_", h)[:48] + ".png")
+            if not os.path.exists(fp):
+                url = "https://community.cloudflare.steamstatic.com/economy/image/" + h + "/64x64"
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=8) as r, open(fp, "wb") as f:
+                    f.write(r.read())
+            im = Image.open(fp).convert("RGBA").resize((28, 28), Image.NEAREST)
+            w = _hist_win[0]
+            if not (w and w.winfo_exists()): return
+            def ready():
+                if h not in _icon_cache:
+                    try: _icon_cache[h] = ImageTk.PhotoImage(im)
+                    except Exception: return
+                cb(_icon_cache[h])
+            w.after(0, ready)
+        except Exception: pass
+    threading.Thread(target=work, daemon=True).start()
+
 def _hist_delete(rec):
     try: _hist.remove(rec)
     except ValueError: pass
@@ -1141,13 +1172,24 @@ def _refresh_history():
     if not _hist:
         tk.Label(inner, text=T("hist_empty"),
                  bg=C_CARD, fg=C_META, anchor="w").pack(fill="x", padx=12, pady=10)
+    if _blank_icon[0] is None:
+        try:
+            from PIL import ImageTk
+            _blank_icon[0] = ImageTk.PhotoImage(Image.new("RGBA", (28, 28), (0, 0, 0, 0)))
+        except Exception: pass
+    def _descendants(w):
+        out = [w]
+        for c in w.winfo_children(): out += _descendants(c)
+        return out
     for rec in sorted(_hist, key=lambda r: (not r.get("fav"),)):   # お気に入りを上に
         ar = rarity_color(rec.get("rarity_en") or "")
         nm = disp_name(rec) or "?"
         rj = disp_rarity(rec)
         star = "★ " if rec.get("fav") else ""
         row = tk.Frame(inner, bg=C_CARD, cursor="hand2"); row.pack(fill="x", padx=6, pady=(4, 0))
-        top = tk.Frame(row, bg=C_CARD); top.pack(fill="x")
+        icon_lbl = tk.Label(row, bg=C_CARD, image=_blank_icon[0]); icon_lbl.pack(side="left", padx=(2, 8))
+        col = tk.Frame(row, bg=C_CARD); col.pack(side="left", fill="x", expand=True)
+        top = tk.Frame(col, bg=C_CARD); top.pack(fill="x")
         tk.Label(top, text=star + nm + (("  " + rj) if rj else ""), bg=C_CARD, fg=ar,
                  font=("Yu Gothic UI", 10, "bold"), anchor="w").pack(side="left")
         tk.Label(top, text=rec.get("ts", ""), bg=C_CARD, fg=C_META,
@@ -1158,14 +1200,16 @@ def _refresh_history():
         else:
             ptxt = T("noprice"); pcol = C_META
         cat = disp_type(rec)
-        tk.Label(row, text=ptxt, bg=C_CARD, fg=pcol, font=("Yu Gothic UI", 9), anchor="w").pack(fill="x")
-        tk.Label(row, text=cat, bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(fill="x")
+        tk.Label(col, text=ptxt, bg=C_CARD, fg=pcol, font=("Yu Gothic UI", 9), anchor="w").pack(fill="x")
+        tk.Label(col, text=cat, bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(fill="x")
         tk.Frame(inner, bg="#2a2f3a", height=1).pack(fill="x", padx=6, pady=(4, 0))
+        if rec.get("icon"):                          # アイコンを非同期取得（CDN→キャッシュ）
+            _get_icon(rec["icon"], lambda ph, L=icon_lbl: L.winfo_exists() and L.config(image=ph))
         def _open_mkt(ev, h=rec.get("hash")):
             if h:
                 try: webbrowser.open(f"https://steamcommunity.com/market/listings/{APPID}/" + urllib.parse.quote(h))
                 except Exception: pass
-        for wdg in (row, top, *top.winfo_children(), *row.winfo_children()):
+        for wdg in _descendants(row):
             wdg.bind("<Button-1>", _open_mkt)
             wdg.bind("<Button-3>", lambda ev, r=rec: _row_menu(ev, r))   # 右クリックでメニュー
     canvas.update_idletasks(); canvas.configure(scrollregion=canvas.bbox("all"))

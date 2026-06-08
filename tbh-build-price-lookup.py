@@ -61,8 +61,12 @@ def main():
     def price_of(hashkey):
         return prices.get(hashkey)
 
+    icons = data.get("icons", {})                 # iconキー -> SteamのCDN画像ハッシュ
+    def icon_of(x):
+        return icons.get(x.get("icon", ""), "") if isinstance(x, dict) else ""
+
     entries = {}   # キー(ja, rarity_ja) -> entry。A/Bは価格ある方を採用してまとめる
-    def put(ja, en, rarity_en, hashkey, type_ja, type_en, variant=""):
+    def put(ja, en, rarity_en, hashkey, type_ja, type_en, variant="", icon=""):
         if not ja and not en: return
         rja_ = RMAP.get(rarity_en, "")
         k = (ja, rja_, en)
@@ -71,9 +75,11 @@ def main():
             e = {"ja": ja, "en": en, "zh": zh_of(en, ja), "zh_hant": zht_of(en, ja),
                  "rarity_ja": rja_, "rarity_en": rarity_en or "",
                  "type_ja": type_ja or "", "type_en": type_en or type_ja or "", "type": type_ja or "",
-                 "hash": hashkey, "variant": variant,
+                 "hash": hashkey, "variant": variant, "icon": icon or "",
                  "sell": None, "median": None, "listings": None, "volume": None}
             entries[k] = e
+        elif icon and not e.get("icon"):
+            e["icon"] = icon
         pr = price_of(hashkey)
         if pr and e["sell"] is None:
             e.update(sell=pr.get("sell"), median=pr.get("median"),
@@ -86,13 +92,13 @@ def main():
         hk = f"{x['nameEn']} ({x['rarity']})" + (f" {var}" if var else "")
         lvl = x.get("lvl", "")
         tj = f"{x.get('gearJa','')} Lv.{lvl}"; te = f"{(x.get('gear','') or '').title()} Lv.{lvl}"
-        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), hk, tj, te, var)
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), hk, tj, te, var, icon_of(x))
 
     # 宝石・彫刻: nameEn（市場は素名）
     for x in data.get("gems", []):
-        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "宝石", "Gem")
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "宝石", "Gem", icon=icon_of(x))
     for x in data.get("engravings", []):
-        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "彫刻素材", "Engraving")
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "彫刻素材", "Engraving", icon=icon_of(x))
     # 素材: name.{ja,en}
     for x in data.get("materials", []):
         nm = x.get("name", {}); mt = (x.get("materialType", "") or "素材")

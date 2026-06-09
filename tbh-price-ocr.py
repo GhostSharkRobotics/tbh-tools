@@ -1686,6 +1686,8 @@ def _hist_apply_cache():
 
 _hist_gen = [0]            # 全部更新の世代。新しい更新が始まると古い取得は中断（言語連続切替の競合防止）
 _hist_updating = [False]   # 全部更新が実行中か（連打で多重起動しないように）
+_HIST_UPD_COOLDOWN = 8     # 全部更新の最短間隔(秒)。完了直後の連打でSteamを叩きすぎないように
+_hist_upd_cooldown = [0.0] # 次に全部更新を受け付けてよい時刻（monotonic）
 _hist_update_btn = [None]  # 「全部更新」ボタン（実行中は表示を変える）
 
 def _upd_btn_text():
@@ -1697,6 +1699,7 @@ def _upd_btn_text():
 
 def _hist_update_all(force=True):
     if _hist_updating[0]: return                       # 実行中の連打は無視（多重起動しない）
+    if time.monotonic() < _hist_upd_cooldown[0]: return  # 完了直後の連打も無視（Steam連打防止のクールダウン）
     recs = [r for r in list(_hist) if r.get("hash")]
     total = len(recs)
     if not total: return
@@ -1735,6 +1738,7 @@ def _hist_update_all(force=True):
     def waiter():
         for t in threads: t.join()
         _hist_updating[0] = False                      # 完了→再度押せる
+        _hist_upd_cooldown[0] = time.monotonic() + _HIST_UPD_COOLDOWN   # 直後の連打は無視（クールダウン）
         _hist_prog_state["on"] = False                 # バー消灯＋アニメ停止
         if not alive():
             _hist_after(lambda: _btn(_upd_btn_text()))

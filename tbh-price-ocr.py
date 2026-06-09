@@ -1292,11 +1292,12 @@ def _dismiss(win, is_editing=lambda: False):
     win.after(80, tick)
 
 def _pill_draw(cv, text):
-    """pillをテキストに合わせて再描画（canvas幅・背景・文字を作り直す＝文字がはみ出さない）。"""
+    """pillをテキストに合わせて再描画（canvas幅・背景・文字を作り直す＝文字がはみ出さない）。
+    minw を持つpillはそれ未満に縮めない（トグルで幅が変わって行が再レイアウト＝残像を防ぐ）。"""
     p = cv._pill
     font, padx, pady = p["font"], p["padx"], p["pady"]
     tw, th = font.measure(text), font.metrics("linespace")
-    w, h = tw + padx * 2, th + pady * 2
+    w, h = max(tw + padx * 2, p.get("minw", 0)), th + pady * 2
     cv.configure(width=w, height=h)
     cv.delete("all")
     f = p["fill"]
@@ -1639,10 +1640,14 @@ def _get_icon(h, cb):
 def _hist_delete(rec):
     try: _hist.remove(rec)
     except ValueError: pass
-    _save_hist(); _refresh_history()
+    _save_hist(); _hist_remove_row(rec)              # その1行だけ撤去（全消ししない）
 
 def _hist_fav(rec):
-    rec["fav"] = not rec.get("fav"); _save_hist(); _refresh_history()
+    rec["fav"] = not rec.get("fav"); _save_hist()
+    for rd in _hist_rows:                            # 星をその場で反映（名前ラベルだけ書き換え）
+        if rd["rec"] is rec and rd["name"].winfo_exists():
+            rd["name"].config(text=("★ " if rec.get("fav") else "") + (disp_name(rec) or "?")); break
+    _reorder_rows()                                  # お気に入りは上＝並べ替え（破棄しない）
 
 def _hist_apply(rec, name, rarity_en):
     """name+等級で再照合し、recを新データに置換（fav/tsは保持）。価格も取得。"""
@@ -1658,7 +1663,9 @@ def _hist_apply(rec, name, rarity_en):
             new["fav"], new["ts"] = fav, ts
             if rec in _hist: _hist[_hist.index(rec)] = new
             _save_hist()
-        _hist_after(_refresh_history)
+            _hist_after(lambda: (_hist_replace_row(rec, new), _reorder_rows()))  # その1行だけ作り直し→並べ替え
+        else:
+            _hist_after(_reorder_rows)                # 該当なし時は並びだけ整える
     threading.Thread(target=work, daemon=True).start()
 
 def _hist_set_rarity(rec, en):
@@ -1909,6 +1916,29 @@ def _reorder_rows():
     if _hist_sort_face[0]: _hist_sort_face[0]()
     _hist_scroll()
 
+def _hist_remove_row(rec):
+    """1行だけ撤去（全消ししない）。削除用。"""
+    for rd in _hist_rows[:]:
+        if rd["rec"] is rec:
+            try: rd["frame"].destroy(); rd["sep"].destroy()
+            except Exception: pass
+            _hist_rows.remove(rd); break
+    if not _hist_rows and _hist_win[0] and _hist_inner[0]:          # 空になったら空表示へ
+        _refresh_history(); return
+    _hist_scroll()
+
+def _hist_replace_row(old_rec, new_rec):
+    """1行だけ作り直して同じ位置に置く（全消ししない）。改名/レア度変更用。"""
+    for i, rd in enumerate(_hist_rows):
+        if rd["rec"] is old_rec:
+            nrd = _build_hist_row(new_rec)
+            nrd["frame"].pack(fill="x", padx=6, pady=(4, 0), before=rd["frame"])
+            nrd["sep"].pack(fill="x", padx=6, pady=(4, 0), before=rd["frame"])
+            try: rd["frame"].destroy(); rd["sep"].destroy()
+            except Exception: pass
+            _hist_rows[i] = nrd; return nrd
+    return None
+
 def _hist_update_price(rec):
     """1件の価格だけ、その場で書き換える（リストは消さない）＋一瞬光らせて更新を可視化。"""
     for rd in _hist_rows:
@@ -1977,17 +2007,17 @@ def show_history(root):
         for mode, pill, lab in _hist_sort_pills:
             on = (_hist_sort[0] == mode)
             arrow = (" ▼" if _hist_sort_desc[0] else " ▲") if on else ""
+            pill._pill["fill"] = C_ACCENT if on else "#2a2f3a"   # 色を先に確定→1回の再描画で確定（残像なし）
+            pill._pill["fg"] = "#0c0c0c" if on else C_NAME
             _pill_set_text(pill, lab() + arrow)
-            recolor_pill(pill, C_ACCENT if on else "#2a2f3a")
-            try: pill.itemconfig("txt", fill="#0c0c0c" if on else C_NAME)
-            except Exception: pass
     _hist_sort_face[0] = _sort_face
     def _pick_sort(m):
         if _hist_sort[0] == m: _hist_sort_desc[0] = not _hist_sort_desc[0]   # 同じソート再タップ＝方向反転
         else: _hist_sort[0] = m; _hist_sort_desc[0] = True                   # 切替時は降順（新しい/高い順）から
         _save_settings(); _sort_face(); _reorder_rows()                      # 破棄せず並べ替え（崩れない）
     for m, lab in (("date", lambda: T("sort_added")), ("sell", lambda: T("low")), ("median", lambda: T("med"))):
-        p = round_pill(sortf, lab(), "#2a2f3a", C_NAME, (lambda mm=m: _pick_sort(mm)), f_hbtn)
+        p = round_pill(sortf, lab() + " ▼", "#2a2f3a", C_NAME, (lambda mm=m: _pick_sort(mm)), f_hbtn)
+        p._pill["minw"] = f_hbtn.measure(lab() + " ▼") + p._pill["padx"] * 2   # 矢印込み幅で固定＝トグルで幅が変わらない
         p.pack(side="left", padx=(0, 6)); _hist_sort_pills.append((m, p, lab))
     _sort_face()
     _hist_status[0] = tk.Label(win, text="", bg=C_CARD, fg=C_ACCENT,
@@ -2275,8 +2305,15 @@ def poll(root):
                 if _sell_visible[0]: show_sell(root)
                 else: hide_sell(root)
                 continue
-            if results == "__hist_trim__":         # 上限変更→切り詰め＋更新
-                _hist_trim(); _save_hist(); _refresh_history()
+            if results == "__hist_trim__":         # 上限変更→切り詰め。押し出された行だけ撤去（全消ししない）
+                _hist_trim(); _save_hist()
+                present = {id(r) for r in _hist}
+                for rd in _hist_rows[:]:
+                    if id(rd["rec"]) not in present:
+                        try: rd["frame"].destroy(); rd["sep"].destroy()
+                        except Exception: pass
+                        _hist_rows.remove(rd)
+                _hist_scroll()
                 continue
             if results == "__settings__":          # トレイから設定を開く
                 show_settings(root)

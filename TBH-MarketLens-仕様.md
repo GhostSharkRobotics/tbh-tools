@@ -70,9 +70,15 @@ Steam在庫の出品ホールドを追跡し、出品可になったら通知。
 
 **利用統計（匿名テレメトリ）** [[marketlens-telemetry]]: `STATS_URL`(=Worker `/ml`)へ `_telemetry_send(ev,item,rarity,err)` が送信。`ev=launch`(main・言語確定後)／`lookup`(found確定時・アイテム英名+rarity_en)／`error`(`log_fatal`本文・`_scrub()`でユーザー名/パス伏字化)。匿名ID `_cid`(uuid4・設定に永続・IP由来でない)。**IP・Steam在庫・個人情報は送らない**(国はWorkerがエッジで付与・IP非保存)。設定→「利用統計」トグル(`_telemetry`, 既定オン)でオフ可。閲覧: `…/mlstats?pw=<DASH_PW>`。dist-READMEに開示済み。
 
-## 6. i18n
-全UI文字列は `TR[lang][key]` ＋ `T(key, **fmt)` 経由。`LANGS=("ja","en","zh")`。
-日本語直書き禁止。**デプロイ前に `python3 i18n_lint.py`（カタログ完全＋UI日本語漏れ検査）必須**（[[marketlens-i18n]]）。
+## 6. i18n（多言語対応＝必須要件。「言われたらやる」ではない）
+**ja / en / zh の3言語すべてが第一級。** 中国が最大ユーザー層なので zh を「未収録→英語でOK」で済ませない＝それは未完成。
+新しい機能・文字列・ボタン・トレイ項目・ダイアログを足したら、**その時点で必ず ja/en/zh の3つを揃える**（後回し・別TODO化しない）。
+
+- 全UI文字列は `TR[lang][key]` ＋ `T(key, **fmt)` 経由。`LANGS=("ja","en","zh")`。日本語直書き禁止。
+- **データ由来のラベルも対象**：レア度(`disp_rarity`)・種別(`disp_type`)等は現状 zh で英語にフォールバックしている＝**未対応の穴**。zh の rarity/type 訳を用意して埋める（lookup側に `rarity_zh`/`type_zh` を持たせ、`disp_*` を zh 対応にする）。`localization.json` に game の zh-hans 名がある。
+- **デプロイ前に `python3 i18n_lint.py` 必須**（TRカタログ完全＋UIに日本語直書きが無いか）。
+  カタログ検査を通っても**データ由来の zh 漏れは別途目視/テストで確認**（lintの死角。将来 lint を拡張してここも落とすこと）。
+- 参照: [[marketlens-i18n]]
 
 ## 7. 既知の制約・落とし穴
 - Steamの¥(priceoverview)は現在取得不可＝¥は為替換算の概算。正確値が要るなら英語(USD)。これはSteam側都合でアプリの不具合でない。

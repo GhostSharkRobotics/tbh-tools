@@ -1984,31 +1984,35 @@ def _sell_notify(names):
         pass
 
 def _sell_fetch():
-    """Steam在庫を取得して _sell_state を更新（バックグラウンドスレッドから呼ぶ）。"""
+    """Steam在庫を取得して _sell_state を更新（バックグラウンドスレッドから呼ぶ）。
+    新inventory API（assets/descriptions形式）を使う。公開インベントリなら未ログインで200、
+    非公開だと403。出品可否は marketable で判定（owner限定の解除日は公開では取れない）。"""
     sid = _detect_steamid()
     if not sid:
         _sell_state.update(status="no_steam", items=[]); return
-    url = f"https://steamcommunity.com/profiles/{sid}/inventory/json/{TBH_INV_APPID}/2"
+    lang = {"ja": "japanese", "zh": "schinese"}.get(_ui_lang, "english")
+    url = f"https://steamcommunity.com/inventory/{sid}/{TBH_INV_APPID}/2?l={lang}&count=2000"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120 Safari/537.36"})
         d = json.loads(urllib.request.urlopen(req, timeout=20).read())
+    except urllib.error.HTTPError as e:
+        _sell_state.update(status="private" if e.code == 403 else "error"); return   # 非公開＝403
     except Exception:
         _sell_state.update(status="error"); return
     if not d.get("success"):
-        err = (d.get("Error") or "").lower()
-        _sell_state.update(status="private" if "private" in err else "error"); return
-    inv = d.get("rgInventory") or {}
-    desc = d.get("rgDescriptions") or {}
+        _sell_state.update(status="error"); return
+    descs = {f"{x.get('classid')}_{x.get('instanceid')}": x for x in (d.get("descriptions") or [])}
     now = time.time()
     items = []
-    for a in (inv.values() if isinstance(inv, dict) else []):
-        x = desc.get(f"{a.get('classid')}_{a.get('instanceid')}") or {}
+    for a in (d.get("assets") or []):
+        x = descs.get(f"{a.get('classid')}_{a.get('instanceid')}") or {}
         rar = ""
         for t in (x.get("tags") or []):
             if (t.get("category") or "").lower() in ("rarity", "quality"):
                 rar = t.get("internal_name") or t.get("name") or ""
         items.append({
-            "assetid": str(a.get("id") or a.get("assetid") or ""),
+            "assetid": str(a.get("assetid") or ""),
             "name": x.get("name") or x.get("market_hash_name") or "?",
             "icon": x.get("icon_url") or "",
             "tradable": int(x.get("tradable") or 0),
@@ -2018,11 +2022,11 @@ def _sell_fetch():
     notify = []
     for it in items:
         aid = it["assetid"]
-        if _sell_known.get(aid) == 0 and it["tradable"] == 1:   # ロック→解除 を検知
+        if _sell_known.get(aid) == 0 and it["marketable"] == 1:  # 出品不可→出品可 を検知
             notify.append(it["name"])
-        _sell_known[aid] = it["tradable"]
-        if it["tradable"] == 0:
-            _sell_seen.setdefault(aid, now)                     # 初めてロックを見た時刻を固定
+        _sell_known[aid] = it["marketable"]
+        if it["marketable"] == 0:
+            _sell_seen.setdefault(aid, now)                      # 初めて出品不可を見た時刻を固定
         else:
             _sell_seen.pop(aid, None)
     live = {it["assetid"] for it in items}                       # 在庫から消えたものを掃除
@@ -2137,8 +2141,8 @@ def _refresh_sell():
                  justify="left", wraplength=300).pack(fill="x", padx=12, pady=10)
         _sell_scroll(); return
     now = time.time()
-    ready = [it for it in items if it["tradable"] == 1]
-    locked = [it for it in items if it["tradable"] == 0]
+    ready = [it for it in items if it["marketable"] == 1]
+    locked = [it for it in items if it["marketable"] == 0]
     if ready:
         _sell_header(inner, f"🟢 {T('sell_ready_group')} ({len(ready)})", C_PRICE)
         for g in _sell_agg(ready):

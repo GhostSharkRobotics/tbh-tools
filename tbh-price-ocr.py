@@ -37,8 +37,8 @@ NAME_REGIONS = [
 ]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
-CALIBRATE     = False              # Trueで撮影画像を保存（調整用）
-DEBUG_UI      = False              # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
+CALIBRATE     = True               # Trueで撮影画像を保存（調整用）
+DEBUG_UI      = True               # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 _KEYCLR = "#ff00fe"   # 角丸の外側を透過させる魔法色（どの配色とも被らない）
@@ -497,6 +497,13 @@ def apply_live(ent, native_ok=False, force=False, cache_only=False):
     """entの価格を最新化（in-place）。cur/_live(=表示通貨で確定か)も設定。取れなければ既存(バンドル)保持。"""
     if not ent or not ent.get("hash"): return
     lp = live_price(ent["hash"], native_ok=native_ok, force=force, cache_only=cache_only)
+    if CALIBRATE:                                 # 実機MarketLensが品ごとに何を計算したかを記録（原因調査用）
+        try:
+            with open(os.path.join(HERE, "price-debug.log"), "a", encoding="utf-8") as _fd:
+                _fd.write(f"{time.strftime('%H:%M:%S')} hash={ent.get('hash')!r} disp_cur={_cur_code()} "
+                          f"lp={lp!r} render_blocked={time.time() < _render_blocked[0]} "
+                          f"cache={_render_cache.get(ent.get('hash'))} bundle_sell={ent.get('sell')}\n")
+        except Exception: pass
     if lp is None: return                         # 取得失敗→既存(バンドル)価格を保持（従来通り）
     if lp == _RENDER_EMPTY:                        # 市場に現在出品なし→バンドルの小額を出さず「出品なし」表示
         ent["_nolist"] = True

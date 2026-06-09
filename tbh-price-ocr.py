@@ -1830,9 +1830,14 @@ def _rarities_for(rec):
     order = [r for r, _ in RARITIES[3:]]         # レジェンダリー〜コズミック
     return [r for r in order if r in have] or order
 
+_row_menu_ref = [None]                            # 直近の右クリックメニュー（次回生成時に破棄＝溜めない）
 def _row_menu(ev, rec):
+    if _row_menu_ref[0] is not None:              # tk_popupは破棄しないので、前回のMenuをここで捨てる（リーク防止）
+        try: _row_menu_ref[0].destroy()
+        except Exception: pass
     m = tk.Menu(_hist_win[0], tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
                 activeforeground="#ffffff", bd=0)
+    _row_menu_ref[0] = m
     ja = _ui_lang == "ja"
     m.add_command(label=(T("unfav") if rec.get("fav") else T("fav")),
                   command=lambda: _hist_fav(rec))

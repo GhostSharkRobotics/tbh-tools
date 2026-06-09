@@ -74,7 +74,6 @@ TR = {
         "feedback": "フィードバック", "fb_title": "フィードバック / バグ報告", "send": "送信",
         "fb_hint": "不具合・要望・気づいた点を書いて送ってください（匿名でOK）",
         "fb_contact": "返信がほしい場合の連絡先（任意）", "fb_thanks": "送信しました。ありがとう！", "fb_fail": "送信に失敗しました",
-        "disclaimer": "非公式ツール · Nugem Studio / Valve とは無関係",
         "startup": "起動", "autostart_label": "Windowsと一緒に起動", "autostart_hint": "サインイン時にMarketLensを自動で起動します。",
         "alwaystop_label": "履歴・出品待ちを常に前面", "alwaystop_hint": "オフにすると他のウィンドウの後ろに回せます（レンズの価格ポップは常に前面のまま）。",
         "privacy": "利用統計", "telemetry_label": "匿名の利用統計を送る",
@@ -126,7 +125,6 @@ TR = {
         "feedback": "Feedback", "fb_title": "Feedback / Bug report", "send": "Send",
         "fb_hint": "Tell us about bugs, ideas, or anything — anonymous is fine.",
         "fb_contact": "Contact for a reply (optional)", "fb_thanks": "Sent. Thank you!", "fb_fail": "Failed to send",
-        "disclaimer": "Unofficial tool · not affiliated with Nugem Studio or Valve",
         "startup": "Startup", "autostart_label": "Start with Windows", "autostart_hint": "Launches MarketLens automatically when you sign in.",
         "alwaystop_label": "Keep history & sell timer on top", "alwaystop_hint": "Turn off to let other windows cover them (the price popup stays on top).",
         "privacy": "Usage stats", "telemetry_label": "Send anonymous usage stats",
@@ -178,7 +176,6 @@ TR = {
         "feedback": "反馈", "fb_title": "反馈 / 报告问题", "send": "发送",
         "fb_hint": "请填写问题、建议或任何想法，匿名也可。",
         "fb_contact": "如需回复请留联系方式（可选）", "fb_thanks": "已发送，谢谢！", "fb_fail": "发送失败",
-        "disclaimer": "非官方工具 · 与 Nugem Studio / Valve 无关",
         "startup": "启动", "autostart_label": "随 Windows 启动", "autostart_hint": "登录时自动启动 MarketLens。",
         "alwaystop_label": "历史与可出售计时始终置顶", "alwaystop_hint": "关闭后可被其他窗口遮挡（价格弹窗仍始终置顶）。",
         "privacy": "使用统计", "telemetry_label": "发送匿名使用统计",
@@ -2400,8 +2397,7 @@ def show_settings(root):
         upill = round_pill(foot, f"⬆ {T('update_btn')} v{u['ver']}", C_ACCENT, "#0c0c0c",
                            lambda: _do_update(_ustatus), fs)
         upill.pack(side="right", padx=(0, 8))
-    tk.Label(win, text=T("disclaimer"),
-             bg=C_CARD, fg="#5a5f6a", font=fs, anchor="w").pack(fill="x", padx=18, pady=(0, 14))
+    tk.Frame(win, bg=C_CARD, height=12).pack(fill="x")   # 下の余白
     win.update_idletasks()
     win.geometry(f"{win.winfo_reqwidth()}x{win.winfo_reqheight()}")   # 内容ぴったりに固定
     _set_win[0] = win

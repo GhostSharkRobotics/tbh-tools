@@ -311,23 +311,46 @@ def _rl_state():
             return "throttle", max(0.0, (t[0] + _RL_WIN) - now)   # 枠いっぱい＝少し待つ
         return "ok", 0.0
 
-def live_price(hash_name, force=False, cur=None, cache_only=False, wait_rl=False):
-    """Steamマーケットの現在価格を取得。cur未指定なら表示言語の通貨。失敗時None。5分(hash,通貨)キャッシュ。
-    cache_only=Trueはネット非使用。wait_rl=Trueはレート枠が空くまで待つ（全部更新用＝全件取得）。
-    レンズ(wait_rl=False)は待たず即キャッシュ/Noneを返す。"""
-    if not hash_name: return None
-    if cur is None: cur = _cur_code()
+# ===== 価格取得 =====================================================
+# 本線は search/render を「品名クエリ」で叩き、見ている品だけ1リクエストで最新USDを取得。
+# priceoverview と違い 429 になりにくい＝BANされない。市場に無い品は0件→バンドル(USD)にフォールバック。
+# 現地通貨(¥等)は priceoverview が叩ける時だけ正確値に格上げ（今は全429なので基本USD→為替概算）。
+_render_cache = {}                  # hash_name -> (取得time, sell_cents_USD, listings)
+_render_blocked = [0.0]             # render が万一429になった時のバックオフ（priceoverviewとは独立）
+
+def _render_price(hash_name):
+    """search/render を品名+レア度クエリで叩き、その変種の現在USD価格を返す → (usd_cents, listings) or None。"""
+    if time.time() < _render_blocked[0]:          # 直近でrender自身が429→静かに待つ（nativeの429とは無関係）
+        return None
+    m = re.match(r"^(.*?) \(([^)]+)\)", hash_name)        # "War Bow (Legendary) A" → "War Bow Legendary"
+    base = f"{m.group(1)} {m.group(2)}" if m else hash_name
+    query = re.sub(r"\s+", " ", re.sub(r"[^\w ]+", " ", base)).strip()   # 記号(-,()等)除去＝検索演算子の誤爆防止
+    try:
+        url = (f"https://steamcommunity.com/market/search/render/?appid={APPID}"
+               f"&norender=1&start=0&count=30&currency=1&query=" + urllib.parse.quote(query))
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0", "Referer": "https://steamcommunity.com/market/"})
+        d = json.load(urllib.request.urlopen(req, timeout=8))
+        for r in (d.get("results") or []):
+            if r.get("hash_name") == hash_name and r.get("sell_price") is not None:
+                return r["sell_price"], r.get("sell_listings")
+        return None                               # 市場に出品なし→バンドルにフォールバック
+    except urllib.error.HTTPError as e:
+        if e.code == 429:                         # 万一の429→render専用バックオフ（UIが待機表示）
+            _render_blocked[0] = time.time() + _RL_BACKOFF
+        return None
+    except Exception:
+        return None
+
+def _native_price(hash_name, cur, force=False):
+    """priceoverview で現地通貨の正確値を取得（叩ける時だけ）。429ならNone＝USDにフォールバック。"""
     now = time.time()
     key = (hash_name, cur)
     c = _price_cache.get(key)
     if c and not force and now - c[0] < 300:
         return c[1], c[2], c[3]
-    if cache_only:
+    if not _rl_allow():                           # 429バックオフ/枠超過中は試さない
         return (c[1], c[2], c[3]) if c else None
-    while not _rl_allow():                        # レート枠を確保
-        if not wait_rl or time.time() < _rl_blocked[0]:   # 待たない/429中なら諦めてキャッシュ
-            return (c[1], c[2], c[3]) if c else None
-        time.sleep(1.0)                           # 全部更新は枠が空くまで待つ（≈15/分でペース）
     try:
         url = (f"https://steamcommunity.com/market/priceoverview/?appid={APPID}"
                f"&currency={cur}&market_hash_name=" + urllib.parse.quote(hash_name))
@@ -342,11 +365,46 @@ def live_price(hash_name, force=False, cur=None, cache_only=False, wait_rl=False
         _price_cache[key] = (now, low, med, vol)
         return low, med, vol
     except urllib.error.HTTPError as e:
-        if e.code == 429:                        # 429＝叩きすぎ。一定時間ネット取得を全停止
+        if e.code == 429:
             with _rl_lock: _rl_blocked[0] = time.time() + _RL_BACKOFF
         return (c[1], c[2], c[3]) if c else None
     except Exception:
         return (c[1], c[2], c[3]) if c else None
+
+def live_price(hash_name, native_ok=False, force=False, cache_only=False):
+    """現在価格 → (low, med, vol, src) or None。src=値の通貨ID（1=USD）。
+    本線=search/renderの単品USD（5分キャッシュ）。native_ok かつ表示通貨が非USD かつ priceoverview が叩ける時だけ現地通貨に格上げ。"""
+    if not hash_name: return None
+    disp = _cur_code()
+    now = time.time()
+    if native_ok and disp != 1 and not cache_only:        # 現地通貨の正確値（叩ける時）
+        nat = _native_price(hash_name, disp, force)
+        if nat: return nat[0], nat[1], nat[2], disp
+    if native_ok and disp != 1:                           # 格上げ不可→現地キャッシュがあれば
+        c = _price_cache.get((hash_name, disp))
+        if c: return c[1], c[2], c[3], disp
+    rc = _render_cache.get(hash_name)                     # render USD（5分キャッシュ）
+    if rc and not force and now - rc[0] < 300:
+        return rc[1], rc[1], rc[2], 1
+    if cache_only:
+        return (rc[1], rc[1], rc[2], 1) if rc else None
+    rp = _render_price(hash_name)                         # 1リクエスト（BANされない）
+    if rp is not None:
+        _render_cache[hash_name] = (now, rp[0], rp[1])
+        return rp[0], rp[0], rp[1], 1
+    return None                                           # 市場に無い→呼び出し側がバンドル価格を保持
+
+def apply_live(ent, native_ok=False, force=False, cache_only=False):
+    """entの価格を最新化（in-place）。cur/_live(=表示通貨で確定か)も設定。取れなければ既存(バンドル)保持。"""
+    if not ent or not ent.get("hash"): return
+    lp = live_price(ent["hash"], native_ok=native_ok, force=force, cache_only=cache_only)
+    if not lp: return
+    low, med, vol, src = lp
+    if low is not None: ent["sell"] = low
+    if med is not None: ent["median"] = med
+    if vol is not None: ent["volume"] = vol
+    ent["cur"] = src
+    ent["_live"] = (src == _cur_code())           # 表示通貨そのもの=確定(鮮明) / USD換算=暫定(🕓)
 
 
 # ---- 前面ウィンドウ判定（ゲームが前面の時だけ反応） ----------------------
@@ -583,15 +641,8 @@ def ocr_worker():
                 best = max(same, key=lambda c: c[0])
                 if best[0] >= 0.85:
                     found, chosen = best[4], best
-            if found:                             # 表示の瞬間にSteamの現在価格を取得（常に最新）
-                lp = live_price(found[0].get("hash"))
-                if lp:
-                    low, med, vol = lp
-                    if low is not None: found[0]["sell"] = low
-                    if med is not None: found[0]["median"] = med
-                    if vol is not None: found[0]["volume"] = vol
-                    found[0]["cur"] = _cur_code()
-                    found[0]["_live"] = True
+            if found:                             # 表示の瞬間に最新USD（叩ければ現地通貨）へ更新
+                apply_live(found[0], native_ok=True)
                 _record_history(found[0])         # 履歴に記録
             if CALIBRATE:                         # 失敗時の画像とログを残す（私が原因を見る用）
                 try:
@@ -1095,14 +1146,7 @@ def show_popup(results, xy, text, root):
         def work():
             r = matcher.match_item(nm, en2ja.get(rar_en, rar_en) if rar_en else "")
             ent = r[0] if r else None
-            if ent:
-                lp = live_price(ent.get("hash"))
-                if lp:
-                    low, med, vol = lp
-                    if low is not None: ent["sell"] = low
-                    if med is not None: ent["median"] = med
-                    if vol is not None: ent["volume"] = vol
-                    ent["cur"] = _cur_code(); ent["_live"] = True
+            if ent: apply_live(ent, native_ok=True)
             def _done():
                 _fetching[0] = False; render(ent)
             win.after(0, _done)
@@ -1147,8 +1191,7 @@ def _prog_draw():
     frac = (done / total) if total else 0
     if frac > 0:                                                          # 確定した取得ぶん
         cv.create_rectangle(0, 0, max(h, int(w * frac)), h, fill=C_ACCENT, outline="")
-    rl, _ = _rl_state()
-    if rl != "ok" and done < total:                                      # 待機中＝流れるアンバー帯
+    if time.time() < _render_blocked[0] and done < total:               # render待機中＝流れるアンバー帯
         seg = max(40, w // 5)
         x = int(st["phase"] * (w + seg) / 24.0) % (w + seg) - seg
         cv.create_rectangle(max(0, x), 0, min(w, x + seg), h, fill=C_WAIT, outline="")
@@ -1165,11 +1208,9 @@ def _prog_anim():
         _pill_set_text(b, f"{sp} {st['done']}/{st['total']}")
     s = _hist_status[0]
     if s and s.winfo_exists():
-        rl, remain = _rl_state()
-        if rl == "blocked":                                             # 全停止中＝残り秒（数字=言語非依存のUI）
+        remain = _render_blocked[0] - time.time()
+        if remain > 0:                                                  # render待機中＝残り秒（数字=言語非依存のUI）
             s.config(text=f"⏳ {int(remain)+1}s", fg=C_WAIT)
-        elif rl == "throttle":
-            s.config(text="⏳", fg=C_WAIT)
         else:
             s.config(text=f"{st['done']} / {st['total']}", fg=C_ACCENT)
     _prog_draw()
@@ -1254,15 +1295,9 @@ def _hist_apply(rec, name, rarity_en):
         r = matcher.match_item(name, rmap.get(rarity_en, rarity_en) if rarity_en else "")
         ent = r[0] if r else None
         if ent:
-            lp = live_price(ent.get("hash"), force=True)
-            if lp:
-                low, med, vol = lp
-                if low is not None: ent["sell"] = low
-                if med is not None: ent["median"] = med
-                if vol is not None: ent["volume"] = vol
-                ent["cur"] = _cur_code()
+            apply_live(ent, native_ok=True, force=True)
             new = {k: ent.get(k) for k in ("ja", "en", "rarity_en", "rarity_ja", "sell", "median",
-                                           "volume", "hash", "type_ja", "type_en", "type")}
+                                           "volume", "cur", "_live", "hash", "type_ja", "type_en", "type")}
             new["fav"], new["ts"] = fav, ts
             if rec in _hist: _hist[_hist.index(rec)] = new
             _save_hist()
@@ -1279,18 +1314,11 @@ def _hist_rename(rec):
               rec.get("ja") or rec.get("en") or "", on_ok)
 
 def _hist_apply_cache():
-    """履歴の価格を、現在通貨のキャッシュだけで更新（ネット非使用＝言語切替で429を起こさない）。"""
+    """履歴の価格を、メモリ内キャッシュ（一括USD/現地）だけで再表示（ネット非使用＝言語切替で叩かない）。"""
     _hist_gen[0] += 1                             # 実行中の全部更新（旧通貨）を中断
-    cur = _cur_code()
     for rec in _hist:
         if not rec.get("hash"): continue
-        lp = live_price(rec["hash"], cache_only=True)
-        if lp:
-            low, med, vol = lp
-            if low is not None: rec["sell"] = low
-            if med is not None: rec["median"] = med
-            if vol is not None: rec["volume"] = vol
-            rec["cur"] = cur
+        apply_live(rec, native_ok=True, cache_only=True)
 
 _hist_gen = [0]            # 全部更新の世代。新しい更新が始まると古い取得は中断（言語連続切替の競合防止）
 _hist_updating = [False]   # 全部更新が実行中か（連打で多重起動しないように）
@@ -1303,7 +1331,6 @@ def _hist_update_all(force=True):
     if not total: return
     _hist_updating[0] = True
     _hist_gen[0] += 1; gen = _hist_gen[0]
-    cur = _cur_code()                                  # この更新が固定で扱う通貨
     def _btn(text):                                    # ボタン表示を実行中⇄通常で切替（押せない理由を可視化）
         b = _hist_update_btn[0]
         if b and b.winfo_exists(): _pill_set_text(b, text)
@@ -1318,19 +1345,15 @@ def _hist_update_all(force=True):
         while alive():                                 # 上書き(言語切替/再押下)されたら中断
             try: rec = work_q.get_nowait()
             except _q.Empty: return
-            lp = live_price(rec["hash"], force=force, cur=cur, wait_rl=True)   # 枠が空くまで待って全件
+            before = rec.get("sell")
+            apply_live(rec, native_ok=False, force=force)   # 単品USD（search/render・BANされない）
             if not alive(): return
-            if lp:
-                low, med, vol = lp
-                if low is not None: rec["sell"] = low
-                if med is not None: rec["median"] = med
-                if vol is not None: rec["volume"] = vol
-                rec["cur"] = cur; rec["_live"] = True   # この更新で確定＝鮮明表示
+            if rec.get("sell") != before or "cur" in rec:
                 _hist_after(lambda rec=rec: _hist_update_price(rec))   # その場で1行だけ更新＋光らせる
             with lock:
                 done[0] += 1
             _hist_prog_state["done"] = done[0]         # 進捗バー/スピナーが拾う（アニメ側が描画）
-    threads = [threading.Thread(target=worker, daemon=True) for _ in range(3)]  # 並列(控えめ=429回避)
+    threads = [threading.Thread(target=worker, daemon=True) for _ in range(3)]  # 一括取得を共有（実質1リクエスト群）
     for t in threads: t.start()
     def waiter():
         for t in threads: t.join()

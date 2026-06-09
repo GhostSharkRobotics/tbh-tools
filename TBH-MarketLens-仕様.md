@@ -56,6 +56,14 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 - レンズ中は最新1件だけ増分反映(`_hist_sync_top`)＝全消ししない（チラつき防止）。
 - **状態は文章でなくUIで見せる**のが鉄則（ユーザー強い要望。[[tbh-ux-principles]] [[tbh-compact-display-principle]]）。
 
+**出品待ちウィンドウ**（`show_sell`, トレイ「出品待ち」でオン/オフ, 位置/サイズ記憶, 状態`tbh-sell-state.json`永続化）[[marketlens-sell-timer]]:
+Steam在庫の出品ホールドを追跡し、出品可になったら通知。**実機検証で確定（推測禁止・2026-06）**:
+- SteamID自動検出：`HKCU\…\Steam\ActiveProcess\ActiveUser`＋76561197960265728（FB=loginusers.vdfのMostRecent）。ユーザー入力不要＝配布時も各PC自動（`_detect_steamid`）。
+- 取得は**新inventory API** `inventory/{sid}/3678970/2?l=..&count=2000`（assets/descriptions）。**インベントリ「公開」必須**：公開=200／非公開=**403**（旧`/inventory/json/`は公開だと逆に403で使えない）。403→`status=private`で「🔓公開設定を開く」(`/profiles/{sid}/edit/settings`)導線。
+- **正確な解除日は公開データに無い**（owner限定でCookie必要／クライアントcookieは排他ロックで自動取得不可＝VSS管理者権限要・配布不向き）。よって `marketable`フラグ＋「初めて出品不可を見た時刻+7日(HOLD_DAYS)」の**推定残り日数**＋**0→1のflipをトレイ通知**で構成（`_sell_fetch`/30分`_sell_poller`）。
+- 表示：🟢売れる／🕒解除日ごと（≈M/D・あとN日）にまとめ、同名は×個数集約。状態は文章でなくUIで（[[tbh-ux-principles]]）。
+- **制約**：TBH出品が一時停止中は在庫が全て marketable:0＝追跡対象の実ホールド無し→本番検証は市場再開後。機能は完成・配備済みで再開時に自動で効く（一時条件で諦めない [[dont-abandon-on-temporary-conditions]]）。
+
 **設定**（トレイ→設定）: 表示言語(ja/en/zh, 起動時PC言語自動取得)／発動キー割当(欄クリック→任意キー/組合せを押す、実況表示)。`tbh-price-settings.json`永続化。初回起動で使い方画面。
 
 **配信系**: フッターに `v1.1 · by Ghost Shark Robotics`、Ko-fi寄付(`KOFI_URL`)、アプリ内フィードバック(`FEEDBACK_URL`→Cloudflare Worker→Slack, 匿名・返信先任意)。起動時にGitHub最新リリースを確認し新版を控えめ告知。
@@ -75,6 +83,7 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 ## 8. 状態（2026-06時点）
 価格本線=search/render切替・印なし表示・該当なし最小表示まで実装＆実機反映済み。
 匿名テレメトリ(`/ml`+`/mlstats`)をコード実装済み＝ローカル検証(py compile/i18n_lint/node --check)通過。
+出品待ち機能=実装＆Win実機配備済み（新inventory API・公開で200確認）。実ホールド検証はTBH市場再開後（現在 marketable:0）。
 未了：**Worker再デプロイ**（`/feedback`+`/ml`の両方。`cd worker && npx wrangler deploy`＝wrangler未ログイン→Cloudflare認証待ち）／Win機へ scp 反映／Ko-fi最終確認／v1.1ビルド＆公開／.icoアイコン・告知文・中国語レア度/種別訳。
 
 関連メモリ: [[tbh-price-ocr-tool]] [[marketlens-i18n]] [[tbh-tools-no-cheat-detection]] [[tbh-price-ocr-tool]] [[verify-before-claiming-fixed]] [[tbh-deploy-to-live]]

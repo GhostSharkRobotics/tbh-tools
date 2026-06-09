@@ -900,6 +900,13 @@ def ocr_worker():
                 best = max(same, key=lambda c: c[0])
                 if best[0] >= 0.85:
                     found, chosen = best[4], best
+            if found and chosen and not found[0].get("rarity_en"):
+                # CRAFTING素材等＝データ上レア度無し。ツールチップの実レア度(等級OCR/色)を表示用に補う
+                # ＝価格は素材共通のまま、色とラベルだけ実レア度（例ビヨンド）で出す（found[0]は_collectのdictコピーなので安全）。
+                det = extract_rarity(chosen[8]) or _frame_rarity(img, chosen[5], chosen[6], scale)
+                if det:
+                    found[0]["rarity_en"] = det
+                    found[0]["rarity_ja"] = _RMAP_JA.get(det, det)
             if found:                             # 表示の瞬間に最新USD（叩ければ現地通貨）へ更新
                 apply_live(found[0], native_ok=True)
                 _telemetry_send("lookup", item=found[0].get("en"), rarity=found[0].get("rarity_en"))

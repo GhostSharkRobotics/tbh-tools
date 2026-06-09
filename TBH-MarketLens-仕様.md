@@ -35,8 +35,9 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 
 - **priceoverview**（`/market/priceoverview/`, 現地通貨¥を返す）は時期により429のことがある（429時はsearch/renderにフォールバック）。**動いている時は現地¥の正確値**。
   - **重要（在庫なし判定）**：在庫が無い品は `lowest_price`(現在の最安＝買える価格)が**返らず**、`median_price`(過去の中央値)と`volume`だけ返る。
-    **`lowest_price`無し＝現在出品0件＝「出品なし」**。`apply_live`は `low is None` で `ent["_nolist"]=True`（価格を出さない）。
-    ここで `cur` だけ更新して `sell`(USDバンドル値)を残すと**USDセントが現地通貨扱いになり¥31/¥1等の誤値**が出る（実機で確定した過去の不具合・要厳守）。`sell` と `cur` は必ずセットで更新。
+    **`lowest_price`無し＝現在出品0件＝最安は「出品なし」**。`apply_live`は `low is None` で `ent["_nolist"]=True`＋`ent["sell"]=None`。
+    ただし **`median_price`(過去の中央値)があれば中央値は表示する**（UIは「最安 出品なし／中央値 ¥X」）。medianは`ent["median"]`に、通貨は`ent["cur"]=src`で入れる。
+    **`sell`(USDバンドル値)を残したまま `cur=¥` にすると USDセントが現地通貨扱いになり¥31/¥1等の誤値**が出る（実機で確定した過去の不具合）。だから出品なし時は必ず `sell=None`。
 - **search/render**（`/market/search/render/`）が**本線**。`_render_price()`が**品名+レア度クエリ**で叩き、その変種の現在USDを**1リクエストで取得**。429になりにくい＝**BANされない**。
   - クエリは**記号除去必須**：`-`はSteam検索の除外演算子で誤爆。`"War Bow (Legendary) A"→"War Bow Legendary"`、`"Soulstone - Torment"→"Soulstone Torment"`
   - **USD固定**（currency/country パラメータ無視）。**10件/ページ固定**（全624種の一括取得は63req必要＝非現実的。だから単品クエリ方式）

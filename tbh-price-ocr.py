@@ -512,10 +512,17 @@ def apply_live(ent, native_ok=False, force=False, cache_only=False):
         ent["_nolist"] = True
         return
     low, med, vol, src = lp
-    # lowest_price(現在の最安＝買える価格)が無い＝現在出品0件＝出品なし。
-    # ここでcur/medianだけ更新するとUSDバンドル値が現地通貨扱いになり¥31/¥1等の誤値が出る（過去の不具合）。
     if low is None:
+        # lowest_price(現在の最安＝買える価格)が無い＝現在出品0件＝出品なし。
+        # ただし median(過去の中央値)があれば表示する。sellは必ずNoneにしてから cur/median を src通貨で入れる
+        # （古いUSDバンドル値を残したまま cur=¥ にすると¥31/¥1等の誤値になる＝過去の不具合。要厳守）。
         ent["_nolist"] = True
+        ent["sell"] = None
+        if med is not None:
+            ent["median"] = med
+            if vol is not None: ent["volume"] = vol
+            ent["cur"] = src
+            ent["_live"] = (src == _cur_code())
         return
     ent["_nolist"] = False
     ent["sell"] = low
@@ -1452,8 +1459,13 @@ def show_popup(results, xy, text, root):
         if ent:
             name_lbl.config(text=disp_name(ent) or "—")
         build_rar_pill()
-        if ent and ent.get("_nolist"):             # 取引可だが現在出品0件＝バンドルの小額でなく「出品なし」
-            price_lbl.config(text=T("nolisting"), fg=C_META); meta_lbl.config(text=disp_type(ent))
+        if ent and ent.get("_nolist"):             # 現在出品0件＝最安は「出品なし」。中央値(過去取引)があれば併記
+            sc = ent.get("cur", 1)
+            if ent.get("median") is not None:
+                price_lbl.config(text=f"{T('low')} {T('nolisting')}   {T('med')} {price(ent['median'], sc)}", fg=ar)
+                meta_lbl.config(text=f"{disp_type(ent)}   {T('sold')}{ent.get('volume','—')}")
+            else:
+                price_lbl.config(text=T("nolisting"), fg=C_META); meta_lbl.config(text=disp_type(ent))
         elif ent and ent.get("sell") is not None:
             sc = ent.get("cur", 1)
             txt = f"{T('low')} {price(ent['sell'], sc)}   {T('med')} {price(ent['median'], sc)}"
@@ -1729,8 +1741,12 @@ def _row_menu(ev, rec):
 
 def _set_row_price(rd):
     rec = rd["rec"]
-    if rec.get("_nolist"):                          # 現在出品なし（バンドルの小額を出さない）
-        rd["price"].config(text=T("nolisting"), fg=C_META)
+    if rec.get("_nolist"):                          # 現在出品なし。中央値(過去取引)があれば併記
+        sc = rec.get("cur", 1)
+        if rec.get("median") is not None:
+            rd["price"].config(text=f"{T('low')} {T('nolisting')}   {T('med')} {price(rec['median'], sc)}", fg=C_PRICE)
+        else:
+            rd["price"].config(text=T("nolisting"), fg=C_META)
     elif rec.get("sell") is not None:
         sc = rec.get("cur", 1)
         txt = f"{T('low')} {price(rec['sell'], sc)}   {T('med')} {price(rec['median'], sc)}"

@@ -25,6 +25,10 @@ Yes. MarketLens runs as a **completely separate program**. It only:
 
 It **never reads or writes the game's memory, never injects anything, and never touches the game process.** There is no speed/time manipulation. It does not interact with the game at all, so it does not trigger the game's cheat detection.
 
+### Privacy
+
+To help improve the tool, MarketLens sends **anonymous usage stats**: app launches, the names of items you look up, and error reports — tied only to a random ID, not to you. **It never sends your IP, your Steam inventory, or any personal data.** You can turn this off anytime in **Settings → Usage stats**.
+
 ## Install
 
 1. Download `TBH-MarketLens-vX.Y.zip` from the [Releases](https://github.com/GhostSharkRobotics/tbh-marketlens/releases) page.
@@ -63,6 +67,7 @@ _TBH: Task Bar Hero_ のアイテムにカーソルを当てて**キーを押す
 
 - **非公式のファンメイドツール**（Nugem Studio / Valve とは無関係）。
 - **ゲームには一切干渉しません**（自分の画面OCR＋ホットキー＋Steamの公開価格APIのみ）。メモリ改変・注入・速度操作なし＝**アンチチート非検出**。
+- **匿名の利用統計**を送ります（起動・参照したアイテム名・エラー報告。ランダムIDのみ）。**IP・Steam在庫・個人情報は一切送りません**。「設定 → 利用統計」でいつでもオフにできます。
 - 価格履歴（お気に入り・名前/レア度修正・一括更新・永続保存）、発動キー自由割り当て、日本語/英語UI（初回はPCの言語を自動取得）。
 
 **導入**：zipを展開し、フォルダごと置いて `TBH MarketLens.exe` を実行（タスクトレイ常駐）。未署名のためSmartScreen警告は「詳細→実行」。

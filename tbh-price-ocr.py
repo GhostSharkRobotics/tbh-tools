@@ -355,6 +355,14 @@ def disp_type(e):                  # 種別（zh→中国語訳、無ければen
     if _ui_lang == "zh": return e.get("type_zh") or e.get("type_en") or e.get("type") or ""
     return e.get("type_en") or e.get("type") or ""
 
+def split_type_level(e):           # 種別を「部位」と「必要Lv」に分離（type系は「弓 Lv.80」「Bow - Lv. 80」形式）
+    t = disp_type(e)
+    if not t: return "", ""
+    m = re.search(r"Lv\.?\s*(\d+)", t, re.I)
+    lv = ("Lv" + m.group(1)) if m else ""
+    part = re.sub(r"\s*-?\s*Lv\.?\s*\d+\s*$", "", t, flags=re.I).strip()
+    return part, lv
+
 def disp_rarity(e):                # 等級表示（zh→中国語訳、無ければen）
     if _ui_lang == "ja": return e.get("rarity_ja") or ""
     if _ui_lang == "zh": return e.get("rarity_zh") or e.get("rarity_en") or ""
@@ -1662,14 +1670,18 @@ def _build_hist_row(rec):
     icon_lbl = tk.Label(row, bg=C_CARD, image=init_img); icon_lbl.pack(side="left", padx=(2, 8))
     col = tk.Frame(row, bg=C_CARD); col.pack(side="left", fill="x", expand=True)
     top = tk.Frame(col, bg=C_CARD); top.pack(fill="x")
+    part, lv = split_type_level(rec)
     name_lbl = tk.Label(top, text=star + nm, bg=C_CARD, fg=ar,
                         font=("Yu Gothic UI", 10, "bold"), anchor="w"); name_lbl.pack(side="left")
+    if lv:                                              # 名前のうしろに必要Lv（グレー・小さめ）：「アイテム名 Lv80」
+        tk.Label(top, text=lv, bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8),
+                 anchor="sw").pack(side="left", padx=(4, 0), pady=(0, 1))
     ts_lbl = tk.Label(top, text=rec.get("ts", ""), bg=C_CARD, fg=C_META,
                       font=("Yu Gothic UI", 8), anchor="e"); ts_lbl.pack(side="right")
     prow = tk.Frame(col, bg=C_CARD); prow.pack(fill="x")
     price_lbl = tk.Label(prow, text="", bg=C_CARD, font=("Yu Gothic UI", 9), anchor="w"); price_lbl.pack(side="left")
     delta_lbl = tk.Label(prow, text="", bg=C_CARD, font=("Yu Gothic UI", 9, "bold"), anchor="e"); delta_lbl.pack(side="right")
-    meta_txt = " ".join(t for t in (rj, disp_type(rec)) if t)   # 下の段：レア度＋部位を空白区切り（例「アルカナ 弓」）
+    meta_txt = " ".join(t for t in (rj, part) if t)    # 下の段：レア度＋部位を空白区切り（例「アルカナ 弓」、Lvは上段へ）
     if meta_txt:
         tk.Label(col, text=meta_txt, bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(fill="x")
     sep = tk.Frame(inner, bg="#2a2f3a", height=1)

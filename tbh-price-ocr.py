@@ -1230,48 +1230,39 @@ def _scrolling_body(win, inner_w=326):
     """縦スクロールする本体（履歴/出品待ち共通）。ダークテーマに馴染む自作スクロールバー付き。
     つまみの高さ＝『あと全体のどれだけあるか』、位置＝今どこか。掴んでドラッグ／トラッククリックで移動。
     全部が一画面に収まる時はバーを描かない（不要な飾りを出さない）。窓幅にも追従する。"""
-    SBW = 9
+    SBW = 12
     body = tk.Frame(win, bg=C_CARD); body.pack(fill="both", expand=True, padx=6, pady=(0, 8))
     canvas = tk.Canvas(body, bg=C_CARD, highlightthickness=0)
     inner = tk.Frame(canvas, bg=C_CARD)
     inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=inner_w)
     bar = tk.Canvas(body, width=SBW, bg=C_CARD, highlightthickness=0, cursor="hand2")
-    def _diag(tag):
-        try:
-            with open(os.path.join(HERE, "sb-diag.txt"), "a", encoding="utf-8") as f:
-                f.write("%s tag=%s bar_h=%s can_h=%s can_w=%s inner_rh=%s bbox=%s yview=%s\n" % (
-                    time.strftime("%H:%M:%S"), tag, bar.winfo_height(), canvas.winfo_height(),
-                    canvas.winfo_width(), inner.winfo_reqheight(), canvas.bbox("all"), canvas.yview()))
-        except Exception: pass
     def redraw(*_):
-        # canvasの現在のスクロール位置を毎回直接読む（キャッシュ値だと開いた直後＝レイアウト前は
-        # 0..1のまま＝「全部見えてる」と誤判定して出てこない。リサイズで初めて出る不具合の原因）
-        _diag("redraw")
+        # 高さは本体canvasから取る（barウィジェットはfill="y"でも初期化が遅れ winfo_height()=1 のまま
+        # ＝以前は毎回 h<=1 で早期returnして何も描かず「リサイズしないと出ない」不具合になっていた）。
         if not bar.winfo_exists(): return
-        bar.delete("all")
-        h = bar.winfo_height()
+        h = canvas.winfo_height()
         if h <= 1: return
         try: top, bot = canvas.yview()
         except Exception: return
+        bar.configure(height=h)                       # bar自体も本体と同じ高さに（pack任せにしない）
+        bar.delete("all")
         if bot - top >= 0.999: return                 # 全部見えてる→バー不要
         usable = h - 4
-        _rrect(bar, 2, 2, SBW - 1, h - 2, (SBW - 3) / 2, "#262a33", "trk")   # トラック（控えめ）
+        _rrect(bar, 2, 2, SBW - 2, h - 2, (SBW - 4) / 2, "#3a3f4b", "trk")   # トラック
         y1, y2 = 2 + top * usable, 2 + bot * usable
-        if y2 - y1 < 16:                              # 最小つまみ高（掴みやすく）
+        if y2 - y1 < 18:                              # 最小つまみ高（掴みやすく）
             mid = (y1 + y2) / 2
-            y1, y2 = max(2, mid - 8), min(h - 2, mid + 8)
-        _rrect(bar, 2, y1, SBW - 1, y2, (SBW - 3) / 2, "#525868", "thm")     # つまみ
+            y1, y2 = max(2, mid - 9), min(h - 2, mid + 9)
+        _rrect(bar, 2, y1, SBW - 2, y2, (SBW - 4) / 2, "#6b7280", "thm")     # つまみ
     canvas.configure(yscrollcommand=redraw)            # スクロール時につまみ追従
     canvas._sb_redraw = redraw                          # 行の増減後に外から再描画させる用
     canvas.bind("<Configure>", lambda e: (canvas.itemconfig(inner_id, width=e.width), redraw()))
     def _on_inner(e):
-        # 中身がレイアウトされる度にscrollregionを実寸へ再計算（ここが肝。初回は開いた直後に
-        # 中身の高さが確定→このイベントで初めて正しいyview()になる。前は再計算せずバーが出なかった）
+        # 中身がレイアウトされる度にscrollregionを実寸へ再計算（初回は開いた直後に高さが確定）
         canvas.configure(scrollregion=canvas.bbox("all")); redraw()
     inner.bind("<Configure>", _on_inner)
-    bar.bind("<Configure>", lambda e: redraw())
     def jump(ev):
-        h = bar.winfo_height()
+        h = canvas.winfo_height()
         if h <= 1: return
         top, bot = canvas.yview(); span = bot - top
         frac = (ev.y - 2) / max(1, h - 4) - span / 2  # 掴んだ位置をつまみ中央に

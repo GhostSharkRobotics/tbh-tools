@@ -69,12 +69,12 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 ## 7. 既知の制約・落とし穴
 - Steamの¥(priceoverview)は現在取得不可＝¥は為替換算の概算。正確値が要るなら英語(USD)。これはSteam側都合でアプリの不具合でない。
 - search/renderは10件/ページ・USD固定。全件一括は非現実的（単品クエリで運用）。
-- 「直した」と言う前に実機の挙動/配備物を必ず確認（[[verify-before-claiming-fixed]]）。pythonwが残る/二重起動を疑う。
-- **v1.1の公開（GitHub Releases）はユーザーの明示確認がない限り絶対にしない**。
+
+※ 作業の進め方（配備時の確認・公開前の確認・git運用など）はアプリ仕様ではないのでここには書かない。メモリ(feedback)を参照。
 
 ## 8. 状態（2026-06時点）
 価格本線=search/render切替・印なし表示・該当なし最小表示まで実装＆実機反映済み。
 匿名テレメトリ(`/ml`+`/mlstats`)をコード実装済み＝ローカル検証(py compile/i18n_lint/node --check)通過。
-未了：**Worker再デプロイ**（`/feedback`+`/ml`の両方。`cd worker && npx wrangler deploy`＝wrangler未ログイン→Cloudflare認証待ち）／Win機へ scp 反映／Ko-fi最終確認／v1.1ビルド＆公開（**ユーザー確認後のみ**）／.icoアイコン・告知文・中国語レア度/種別訳。
+未了：**Worker再デプロイ**（`/feedback`+`/ml`の両方。`cd worker && npx wrangler deploy`＝wrangler未ログイン→Cloudflare認証待ち）／Win機へ scp 反映／Ko-fi最終確認／v1.1ビルド＆公開／.icoアイコン・告知文・中国語レア度/種別訳。
 
 関連メモリ: [[tbh-price-ocr-tool]] [[marketlens-i18n]] [[tbh-tools-no-cheat-detection]] [[tbh-price-ocr-tool]] [[verify-before-claiming-fixed]] [[tbh-deploy-to-live]]

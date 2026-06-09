@@ -1669,13 +1669,9 @@ def _build_hist_row(rec):
     prow = tk.Frame(col, bg=C_CARD); prow.pack(fill="x")
     price_lbl = tk.Label(prow, text="", bg=C_CARD, font=("Yu Gothic UI", 9), anchor="w"); price_lbl.pack(side="left")
     delta_lbl = tk.Label(prow, text="", bg=C_CARD, font=("Yu Gothic UI", 9, "bold"), anchor="e"); delta_lbl.pack(side="right")
-    meta = tk.Frame(col, bg=C_CARD); meta.pack(fill="x")   # 下の段：レア度（レア度色）＋種別（控えめ）
-    if rj:
-        tk.Label(meta, text=rj, bg=C_CARD, fg=ar, font=("Yu Gothic UI", 8, "bold"), anchor="w").pack(side="left")
-    ty = disp_type(rec)
-    if ty:
-        tk.Label(meta, text=("  ·  " + ty) if rj else ty, bg=C_CARD, fg=C_META,
-                 font=("Yu Gothic UI", 8), anchor="w").pack(side="left")
+    meta_txt = " ".join(t for t in (rj, disp_type(rec)) if t)   # 下の段：レア度＋部位を空白区切り（例「アルカナ 弓」）
+    if meta_txt:
+        tk.Label(col, text=meta_txt, bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(fill="x")
     sep = tk.Frame(inner, bg="#2a2f3a", height=1)
     rd = {"rec": rec, "frame": row, "sep": sep, "price": price_lbl, "delta": delta_lbl,
           "icon": icon_lbl, "name": name_lbl, "ts": ts_lbl}

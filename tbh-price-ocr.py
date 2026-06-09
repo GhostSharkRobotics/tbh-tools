@@ -1123,10 +1123,7 @@ def show_popup(results, xy, text, root):
         if ent and ent.get("sell") is not None:
             sc = ent.get("cur", 1)
             txt = f"{T('low')} {price(ent['sell'], sc)}   {T('med')} {price(ent['median'], sc)}"
-            if ent.get("_live"):                    # Steamから今取れた＝確定。レア度色で鮮明に
-                price_lbl.config(text=txt, fg=ar)
-            else:                                   # 確定前（Steam混雑/キャッシュ）＝🕓＋控えめ色。リアルタイムでないと一目でわかる
-                price_lbl.config(text="🕓 " + txt, fg=C_META)
+            price_lbl.config(text=txt, fg=ar)       # 普通の価格色で鮮明に（概算は数値の≈だけで示す）
             cat = disp_type(ent)
             meta_lbl.config(text=f"{cat}   {T('sold')}{ent.get('volume','—')}")
         elif ent:
@@ -1418,10 +1415,7 @@ def _set_row_price(rd):
     if rec.get("sell") is not None:
         sc = rec.get("cur", 1)
         txt = f"{T('low')} {price(rec['sell'], sc)}   {T('med')} {price(rec['median'], sc)}"
-        if rec.get("_live"):                       # この起動で取得確定＝鮮明な緑
-            rd["price"].config(text=txt, fg=C_PRICE)
-        else:                                      # 暫定（前回保存/混雑で未取得）＝🕓＋控えめ色。更新で確定に変わる
-            rd["price"].config(text="🕓 " + txt, fg=C_PRICE_DIM)
+        rd["price"].config(text=txt, fg=C_PRICE)   # 普通の価格色（概算は数値の≈だけで示す）
     else:
         rd["price"].config(text=T("noprice"), fg=C_META)
 

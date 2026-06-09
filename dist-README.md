@@ -10,11 +10,11 @@ Made by **Ghost Shark Robotics**.
 
 ## What it does
 
-- **Hover an item in-game → press your hotkey → a small overlay shows its current Steam Market price** (lowest listing + median), pulled live when you ask.
-- Reads the item **right under your cursor** by looking at the screen (OCR) and matching it to the game's item database — equipment, gems, engravings, materials and more, in **Japanese or English**.
+- **Hover an item in-game → press your hotkey → a small overlay shows its current Steam Market price** (lowest listing + median), fetched when you ask. Prices are from the Steam Community Market (USD; JPY/CNY are shown as a currency-converted estimate).
+- Reads the item **right under your cursor** by looking at the screen (OCR) and matching it to the game's item database — equipment, gems, engravings, materials and more — with item names, rarity and type in **Japanese, English or Chinese (中文)**.
 - **Price history** window you can toggle from the tray: favourite items, rename / fix mis-reads, change rarity, delete, and **update all prices** at once. History is saved between sessions.
 - Fully configurable trigger: default is the **mouse side (back) button**, but you can bind **any key or combo** (e.g. `Ctrl+Shift+P`) in Settings.
-- UI in **日本語 / English** (auto-detected from your PC language on first run, switchable in Settings).
+- UI in **日本語 / English / 中文** (auto-detected from your PC language on first run, switchable in Settings).
 
 ## Is it safe? (anti-cheat)
 
@@ -44,6 +44,8 @@ To help improve the tool, MarketLens sends **anonymous usage stats**: app launch
 - **🕘 History** button on the popup, or **tray → History**, opens the list. Right-click any row for **Favourite / Rename / Rarity / Delete**.
 - **Tray → Settings**: change language, rebind the trigger, set the history limit.
 
+> **Reading non-English text:** the OCR uses Windows' built-in recognizer (bundled — nothing extra to install). It only needs the **Windows language pack for the text you're reading**, which you already have if your Windows / the game runs in that language. If a language is missing, MarketLens tells you and links to the setting to add it.
+
 ## Updates
 
 MarketLens checks for a newer version on startup. When one is available, a **"⬆ Update"** entry appears in the tray menu (and Settings) — **one click downloads it, swaps the files, and restarts itself.** No manual re-download or re-extract.
@@ -68,10 +70,28 @@ _TBH: Task Bar Hero_ のアイテムにカーソルを当てて**キーを押す
 - **非公式のファンメイドツール**（Nugem Studio / Valve とは無関係）。
 - **ゲームには一切干渉しません**（自分の画面OCR＋ホットキー＋Steamの公開価格APIのみ）。メモリ改変・注入・速度操作なし＝**アンチチート非検出**。
 - **匿名の利用統計**を送ります（起動・参照したアイテム名・エラー報告。ランダムIDのみ）。**IP・Steam在庫・個人情報は一切送りません**。「設定 → 利用統計」でいつでもオフにできます。
-- 価格履歴（お気に入り・名前/レア度修正・一括更新・永続保存）、発動キー自由割り当て、日本語/英語UI（初回はPCの言語を自動取得）。
+- 価格履歴（お気に入り・名前/レア度修正・一括更新・永続保存）、発動キー自由割り当て、**日本語/英語/中国語UI**（初回はPCの言語を自動取得）。価格はSteamマーケット（USD基準。円・元は為替換算の概算）。
 
 **導入**：zipを展開し、フォルダごと置いて `TBH MarketLens.exe` を実行（タスクトレイ常駐）。未署名のためSmartScreen警告は「詳細→実行」。
 
 **更新**：起動時に新版を確認し、あれば**トレイ／設定に「⬆ 更新」**が出ます。**1クリックでDL→差し替え→自動再起動**（手動の再DL・再展開は不要）。
 
 ☕ 応援（任意）：[Ko-fi](https://ko-fi.com/ghostsharkrobotics)
+
+---
+
+### 中文（简介）
+
+在 _TBH: Task Bar Hero_ 中把鼠标光标对准物品并**按下快捷键，即可当场显示该物品的 Steam 市场价格**（无需打字、无需 Alt+Tab）。
+
+- **非官方粉丝工具**（与 Nugem Studio / Valve 无关）。
+- **完全不干预游戏**（只读取你自己的屏幕 OCR ＋ 快捷键 ＋ Steam 公开价格 API）。不修改内存、不注入、不操作速度＝**不会触发反作弊**。
+- **匿名使用统计**（启动、查询的物品名、错误报告，仅关联随机ID）。**绝不发送 IP、Steam 库存或个人信息**。可在「设置 → 使用统计」随时关闭。
+- 价格历史（收藏・名称/稀有度修正・一键全部更新・永久保存），触发键可自由设置，**中文/英文/日文界面**（首次按电脑语言自动选择）。价格来自 Steam 市场（以 USD 为准；人民币/日元为按汇率换算的估算值）。
+- 文字识别用 Windows 自带 OCR（已内置，无需额外安装），只需系统装有所读语言的语言包（通常你的系统/游戏已是该语言）。若缺少，程序会提示并引导你去添加。
+
+**安装**：解压后将整个文件夹放在任意位置，运行 `TBH MarketLens.exe`（常驻系统托盘）。未签名，故 SmartScreen 提示时点「更多信息 → 仍要运行」。
+
+**更新**：启动时检查新版本，有则在**托盘／设置显示「⬆ 更新」**，**一键下载→替换→自动重启**（无需手动重新下载解压）。
+
+☕ 赞助（可选）：[Ko-fi](https://ko-fi.com/ghostsharkrobotics)

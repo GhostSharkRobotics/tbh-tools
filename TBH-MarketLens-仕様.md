@@ -72,7 +72,8 @@ Steam在庫の出品ホールドを追跡し、出品可になったら通知。
 - 表示：🟢売れる／🕒解除日ごと（≈M/D・あとN日）にまとめ、同名は×個数集約。状態は文章でなくUIで（[[tbh-ux-principles]]）。
 - **制約**：TBH出品が一時停止中は在庫が全て marketable:0＝追跡対象の実ホールド無し→本番検証は市場再開後。機能は完成・配備済みで再開時に自動で効く（一時条件で諦めない [[dont-abandon-on-temporary-conditions]]）。
 
-**設定**（トレイ→設定）: 表示言語(ja/en/zh, 起動時PC言語自動取得)／発動キー割当(欄クリック→任意キー/組合せを押す、実況表示)。`tbh-price-settings.json`永続化。初回起動で使い方画面。
+**設定**（トレイ→設定）: 表示言語(ja/en/zh, 起動時PC言語自動取得)／発動キー割当(欄クリック→任意キー/組合せを押す、実況表示)／**Windowsと一緒に起動**(トグル)。`tbh-price-settings.json`永続化。初回起動で使い方画面。
+- **自動起動**は `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`(管理者不要)。**レジストリ自体が真実＝設定jsonに持たない**（トグルは`_autostart_get/_set`でRunキーを直接読み書き、既定オフ）。コマンドはexe化時=`sys.executable`単体／.py時=`pythonw + script`。起動毎に`_autostart_refresh()`が有効なら現在パスで貼り直す（フォルダ移動・バージョン更新でパスが変わっても効き続ける）。
 
 **配信系**: フッターに `v1.1 · by Ghost Shark Robotics`、Ko-fi寄付(`KOFI_URL`)、アプリ内フィードバック(`FEEDBACK_URL`→Cloudflare Worker→Slack, 匿名・返信先任意)。起動時にGitHub最新リリースを確認し新版を控えめ告知。
 

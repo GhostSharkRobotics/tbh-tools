@@ -75,6 +75,7 @@ TR = {
         "fb_hint": "不具合・要望・気づいた点を書いて送ってください（匿名でOK）",
         "fb_contact": "返信がほしい場合の連絡先（任意）", "fb_thanks": "送信しました。ありがとう！", "fb_fail": "送信に失敗しました",
         "disclaimer": "非公式ツール · Nugem Studio / Valve とは無関係",
+        "startup": "起動", "autostart_label": "Windowsと一緒に起動", "autostart_hint": "サインイン時にMarketLensを自動で起動します。",
         "privacy": "利用統計", "telemetry_label": "匿名の利用統計を送る",
         "telemetry_hint": "改善のため、起動・参照したアイテム・エラーを匿名で送ります。IP・Steam在庫・個人情報は送りません。いつでもオフにできます。",
         "help_main": "アイテムに合わせて発動キーを押すと、そのアイテムの\nSteamマーケット価格（最安値・中央値）が出ます。",
@@ -125,6 +126,7 @@ TR = {
         "fb_hint": "Tell us about bugs, ideas, or anything — anonymous is fine.",
         "fb_contact": "Contact for a reply (optional)", "fb_thanks": "Sent. Thank you!", "fb_fail": "Failed to send",
         "disclaimer": "Unofficial tool · not affiliated with Nugem Studio or Valve",
+        "startup": "Startup", "autostart_label": "Start with Windows", "autostart_hint": "Launches MarketLens automatically when you sign in.",
         "privacy": "Usage stats", "telemetry_label": "Send anonymous usage stats",
         "telemetry_hint": "To improve the app, anonymous launches, looked-up items and errors are sent. No IP, Steam inventory or personal data is sent. You can turn this off anytime.",
         "help_main": "Point at an item and press your hotkey — its Steam Market\nprice (lowest + median) pops up.",
@@ -175,6 +177,7 @@ TR = {
         "fb_hint": "请填写问题、建议或任何想法，匿名也可。",
         "fb_contact": "如需回复请留联系方式（可选）", "fb_thanks": "已发送，谢谢！", "fb_fail": "发送失败",
         "disclaimer": "非官方工具 · 与 Nugem Studio / Valve 无关",
+        "startup": "启动", "autostart_label": "随 Windows 启动", "autostart_hint": "登录时自动启动 MarketLens。",
         "privacy": "使用统计", "telemetry_label": "发送匿名使用统计",
         "telemetry_hint": "为改进应用，会匿名发送启动、查询的物品和错误信息。不会发送IP、Steam库存或个人信息。可随时关闭。",
         "help_main": "将光标对准物品并按下触发键，即可显示该物品的\nSteam 市场价格（最低价·中位价）。",
@@ -1024,6 +1027,51 @@ def _load_settings():
     if not _cid[0]:                       # 初回（または欠落）は匿名IDを生成して永続化
         _cid[0] = uuid.uuid4().hex
         _save_settings()
+
+# ---- Windows起動時の自動起動（HKCU\...\Run。管理者不要。レジストリ自体が真実＝設定jsonに持たない） ----
+_RUN_KEY  = r"Software\Microsoft\Windows\CurrentVersion\Run"
+_RUN_NAME = "TBH MarketLens"
+
+def _autostart_command():
+    """ログオン時に起動するコマンド。exe化時はexe単体、.py時は pythonw + スクリプト。"""
+    if getattr(sys, "frozen", False):
+        return f'"{sys.executable}"'
+    py = sys.executable
+    pyw = os.path.join(os.path.dirname(py), "pythonw.exe")   # コンソールを出さない方を優先
+    exe = pyw if os.path.exists(pyw) else py
+    return f'"{exe}" "{os.path.abspath(__file__)}"'
+
+def _autostart_get():
+    """現在この実行ファイルで自動起動が有効か（Runキーの有無で判定）。"""
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY) as k:
+            winreg.QueryValueEx(k, _RUN_NAME)
+            return True
+    except FileNotFoundError:
+        return False
+    except Exception:
+        return False
+
+def _autostart_set(on):
+    """自動起動を有効/無効に。有効化時は現在のexe/スクリプトパスで書き直す（移動・更新に追従）。"""
+    try:
+        import winreg
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, _RUN_KEY) as k:
+            if on:
+                winreg.SetValueEx(k, _RUN_NAME, 0, winreg.REG_SZ, _autostart_command())
+            else:
+                try: winreg.DeleteValue(k, _RUN_NAME)
+                except FileNotFoundError: pass
+        return True
+    except Exception:
+        log_fatal("autostart_set:\n" + traceback.format_exc())
+        return False
+
+def _autostart_refresh():
+    """既に有効なら、現在のパスでコマンドを貼り直す（フォルダ移動やバージョン更新でパスが変わった時の保険）。"""
+    if _autostart_get():
+        _autostart_set(True)
 
 def _bind_trigger():
     """現在の_triggerでWORKQ発火をフック。既存フックは外す。"""
@@ -2030,6 +2078,26 @@ def show_settings(root):
     round_pill(rf, T("reset_default"),
                "#2a2f3a", C_NAME, reset, fs).pack(side="left")
 
+    # ── Windowsと一緒に起動（HKCU\Run。レジストリが真実） ──
+    cas = section(T("startup"))
+    asf = tk.Frame(cas, bg="#11141a"); asf.pack(fill="x", padx=14, pady=(0, 4))
+    as_state = [_autostart_get()]
+    as_pill = [None]
+    def _as_face():
+        on = as_state[0]
+        _pill_set_text(as_pill[0], ("☑ " if on else "☐ ") + T("autostart_label"))
+        recolor_pill(as_pill[0], C_ACCENT if on else "#2a2f3a")
+        try: as_pill[0].itemconfig("txt", fill="#0c0c0c" if on else C_NAME)
+        except Exception: pass
+    def toggle_as():
+        want = not as_state[0]
+        if _autostart_set(want): as_state[0] = want   # 書けた時だけトグル（失敗時は状態維持）
+        _as_face()
+    as_pill[0] = round_pill(asf, "☑ " + T("autostart_label"), C_ACCENT, "#0c0c0c", toggle_as, fs)
+    as_pill[0].pack(side="left"); _as_face()
+    tk.Label(cas, text=T("autostart_hint"), bg="#11141a", fg=C_META, font=fs,
+             anchor="w", justify="left", wraplength=300).pack(fill="x", padx=14, pady=(4, 12))
+
     # ── 利用統計（匿名・オフ可） ──
     c3 = section(T("privacy"))
     pf = tk.Frame(c3, bg="#11141a"); pf.pack(fill="x", padx=14, pady=(0, 4))
@@ -2465,6 +2533,7 @@ def main():
     for _r in _hist:
         if not _r.get("icon") and _r.get("hash"): _r["icon"] = _im.get(_r["hash"], "")
     _load_settings()                                           # 保存済み設定を復元
+    _autostart_refresh()                                       # 自動起動が有効なら現在のパスで貼り直す（移動/更新追従）
     _load_sell_state()                                         # 出品待ちの追跡状態（解除時刻/ロック履歴）を復元
     threading.Thread(target=_sell_poller, daemon=True).start() # 在庫を定期確認→解除を通知
     if _lang_mode[0] is None:                                  # 初回はPCの言語を既定に

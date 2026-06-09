@@ -94,7 +94,7 @@ TR = {
         "err_start": "起動に失敗しました。error.log を確認してください。",
         "tray_sell": "出品待ち", "sell_title": "出品待ち", "sell_refresh": "更新", "sell_recheck": "再確認",
         "sell_loading": "確認中…", "sell_ready_group": "売れる", "sell_ready": "売れる",
-        "sell_days": "あと{n}日", "sell_soon": "まもなく",
+        "sell_locked_group": "出品不可",
         "sell_private_title": "インベントリが非公開です",
         "sell_private_msg": "Steam在庫を読むにはインベントリの公開が必要です。下のボタンから設定を開き「ゲームの詳細」を公開にしてください。",
         "sell_open_privacy": "公開設定を開く", "sell_empty": "Steam在庫にアイテムがありません",
@@ -141,7 +141,7 @@ TR = {
         "err_start": "Failed to start. Please check error.log.",
         "tray_sell": "Sell timer", "sell_title": "Sell timer", "sell_refresh": "Refresh", "sell_recheck": "Re-check",
         "sell_loading": "Checking…", "sell_ready_group": "Sellable", "sell_ready": "Ready",
-        "sell_days": "{n}d left", "sell_soon": "soon",
+        "sell_locked_group": "Not sellable",
         "sell_private_title": "Inventory is private",
         "sell_private_msg": "To read your Steam inventory, set it to public. Open settings below and make 'Game details' public.",
         "sell_open_privacy": "Open privacy settings", "sell_empty": "No items in your Steam inventory",
@@ -188,7 +188,7 @@ TR = {
         "err_start": "启动失败。请查看 error.log。",
         "tray_sell": "可出售计时", "sell_title": "可出售计时", "sell_refresh": "刷新", "sell_recheck": "重新检查",
         "sell_loading": "检查中…", "sell_ready_group": "可出售", "sell_ready": "可售",
-        "sell_days": "还剩{n}天", "sell_soon": "即将",
+        "sell_locked_group": "不可出售",
         "sell_private_title": "库存未公开",
         "sell_private_msg": "要读取 Steam 库存，请将其设为公开。点击下方打开设置，将「游戏详情」设为公开。",
         "sell_open_privacy": "打开隐私设置", "sell_empty": "Steam 库存中没有物品",
@@ -1906,13 +1906,12 @@ def poll(root):
     root.after(80, lambda: poll(root))
 
 
-# ---- 出品待ち（Steam在庫のトレードホールド追跡）---------------------------
-# Steamは未ログインの新inventory APIを403で塞いだため、旧 inventory/json を使う。
-# 旧APIはインベントリが「公開」なら未ログインでも読める。tradableフラグは取れるが、
-# 正確な解除日(owner_descriptions)はowner限定で公開では取れない→「初めてロックを見た時刻
-# +7日」を上限推定として残り日数を出し、解除(tradable 1)に変わった瞬間を確実に通知する。
+# ---- 出品待ち（Steam在庫の出品可否追跡）-----------------------------------
+# 新inventory API（assets/descriptions形式）を使う。インベントリが「公開」なら未ログインで200、
+# 非公開だと403。取れるのは marketable/tradable フラグだけ。正確な解除日(owner_descriptions)は
+# owner限定でCookieが要り公開では取れない→「あと何日」は出さず、取れた事実(出品可/不可)のみ表示し、
+# marketableが0→1に変わった瞬間（＝実取得のflip）をトレイ通知する。
 TBH_INV_APPID = "3678970"
-HOLD_DAYS = 7
 SELL_FILE = os.path.join(HERE, "tbh-sell-state.json")
 
 _sell_win = [None]
@@ -1920,8 +1919,7 @@ _sell_inner = [None]               # (canvas, inner)
 _sell_visible = [False]
 _sell_geo = [None]
 _sell_state = {"status": "init", "items": [], "ts": 0}   # 直近の取得結果
-_sell_seen = {}                    # assetid -> 初めてロックを見たepoch（永続）
-_sell_known = {}                   # assetid -> 直近のtradable（解除flip通知用・永続）
+_sell_known = {}                   # assetid -> 直近のmarketable（出品可flip通知用・永続）
 _tray_icon = [None]                # 通知用にトレイIconを保持
 
 def _detect_steamid():
@@ -1962,14 +1960,13 @@ def _steam_privacy_url():
 def _save_sell_state():
     try:
         with open(SELL_FILE, "w", encoding="utf-8") as f:
-            json.dump({"seen": _sell_seen, "known": _sell_known}, f, ensure_ascii=False)
+            json.dump({"known": _sell_known}, f, ensure_ascii=False)
     except Exception:
         pass
 
 def _load_sell_state():
     try:
         d = json.load(open(SELL_FILE, encoding="utf-8"))
-        _sell_seen.update({str(k): float(v) for k, v in (d.get("seen") or {}).items()})
         _sell_known.update({str(k): int(v) for k, v in (d.get("known") or {}).items()})
     except Exception:
         pass
@@ -2022,16 +2019,10 @@ def _sell_fetch():
     notify = []
     for it in items:
         aid = it["assetid"]
-        if _sell_known.get(aid) == 0 and it["marketable"] == 1:  # 出品不可→出品可 を検知
+        if _sell_known.get(aid) == 0 and it["marketable"] == 1:  # 出品不可→出品可 を検知（通知の根拠＝実取得のflip）
             notify.append(it["name"])
         _sell_known[aid] = it["marketable"]
-        if it["marketable"] == 0:
-            _sell_seen.setdefault(aid, now)                      # 初めて出品不可を見た時刻を固定
-        else:
-            _sell_seen.pop(aid, None)
     live = {it["assetid"] for it in items}                       # 在庫から消えたものを掃除
-    for aid in list(_sell_seen):
-        if aid not in live: _sell_seen.pop(aid, None)
     for aid in list(_sell_known):
         if aid not in live: _sell_known.pop(aid, None)
     _save_sell_state()
@@ -2140,25 +2131,15 @@ def _refresh_sell():
         tk.Label(inner, text=T("sell_empty"), bg=C_CARD, fg=C_META, anchor="w",
                  justify="left", wraplength=300).pack(fill="x", padx=12, pady=10)
         _sell_scroll(); return
-    now = time.time()
     ready = [it for it in items if it["marketable"] == 1]
     locked = [it for it in items if it["marketable"] == 0]
-    if ready:
+    if ready:                                          # 取れた事実だけ表示（解除日は公開データに無いので出さない）
         _sell_header(inner, f"🟢 {T('sell_ready_group')} ({len(ready)})", C_PRICE)
         for g in _sell_agg(ready):
             _sell_item_row(inner, g, T("sell_ready"), C_PRICE)
-    byday = {}
-    for it in locked:
-        unlock = _sell_seen.get(it["assetid"], now) + HOLD_DAYS * 86400
-        byday.setdefault(int(unlock // 86400), []).append((it, unlock))
-    for dkey in sorted(byday):
-        grp = byday[dkey]
-        unlock = grp[0][1]
-        days = max(0, (int(unlock - now) + 86399) // 86400)
-        md = time.strftime("%#m/%#d" if os.name == "nt" else "%-m/%-d", time.localtime(unlock))
-        dleft = T("sell_soon") if days <= 0 else T("sell_days", n=days)
-        _sell_header(inner, f"🕒 ≈{md} ・ {dleft} ({len(grp)})", C_WAIT)
-        for g in _sell_agg([it for it, _ in grp]):
+    if locked:
+        _sell_header(inner, f"🔒 {T('sell_locked_group')} ({len(locked)})", C_WAIT)
+        for g in _sell_agg(locked):
             _sell_item_row(inner, g, "", C_META)
     _sell_scroll()
 
@@ -2204,6 +2185,9 @@ def toggle_sell(root):
     _sell_visible[0] = not _sell_visible[0]
     if _sell_visible[0]: show_sell(root)
     else: hide_sell(root)
+    if _tray_icon[0]:                                  # ×で閉じた時もトレイのチェック表示を同期
+        try: _tray_icon[0].update_menu()
+        except Exception: pass
 
 
 # ---- タスクトレイ --------------------------------------------------------

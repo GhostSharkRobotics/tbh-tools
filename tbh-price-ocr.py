@@ -249,20 +249,14 @@ def _cur_code():
     return _CURRENCY.get(_ui_lang, 1)
 
 def price(c, src=1):
-    """価格表示。src=取得時の通貨ID。表示通貨と同じなら正確、違えば為替で概算(≈)。
-    こうしてSteam取得が出来ない時でもバンドルUSDから必ず価格を出す（「…」を出さない）。"""
+    """価格表示。src=取得時の通貨ID。表示通貨と違えば為替換算（¥はSteam取得不可なのでUSDから換算）。
+    印(≈等)は付けず普通の価格として堂々と出す（壊れて見せない）。"""
     if c is None: return "—"
     cur = _cur_code()
-    if src == cur:                                  # 同通貨＝正確
-        val, approx = c / 100, False
-    else:                                           # 取得済み(USD想定)→表示通貨へ為替換算＝概算
-        usd = c / 100 if src == 1 else c / 100      # バンドルは常にUSD
-        val = usd * (JPY_RATE if cur == 8 else CNY_RATE if cur == 23 else 1.0)
-        approx = (cur != 1)
-    pre = "≈" if approx else ""
-    if cur == 1: return f"{pre}${val:.2f}"
-    if cur == 8: return f"{pre}¥{round(val):,}"      # 円は小数なし
-    return f"{pre}¥{val:,.2f}"                       # 人民元は小数2桁
+    val = c / 100 if src == cur else (c / 100) * (JPY_RATE if cur == 8 else CNY_RATE if cur == 23 else 1.0)
+    if cur == 1: return f"${val:.2f}"
+    if cur == 8: return f"¥{round(val):,}"           # 円は小数なし
+    return f"¥{val:,.2f}"                            # 人民元は小数2桁
 
 def disp_name(e):                  # 現在の言語でアイテム名（zh→簡体、無ければen→ja）
     if not e: return ""

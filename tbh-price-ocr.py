@@ -1228,13 +1228,15 @@ def _scrolling_body(win, inner_w=326):
     inner = tk.Frame(canvas, bg=C_CARD)
     inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=inner_w)
     bar = tk.Canvas(body, width=SBW, bg=C_CARD, highlightthickness=0, cursor="hand2")
-    st = {"top": 0.0, "bot": 1.0}
-    def redraw():
+    def redraw(*_):
+        # canvasの現在のスクロール位置を毎回直接読む（キャッシュ値だと開いた直後＝レイアウト前は
+        # 0..1のまま＝「全部見えてる」と誤判定して出てこない。リサイズで初めて出る不具合の原因）
         if not bar.winfo_exists(): return
         bar.delete("all")
         h = bar.winfo_height()
         if h <= 1: return
-        top, bot = st["top"], st["bot"]
+        try: top, bot = canvas.yview()
+        except Exception: return
         if bot - top >= 0.999: return                 # 全部見えてる→バー不要
         usable = h - 4
         _rrect(bar, 2, 2, SBW - 1, h - 2, (SBW - 3) / 2, "#262a33", "trk")   # トラック（控えめ）
@@ -1243,21 +1245,22 @@ def _scrolling_body(win, inner_w=326):
             mid = (y1 + y2) / 2
             y1, y2 = max(2, mid - 8), min(h - 2, mid + 8)
         _rrect(bar, 2, y1, SBW - 1, y2, (SBW - 3) / 2, "#525868", "thm")     # つまみ
-    def on_set(top, bot):
-        st["top"], st["bot"] = float(top), float(bot); redraw()
-    canvas.configure(yscrollcommand=on_set)
+    canvas.configure(yscrollcommand=redraw)            # スクロール時につまみ追従
+    canvas._sb_redraw = redraw                          # 行の増減後に外から再描画させる用
     canvas.bind("<Configure>", lambda e: (canvas.itemconfig(inner_id, width=e.width), redraw()))
     inner.bind("<Configure>", lambda e: redraw())     # 行が増減した時もつまみを更新
     bar.bind("<Configure>", lambda e: redraw())
     def jump(ev):
         h = bar.winfo_height()
         if h <= 1: return
-        span = st["bot"] - st["top"]
+        top, bot = canvas.yview(); span = bot - top
         frac = (ev.y - 2) / max(1, h - 4) - span / 2  # 掴んだ位置をつまみ中央に
         canvas.yview_moveto(max(0.0, min(1.0 - span, frac)))
     bar.bind("<Button-1>", jump); bar.bind("<B1-Motion>", jump)
     canvas.pack(side="left", fill="both", expand=True); bar.pack(side="right", fill="y", padx=(2, 0))
     win.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units"))
+    for _d in (60, 250):                               # 開いた直後＝レイアウト確定後に必ず一度描く
+        canvas.after(_d, redraw)
     return canvas, inner
 
 def _place(win, xy):
@@ -1693,7 +1696,9 @@ def _build_hist_row(rec):
 def _hist_scroll():
     c = _hist_inner[0][0] if _hist_inner[0] else None
     if c:
-        try: c.update_idletasks(); c.configure(scrollregion=c.bbox("all"))
+        try:
+            c.update_idletasks(); c.configure(scrollregion=c.bbox("all"))
+            if hasattr(c, "_sb_redraw"): c._sb_redraw()   # 行数が変わったらスクロールバーも更新
         except Exception: pass
 
 def _refresh_history():
@@ -2220,7 +2225,9 @@ def _set_sell_loading():
 def _sell_scroll():
     c = _sell_inner[0][0] if _sell_inner[0] else None
     if c:
-        try: c.update_idletasks(); c.configure(scrollregion=c.bbox("all"))
+        try:
+            c.update_idletasks(); c.configure(scrollregion=c.bbox("all"))
+            if hasattr(c, "_sb_redraw"): c._sb_redraw()   # 行数が変わったらスクロールバーも更新
         except Exception: pass
 
 def _sell_agg(items):

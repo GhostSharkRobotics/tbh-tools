@@ -1352,11 +1352,22 @@ def _scrolling_body(win, inner_w=326):
         _rrect(bar, 2, y1, SBW - 2, y2, (SBW - 4) / 2, "#6b7280", "thm")     # つまみ
     canvas.configure(yscrollcommand=redraw)            # スクロール時につまみ追従
     canvas._sb_redraw = redraw                          # 行の増減後に外から再描画させる用
-    canvas.bind("<Configure>", lambda e: (canvas.itemconfig(inner_id, width=e.width), redraw()))
-    def _on_inner(e):
-        # 中身がレイアウトされる度にscrollregionを実寸へ再計算（初回は開いた直後に高さが確定）
-        canvas.configure(scrollregion=canvas.bbox("all")); redraw()
-    inner.bind("<Configure>", _on_inner)
+    # scrollregion=bbox("all") は全行を走査するため、リサイズ中の連続Configureで毎回やると重い。
+    # デバウンス：最後のイベントから60ms後に1回だけ再計算（リサイズが滑らかになる）。
+    _rz = [None]
+    def _recalc():
+        _rz[0] = None
+        if not canvas.winfo_exists(): return
+        try: canvas.configure(scrollregion=canvas.bbox("all"))
+        except Exception: return
+        redraw()
+    def _schedule_recalc():
+        if _rz[0]:
+            try: canvas.after_cancel(_rz[0])
+            except Exception: pass
+        _rz[0] = canvas.after(60, _recalc)
+    canvas.bind("<Configure>", lambda e: (canvas.itemconfig(inner_id, width=e.width), _schedule_recalc()))
+    inner.bind("<Configure>", lambda e: _schedule_recalc())
     def jump(ev):
         h = canvas.winfo_height()
         if h <= 1: return
@@ -1868,6 +1879,19 @@ def _refresh_history():
     if _hist_sort_face[0]: _hist_sort_face[0]()                    # ソートpillの見た目も同期（言語切替時など）
     _hist_scroll()
 
+def _reorder_rows():
+    """既存の行ウィジェットを破棄せずソート順に並べ替える（全再構築のチラつき＝崩れ を避ける）。
+    アイコン再取得も無く、pack順だけ変えるので軽い。"""
+    if not (_hist_win[0] and _hist_win[0].winfo_exists() and _hist_inner[0] and _hist_rows): return
+    pos = {id(rec): i for i, rec in enumerate(_hist_ordered())}
+    _hist_rows.sort(key=lambda rd: pos.get(id(rd["rec"]), 10**9))
+    for rd in _hist_rows:                                          # 一旦外して
+        rd["frame"].pack_forget(); rd["sep"].pack_forget()
+    for rd in _hist_rows:                                          # 新しい順に貼り直す（同一ハンドラ内＝中間描画なし）
+        rd["frame"].pack(fill="x", padx=6, pady=(4, 0)); rd["sep"].pack(fill="x", padx=6, pady=(4, 0))
+    if _hist_sort_face[0]: _hist_sort_face[0]()
+    _hist_scroll()
+
 def _hist_update_price(rec):
     """1件の価格だけ、その場で書き換える（リストは消さない）＋一瞬光らせて更新を可視化。"""
     for rd in _hist_rows:
@@ -1884,28 +1908,32 @@ def _hist_sync_top():
         if rd["rec"] is rec:
             if rd["price"].winfo_exists(): _set_row_price(rd); rd["ts"].config(text=rec.get("ts", ""))
             return
-    if _hist_sort[0] != "date" or not _hist_sort_desc[0]:   # 並べ替え中の新規は正しい位置へ＝全再構築
-        _refresh_history(); return
+    new_sort = (_hist_sort[0] != "date" or not _hist_sort_desc[0])   # 並べ替え中か
     if not _hist_rows:                               # 空表示ラベルがあれば消す
         for w in inner.winfo_children():
             try: w.destroy()
             except Exception: pass
-    rd = _build_hist_row(rec)                         # 新規→お気に入りの下（非お気に入りの先頭）に差し込む
-    anchor = next((r for r in _hist_rows if not r["rec"].get("fav")), None)
-    if anchor:
-        rd["frame"].pack(fill="x", padx=6, pady=(4, 0), before=anchor["frame"])
-        rd["sep"].pack(fill="x", padx=6, pady=(4, 0), before=anchor["frame"])
-        _hist_rows.insert(_hist_rows.index(anchor), rd)
-    else:
+    rd = _build_hist_row(rec)
+    if new_sort:                                      # 並べ替え中：末尾に作り、あとで正しい位置へ（破棄せず）
         rd["frame"].pack(fill="x", padx=6, pady=(4, 0)); rd["sep"].pack(fill="x", padx=6, pady=(4, 0))
         _hist_rows.append(rd)
+    else:                                             # 追加日↓：お気に入りの下（非お気に入りの先頭）に差し込む
+        anchor = next((r for r in _hist_rows if not r["rec"].get("fav")), None)
+        if anchor:
+            rd["frame"].pack(fill="x", padx=6, pady=(4, 0), before=anchor["frame"])
+            rd["sep"].pack(fill="x", padx=6, pady=(4, 0), before=anchor["frame"])
+            _hist_rows.insert(_hist_rows.index(anchor), rd)
+        else:
+            rd["frame"].pack(fill="x", padx=6, pady=(4, 0)); rd["sep"].pack(fill="x", padx=6, pady=(4, 0))
+            _hist_rows.append(rd)
     present = {id(r) for r in _hist}                  # 上限で押し出された行を撤去
     for rd2 in _hist_rows[:]:
         if id(rd2["rec"]) not in present:
             try: rd2["frame"].destroy(); rd2["sep"].destroy()
             except Exception: pass
             _hist_rows.remove(rd2)
-    _hist_scroll()
+    if new_sort: _reorder_rows()                      # 正しい位置へ（破棄せず並べ替え）
+    else: _hist_scroll()
 
 def show_history(root):
     _hist_visible[0] = True; _save_settings()      # 開いた状態を保存（再起動後も復元）
@@ -1944,7 +1972,7 @@ def show_history(root):
     def _pick_sort(m):
         if _hist_sort[0] == m: _hist_sort_desc[0] = not _hist_sort_desc[0]   # 同じソート再タップ＝方向反転
         else: _hist_sort[0] = m; _hist_sort_desc[0] = True                   # 切替時は降順（新しい/高い順）から
-        _save_settings(); _sort_face(); _refresh_history()
+        _save_settings(); _sort_face(); _reorder_rows()                      # 破棄せず並べ替え（崩れない）
     for m, lab in (("date", lambda: T("sort_added")), ("sell", lambda: T("low")), ("median", lambda: T("med"))):
         p = round_pill(sortf, lab(), "#2a2f3a", C_NAME, (lambda mm=m: _pick_sort(mm)), f_hbtn)
         p.pack(side="left", padx=(0, 6)); _hist_sort_pills.append((m, p, lab))

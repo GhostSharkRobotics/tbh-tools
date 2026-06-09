@@ -1214,6 +1214,41 @@ def _round_corners(win):
     except Exception:
         pass
 
+def _modern_titlebar(win, title_text, on_close):
+    """OS標準タイトルバーを外し、ダーク・Win11角丸・ドラッグ移動・✕ のカスタム上部にする。
+    戻り: row(Frame) … 呼び出し側がタイトルと✕の間に操作ボタンを side='right' で足せる。"""
+    win.overrideredirect(True)
+    _round_corners(win)
+    tk.Frame(win, bg=C_CARD, height=8).pack(side="top", fill="x")          # 上の余白（角丸が映える）
+    row = tk.Frame(win, bg=C_CARD); row.pack(side="top", fill="x", padx=(12, 8))
+    title = tk.Label(row, text=title_text, bg=C_CARD, fg=C_NAME, font=("Yu Gothic UI", 12, "bold"))
+    title.pack(side="left")
+    close = tk.Label(row, text="✕", bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 12), cursor="hand2")
+    close.pack(side="right", padx=(8, 2))
+    close.bind("<Button-1>", lambda e: on_close())
+    close.bind("<Enter>", lambda e: close.config(fg=C_NAME))
+    close.bind("<Leave>", lambda e: close.config(fg=C_META))
+    d = {"x": 0, "y": 0}                                                    # タイトル行の空き＋文字でドラッグ移動
+    def press(e): d["x"], d["y"] = e.x_root, e.y_root
+    def move(e):
+        win.geometry(f"+{win.winfo_x() + (e.x_root - d['x'])}+{win.winfo_y() + (e.y_root - d['y'])}")
+        d["x"], d["y"] = e.x_root, e.y_root
+    for w in (row, title):
+        w.bind("<Button-1>", press); w.bind("<B1-Motion>", move)
+    return row
+
+def _add_resize_grip(win, min_w=300, min_h=240):
+    """overrideredirectで失われるリサイズを右下グリップで代替（ドラッグで幅高さ変更）。"""
+    grip = tk.Label(win, text="⤡", bg=C_CARD, fg="#3a3f4b", cursor="size_nw_se", font=("Yu Gothic UI", 11))
+    grip.place(relx=1.0, rely=1.0, anchor="se", x=-1, y=-1)
+    s = {}
+    def press(e):
+        s["x"], s["y"], s["w"], s["h"] = e.x_root, e.y_root, win.winfo_width(), win.winfo_height()
+    def drag(e):
+        win.geometry(f"{max(min_w, s['w'] + (e.x_root - s['x']))}x{max(min_h, s['h'] + (e.y_root - s['y']))}")
+    grip.bind("<Button-1>", press); grip.bind("<B1-Motion>", drag)
+    return grip
+
 def _top_hwnd(win):
     """Tkウィンドウの本当のトップレベルHWNDを返す（overrideredirectは子HWNDが返るためGA_ROOTで解決）。"""
     import ctypes
@@ -2050,20 +2085,18 @@ def show_history(root):
     if _hist_win[0] and _hist_win[0].winfo_exists():
         _hist_win[0].deiconify(); _refresh_history(); return
     win = tk.Toplevel(root)
-    win.title("TBH MarketLens — " + T("hist_title"))
-    win.config(bg=C_CARD); win.geometry(_hist_geo[0] or "360x460"); win.attributes("-topmost", True)
-    win.protocol("WM_DELETE_WINDOW", lambda: toggle_history(root))   # ×でオフに同期
+    win.config(bg=C_CARD); win.attributes("-topmost", True)
+    f_hbtn = tkfont.Font(family="Yu Gothic UI", size=9)
+    # カスタム上部（ダーク・角丸・ドラッグ・✕）。タイトルと✕の間に「全部更新」を置く＝1行に集約
+    hdr = _modern_titlebar(win, T("hist_title"), lambda: toggle_history(root))
+    _hist_update_btn[0] = round_pill(hdr, ("⏳ " + T("updating_btn")) if _hist_updating[0] else _upd_btn_text(),
+                                     C_ACCENT, "#0c0c0c", _hist_update_all, f_hbtn)
+    _hist_update_btn[0].pack(side="right", padx=(0, 6))
+    win.geometry(_hist_geo[0] or "360x460")      # overrideredirect後にサイズ/位置を適用
     def _remember_geo(e):                        # 移動/リサイズを記憶（次回復元）
         if e.widget is win and win.winfo_width() > 80:
             _hist_geo[0] = win.geometry()
     win.bind("<Configure>", _remember_geo)
-    f_hbtn = tkfont.Font(family="Yu Gothic UI", size=9)
-    hdr = tk.Frame(win, bg=C_CARD); hdr.pack(fill="x", padx=12, pady=(10, 0))
-    tk.Label(hdr, text=T("hist_title"), bg=C_CARD, fg=C_NAME,
-             font=("Yu Gothic UI", 13, "bold"), anchor="w").pack(side="left")
-    _hist_update_btn[0] = round_pill(hdr, ("⏳ " + T("updating_btn")) if _hist_updating[0] else _upd_btn_text(),
-                                     C_ACCENT, "#0c0c0c", _hist_update_all, f_hbtn)
-    _hist_update_btn[0].pack(side="right")
     # ── 並べ替え：追加日 / 最安 / 中央値（単一選択。選択中を再タップで昇順⇄降順） ──
     sortf = tk.Frame(win, bg=C_CARD); sortf.pack(side="top", fill="x", padx=12, pady=(2, 2))
     _hist_sort_pills.clear()
@@ -2096,6 +2129,7 @@ def show_history(root):
     # クリック/右クリックは受け取れる。スクロールはWin11の「非アクティブ窓もスクロール」既定で可。
     # ポップ表示中(_open非空)は最前面の再主張を休む＝価格ポップと奪い合わずチラつかない。
     _keep_on_top(win, pause=lambda: bool(_open), respect_toggle=True)   # 『常に前面』設定に従う
+    _add_resize_grip(win)                        # 右下グリップでリサイズ（OS枠が無いため）
     _refresh_history()
 
 def hide_history():
@@ -2668,22 +2702,20 @@ def show_sell(root):
     if _sell_win[0] and _sell_win[0].winfo_exists():
         _sell_win[0].deiconify(); _refresh_sell(); return
     win = tk.Toplevel(root)
-    win.title("TBH MarketLens — " + T("sell_title"))
-    win.config(bg=C_CARD); win.geometry(_sell_geo[0] or "360x460"); win.attributes("-topmost", True)
-    win.protocol("WM_DELETE_WINDOW", lambda: toggle_sell(root))
+    win.config(bg=C_CARD); win.attributes("-topmost", True)
+    f_btn = tkfont.Font(family="Yu Gothic UI", size=9)
+    hdr = _modern_titlebar(win, T("sell_title"), lambda: toggle_sell(root))   # ダーク・角丸・ドラッグ・✕
+    round_pill(hdr, "↻ " + T("sell_refresh"), C_ACCENT, "#0c0c0c",
+               lambda: (_set_sell_loading(), _sell_refresh_async()), f_btn).pack(side="right", padx=(0, 6))
+    win.geometry(_sell_geo[0] or "360x460")      # overrideredirect後に適用
     def _rg(e):
         if e.widget is win and win.winfo_width() > 80:
             _sell_geo[0] = win.geometry()
     win.bind("<Configure>", _rg)
-    f_btn = tkfont.Font(family="Yu Gothic UI", size=9)
-    hdr = tk.Frame(win, bg=C_CARD); hdr.pack(fill="x", padx=12, pady=(10, 0))
-    tk.Label(hdr, text=T("sell_title"), bg=C_CARD, fg=C_NAME,
-             font=("Yu Gothic UI", 13, "bold"), anchor="w").pack(side="left")
-    round_pill(hdr, "↻ " + T("sell_refresh"), C_ACCENT, "#0c0c0c",
-               lambda: (_set_sell_loading(), _sell_refresh_async()), f_btn).pack(side="right")
     canvas, inner = _scrolling_body(win)
     _sell_win[0] = win; _sell_inner[0] = (canvas, inner)
     _keep_on_top(win, pause=lambda: bool(_open), respect_toggle=True)   # 『常に前面』設定に従う
+    _add_resize_grip(win)                        # 右下グリップでリサイズ
     _refresh_sell()
     _set_sell_loading(); _sell_refresh_async()    # 開いたら最新を取りに行く
 

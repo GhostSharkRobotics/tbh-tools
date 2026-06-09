@@ -101,8 +101,6 @@ const CHART_DATA={
     rows:[['剣',11.7,'#d8a657'],['弓',11.7,'#d8a657'],['杖',11.7,'#d8a657'],['セプター',11.7,'#d8a657'],
       ['兜',11.7,'#5f93d0'],['鎧',11.7,'#5f93d0'],['手袋',11.7,'#5f93d0'],['靴',11.7,'#5f93d0'],
       ['盾',1.7,'#9a8f7a'],['矢',1.7,'#9a8f7a'],['オーブ',1.7,'#9a8f7a'],['魔導書',1.7,'#9a8f7a']]},
-  craftMainWeaponGrade:{title:'ほぼアンコモン〜レア、レジェ以上は稀',
-    rows:[['アンコモン',50,'#5fb35f'],['レア',40,'#4f8fe0'],['レジェンダリー',8,'#c98b2e'],['イモータル',2,'#d05b5b']]},
   synthAccessoryType:{title:'首飾り・ブレーサー多め、イヤリングは渋い',
     rows:[['首飾り',34.5,'#a05fd0'],['ブレーサー',34.5,'#a05fd0'],['指輪',27.6,'#a05fd0'],['イヤリング',3.4,'#6a5a78']]},
   craftAccessoryType:{title:'イヤリング・ブレーサー多め、首飾りは少なめ（合成と真逆）',
@@ -131,6 +129,36 @@ function drawBarList(el,cd){
   let h='<div class="ct">'+cd.title+'</div>';
   cd.rows.forEach(r=>{h+=barRow(r[0],r[1],r[2]);});
   el.innerHTML=h;
+}
+// クラフトのグレード確率：装備種に依らずレベル帯(tier)だけで決まる（CraftingRecipeInfoData.gradeOdds）。最高はビヨンド＝セレスティアル以上はクラフト不可
+const CRAFT_GRADE_BANDS=[
+  {lo:1, o:{UNCOMMON:50,RARE:40,LEGENDARY:8,IMMORTAL:2}},
+  {lo:10,o:{UNCOMMON:30,RARE:52,LEGENDARY:13,IMMORTAL:4.5,ARCANA:0.5}},
+  {lo:20,o:{UNCOMMON:18,RARE:56,LEGENDARY:18,IMMORTAL:7,ARCANA:0.9,BEYOND:0.07}},
+  {lo:30,o:{UNCOMMON:11,RARE:55,LEGENDARY:23,IMMORTAL:9,ARCANA:1.8,BEYOND:0.2}},
+  {lo:40,o:{UNCOMMON:7,RARE:53,LEGENDARY:26,IMMORTAL:11,ARCANA:2.8,BEYOND:0.2}},
+  {lo:50,o:{UNCOMMON:1.5,RARE:51.5,LEGENDARY:29,IMMORTAL:14,ARCANA:3.8,BEYOND:0.2}},
+  {lo:65,o:{RARE:49.5,LEGENDARY:30,IMMORTAL:16.5,ARCANA:3.8,BEYOND:0.2}},
+  {lo:80,o:{RARE:48,LEGENDARY:30,IMMORTAL:18,ARCANA:3.8,BEYOND:0.2}},
+];
+function drawCraftGrade(el){
+  el.innerHTML='<div class="ct">作る装備のレベルでグレード確率が変わる（装備種は無関係。最高はビヨンド＝セレスティアル以上はクラフト不可）</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin:2px 0 10px;font-size:13px;flex-wrap:wrap">'
+    +'<span style="color:var(--muted);width:96px">作る装備Lv</span>'
+    +'<input id="cgLv" type="range" min="1" max="80" value="15" style="flex:1;min-width:130px;accent-color:var(--accent)">'
+    +'<span id="cgLvV" style="color:var(--accent);font-weight:700;width:56px;text-align:right">Lv15</span></div>'
+    +'<div id="cgBars"></div>';
+  const lv=el.querySelector('#cgLv'),lvV=el.querySelector('#cgLvV'),bars=el.querySelector('#cgBars');
+  function build(){
+    const L=+lv.value; lvV.textContent='Lv'+L;
+    let band=CRAFT_GRADE_BANDS[0]; CRAFT_GRADE_BANDS.forEach(b=>{if(L>=b.lo)band=b;});
+    let h='';
+    ORDER.forEach(k=>{const p=band.o[k]; if(p==null)return;
+      const bw=Math.max(Math.min(p,100),0.6), disp=p<1?p.toFixed(2)+'%':p+'%';
+      h+=`<div class="chrow"><div class="lbl" style="width:104px">${GJA[k]}</div><div class="track"><div class="fill" style="width:${bw.toFixed(1)}%;background:${GCOL[k]}"></div></div><div class="pct" style="width:54px">${disp}</div></div>`;});
+    bars.innerHTML=h;
+  }
+  build(); lv.addEventListener('input',build);
 }
 // オーバーレベルEXP補正 jwf(基準Lv, 相手Lv)：ステージ討伐EXPもキューブEXPも共用（逆アセンブルで確定）
 function olMult(A,delta){
@@ -202,6 +230,7 @@ function drawOverlevelExp(el){
 function drawCharts(){
   document.querySelectorAll('.chart').forEach(el=>{
     if(el.dataset.chart==='overlevelExp'){drawOverlevelExp(el);return;}
+    if(el.dataset.chart==='craftGrade'){drawCraftGrade(el);return;}
     const cd=CHART_DATA[el.dataset.chart];
     if(cd) drawBarList(el,cd);
   });

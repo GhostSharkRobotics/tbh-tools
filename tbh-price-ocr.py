@@ -1649,33 +1649,42 @@ def _hist_fav(rec):
             rd["name"].config(text=("★ " if rec.get("fav") else "") + (disp_name(rec) or "?")); break
     _reorder_rows()                                  # お気に入りは上＝並べ替え（破棄しない）
 
-def _hist_apply(rec, name, rarity_en):
-    """name+等級で再照合し、recを新データに置換（fav/tsは保持）。価格も取得。"""
+def _hist_apply_ent(rec, ent):
+    """確定したentで履歴recを差し替え（価格取得→その1行だけ作り直し）。fav/tsは保持。"""
+    if not ent:
+        _hist_after(_reorder_rows); return
     fav, ts = rec.get("fav"), rec.get("ts")
-    rmap = {en: ja for en, ja in RARITIES}
+    ent = dict(ent)
     def work():
-        r = matcher.match_item(name, rmap.get(rarity_en, rarity_en) if rarity_en else "")
-        ent = r[0] if r else None
-        if ent:
-            apply_live(ent, native_ok=True, force=True)
-            new = {k: ent.get(k) for k in ("ja", "en", "rarity_en", "rarity_ja", "sell", "median",
-                                           "volume", "cur", "_live", "hash", "type_ja", "type_en", "type")}
-            new["fav"], new["ts"] = fav, ts
-            if rec in _hist: _hist[_hist.index(rec)] = new
-            _save_hist()
-            _hist_after(lambda: (_hist_replace_row(rec, new), _reorder_rows()))  # その1行だけ作り直し→並べ替え
-        else:
-            _hist_after(_reorder_rows)                # 該当なし時は並びだけ整える
+        apply_live(ent, native_ok=True, force=True)
+        new = {k: ent.get(k) for k in ("ja", "en", "zh", "zh_hant", "icon", "rarity_en", "rarity_ja",
+                                       "sell", "median", "volume", "cur", "hash",
+                                       "type_ja", "type_en", "type", "_live", "_nolist")}
+        new["fav"], new["ts"] = fav, ts
+        if not new.get("icon"):                    # iconを落とすとレア度色タイル（背景）が出る＝必ず補完
+            new["icon"] = _icon_by_hash().get(new.get("hash"), "")
+        if rec in _hist: _hist[_hist.index(rec)] = new
+        _save_hist()
+        _hist_after(lambda: (_hist_replace_row(rec, new), _reorder_rows()))  # その1行だけ作り直し→並べ替え
     threading.Thread(target=work, daemon=True).start()
 
 def _hist_set_rarity(rec, en):
-    _hist_apply(rec, rec.get("ja") or rec.get("en") or "", en)
+    """レア度変更は完全一致で実エントリを引く（ファジー一致で別レア度に化けさせない＝Cosmic→Beyond根絶）。"""
+    base = rec.get("en")
+    cands = [e for e in matcher.entries if e.get("en") == base and e.get("rarity_en") == en]
+    if not cands: return                           # そのレア度は無い（メニューにも出さないので通常来ない）
+    var = rec.get("variant")
+    cands.sort(key=lambda e: (e.get("variant") != var, e.get("sell") is None, -(e.get("sell") or 0)))
+    _hist_apply_ent(rec, cands[0])
 
 def _hist_rename(rec):
     def on_ok(s):
-        if s: _hist_apply(rec, s, rec.get("rarity_en"))
-    _ask_text(T("rename_title"),
-              rec.get("ja") or rec.get("en") or "", on_ok)
+        if not s: return
+        rmap = {en: ja for en, ja in RARITIES}
+        rar = rec.get("rarity_en")
+        r = matcher.match_item(s, rmap.get(rar, rar) if rar else "")   # 改名は名前ファジー一致
+        _hist_apply_ent(rec, r[0] if r else None)
+    _ask_text(T("rename_title"), rec.get("ja") or rec.get("en") or "", on_ok)
 
 def _hist_apply_cache():
     """履歴の価格を、メモリ内キャッシュ（一括USD/現地）だけで再表示（ネット非使用＝言語切替で叩かない）。"""
@@ -1776,6 +1785,14 @@ def _ask_text(title, initial, on_ok):
     try: ent.select_range(0, "end"); ent.icursor("end")
     except Exception: pass
 
+def _rarities_for(rec):
+    """このアイテムが実際に持つレア度(en)を Legendary〜Cosmic の順で返す。
+    存在しないレア度を選ぶと別レア度に化ける（例 Cosmic→Beyond）ので、無いものはメニューに出さない。"""
+    en = rec.get("en")
+    have = {e.get("rarity_en") for e in matcher.entries if e.get("en") == en} if en else set()
+    order = [r for r, _ in RARITIES[3:]]         # レジェンダリー〜コズミック
+    return [r for r in order if r in have] or order
+
 def _row_menu(ev, rec):
     m = tk.Menu(_hist_win[0], tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
                 activeforeground="#ffffff", bd=0)
@@ -1785,8 +1802,9 @@ def _row_menu(ev, rec):
     m.add_command(label=T("rename"), command=lambda: _hist_rename(rec))
     rm = tk.Menu(m, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
                  activeforeground="#ffffff", bd=0)
-    for en, jaa in RARITIES:
-        rm.add_command(label=(jaa if ja else en), foreground=rarity_color(en),
+    rja = dict(RARITIES)
+    for en in _rarities_for(rec):                # そのアイテムが実際に持つレア度だけ（化け防止＋レジェ〜コズミック限定）
+        rm.add_command(label=(rja[en] if ja else en), foreground=rarity_color(en),
                        command=lambda en=en: _hist_set_rarity(rec, en))
     m.add_cascade(label=T("rarity_change"), menu=rm)
     m.add_separator()

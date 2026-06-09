@@ -56,7 +56,7 @@ LANGS = ("ja", "en", "zh")
 LANG_NAMES = {"ja": "日本語", "en": "English", "zh": "中文"}   # 言語自身の表示名（モード非依存のデータ）
 TR = {
     "ja": {
-        "low": "最安", "med": "中央値", "lst": "出品", "sold": "売買", "quote": "相場",
+        "low": "最安", "med": "中央値", "lst": "出品", "sold": "売買", "quote": "相場", "sort_added": "追加日",
         "mkt": "クリックでSteamマーケットを開く", "noprice": "市場価格なし（非取引）", "nolisting": "出品なし",
         "nomatch": "該当なし", "reading": "🔍 読み取り中…", "read": "読取",
         "rarity": "等級", "history": "履歴",
@@ -107,7 +107,7 @@ TR = {
         "sell_notify": "「{name}」が出品可能になりました",
     },
     "en": {
-        "low": "Low", "med": "Median", "lst": "List", "sold": "Sold", "quote": "Updated",
+        "low": "Low", "med": "Median", "lst": "List", "sold": "Sold", "quote": "Updated", "sort_added": "Added",
         "mkt": "Click to open Steam Market", "noprice": "Not on market", "nolisting": "No listings",
         "nomatch": "No match", "reading": "🔍 Reading…", "read": "OCR",
         "rarity": "Rarity", "history": "History",
@@ -158,7 +158,7 @@ TR = {
         "sell_notify": "“{name}” can now be listed",
     },
     "zh": {
-        "low": "最低", "med": "中位", "lst": "在售", "sold": "成交", "quote": "行情",
+        "low": "最低", "med": "中位", "lst": "在售", "sold": "成交", "quote": "行情", "sort_added": "添加",
         "mkt": "点击打开 Steam 市场", "noprice": "无市场价格（不可交易）", "nolisting": "暂无在售",
         "nomatch": "无匹配", "reading": "🔍 识别中…", "read": "识别",
         "rarity": "品质", "history": "历史",
@@ -904,6 +904,11 @@ _hist_prog = [None]        # 進捗バー（Canvas）。更新中だけ可視化
 _hist_prog_state = {"done": 0, "total": 0, "on": False, "phase": 0}   # 進捗とアニメ位相
 _hist_geo = [None]         # 履歴ウィンドウの位置・サイズ（記憶して次回復元）
 _hist_rows = []            # 表示中の行 [{rec,frame,sep,price,icon,name,ts}…]（増分更新でリストを消さない）
+_hist_sort = ["date"]      # 並び順: "date"=追加日 / "sell"=最安 / "median"=中央値
+_hist_sort_desc = [True]   # True=降順（新しい順/高い順）。同じソートを再タップで反転
+_hist_sort_pills = []      # ソートpill [(mode, pill, label_fn)]
+_hist_sort_face = [None]   # pillの見た目更新関数（_refresh時に同期）
+_hist_now = [None]         # ヘッダの現在日時ラベル
 HIST_FILE = os.path.join(HERE, "tbh-price-history.json")   # 履歴の保存先（再起動で消えないように）
 SET_FILE = os.path.join(HERE, "tbh-price-settings.json")   # 設定の保存先
 
@@ -1014,6 +1019,7 @@ def _save_settings():
             json.dump({"trigger": _trigger, "lang": _lang_mode[0], "intro_seen": _intro_seen[0],
                        "hist_geo": _hist_geo[0], "sell_geo": _sell_geo[0],
                        "hist_open": _hist_visible[0], "sell_open": _sell_visible[0],
+                       "hist_sort": _hist_sort[0], "hist_sort_desc": _hist_sort_desc[0],
                        "cid": _cid[0], "telemetry": _telemetry[0]},
                       f, ensure_ascii=False)
     except Exception: pass
@@ -1031,6 +1037,8 @@ def _load_settings():
         if isinstance(d.get("sell_geo"), str): _sell_geo[0] = d["sell_geo"]
         _hist_visible[0] = bool(d.get("hist_open"))    # 前回の開閉状態（再起動で復元）
         _sell_visible[0] = bool(d.get("sell_open"))
+        if d.get("hist_sort") in ("date", "sell", "median"): _hist_sort[0] = d["hist_sort"]
+        if "hist_sort_desc" in d: _hist_sort_desc[0] = bool(d["hist_sort_desc"])
         if isinstance(d.get("cid"), str) and d["cid"]: _cid[0] = d["cid"]
         if "telemetry" in d: _telemetry[0] = bool(d["telemetry"])
     except Exception: pass
@@ -1165,11 +1173,19 @@ def _icon_by_hash():
             _icon_map[0] = {}
     return _icon_map[0]
 
+def _stamp_str():                  # セル右下の追加日時（年なし。例 6/9 21:30）。Win strftimeの-m非対応を避け手組み
+    t = time.localtime()
+    return f"{t.tm_mon}/{t.tm_mday} {t.tm_hour:02d}:{t.tm_min:02d}"
+
+def _now_str():                    # ヘッダの現在日時（年あり。例 2026/6/9 21:30）
+    t = time.localtime()
+    return f"{t.tm_year}/{t.tm_mon}/{t.tm_mday} {t.tm_hour:02d}:{t.tm_min:02d}"
+
 def _record_history(ent):
     if not ent: return
     rec = {k: ent.get(k) for k in ("ja", "en", "zh", "zh_hant", "icon", "rarity_en", "rarity_ja",
                                    "sell", "median", "volume", "cur", "hash", "type_ja", "type_en", "type", "_live", "_nolist")}
-    rec["ts"] = time.strftime("%H:%M")
+    rec["ts"] = _stamp_str()
     if not rec.get("icon"):                         # 価格側エントリにicon無し→ハッシュから補完
         rec["icon"] = _icon_by_hash().get(rec.get("hash"), "")
     if _hist and _hist[0].get("hash") == rec["hash"]:   # 直近と同一なら時刻だけ更新（fav保持）
@@ -1780,14 +1796,15 @@ def _build_hist_row(rec):
     if lv:                                              # 名前のうしろに必要Lv（グレー・小さめ）：「アイテム名 Lv80」
         tk.Label(top, text=lv, bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8),
                  anchor="sw").pack(side="left", padx=(4, 0), pady=(0, 1))
-    ts_lbl = tk.Label(top, text=rec.get("ts", ""), bg=C_CARD, fg=C_META,
-                      font=("Yu Gothic UI", 8), anchor="e"); ts_lbl.pack(side="right")
     prow = tk.Frame(col, bg=C_CARD); prow.pack(fill="x")
     price_lbl = tk.Label(prow, text="", bg=C_CARD, font=("Yu Gothic UI", 9), anchor="w"); price_lbl.pack(side="left")
     delta_lbl = tk.Label(prow, text="", bg=C_CARD, font=("Yu Gothic UI", 9, "bold"), anchor="e"); delta_lbl.pack(side="right")
-    meta_txt = " ".join(t for t in (rj, part) if t)    # 下の段：レア度＋部位を空白区切り（例「アルカナ 弓」、Lvは上段へ）
+    bot = tk.Frame(col, bg=C_CARD); bot.pack(fill="x")  # 下の段：左にレア度＋部位、右下に追加日時
+    meta_txt = " ".join(t for t in (rj, part) if t)    # レア度＋部位を空白区切り（例「アルカナ 弓」、Lvは上段へ）
     if meta_txt:
-        tk.Label(col, text=meta_txt, bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(fill="x")
+        tk.Label(bot, text=meta_txt, bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(side="left")
+    ts_lbl = tk.Label(bot, text=rec.get("ts", ""), bg=C_CARD, fg=C_META,
+                      font=("Yu Gothic UI", 8), anchor="e"); ts_lbl.pack(side="right")
     sep = tk.Frame(inner, bg="#2a2f3a", height=1)
     rd = {"rec": rec, "frame": row, "sep": sep, "price": price_lbl, "delta": delta_lbl,
           "icon": icon_lbl, "name": name_lbl, "ts": ts_lbl}
@@ -1813,8 +1830,23 @@ def _hist_scroll():
             if hasattr(c, "_sb_redraw"): c._sb_redraw()   # 行数が変わったらスクロールバーも更新
         except Exception: pass
 
+def _hist_ordered():
+    """ソート設定に従って履歴を並べる（お気に入りは常に上）。価格なしは末尾。"""
+    items = list(_hist)
+    mode, desc = _hist_sort[0], _hist_sort_desc[0]
+    if mode in ("sell", "median"):
+        def num(r):
+            v = r.get(mode)
+            return v if isinstance(v, (int, float)) else None
+        have = sorted([r for r in items if num(r) is not None], key=num, reverse=desc)
+        items = have + [r for r in items if num(r) is None]   # 価格なし(出品なし等)は常に末尾
+    elif not desc:                                            # 追加日・昇順（古い順）。降順は_hist既定(新しい順)のまま
+        items = list(reversed(items))
+    favs = [r for r in items if r.get("fav")]                 # お気に入りは各並びを保ったまま上へ
+    return favs + [r for r in items if not r.get("fav")]
+
 def _refresh_history():
-    """全再構築（開いた時・削除/お気に入り/改名/等級変更/言語/上限変更など構造が変わる時のみ）。"""
+    """全再構築（開いた時・並べ替え・削除/お気に入り/改名/等級変更/言語/上限変更など構造が変わる時）。"""
     if not (_hist_win[0] and _hist_win[0].winfo_exists() and _hist_inner[0]): return
     inner = _hist_inner[0][1]
     for w in inner.winfo_children():
@@ -1829,10 +1861,11 @@ def _refresh_history():
     if not _hist:
         tk.Label(inner, text=T("hist_empty"), bg=C_CARD, fg=C_META, anchor="w").pack(fill="x", padx=12, pady=10)
         _hist_scroll(); return
-    for rec in sorted(_hist, key=lambda r: (not r.get("fav"),)):   # お気に入りを上に
+    for rec in _hist_ordered():                                    # ソート設定順（お気に入りは上）
         rd = _build_hist_row(rec)
         rd["frame"].pack(fill="x", padx=6, pady=(4, 0)); rd["sep"].pack(fill="x", padx=6, pady=(4, 0))
         _hist_rows.append(rd)
+    if _hist_sort_face[0]: _hist_sort_face[0]()                    # ソートpillの見た目も同期（言語切替時など）
     _hist_scroll()
 
 def _hist_update_price(rec):
@@ -1847,10 +1880,12 @@ def _hist_sync_top():
     if not (_hist_win[0] and _hist_win[0].winfo_exists() and _hist_inner[0] and _hist): return
     inner = _hist_inner[0][1]
     rec = _hist[0]
-    for rd in _hist_rows:                            # 既出（同一recの再レンズ）→その場更新
+    for rd in _hist_rows:                            # 既出（同一recの再レンズ）→その場更新（位置はそのまま）
         if rd["rec"] is rec:
             if rd["price"].winfo_exists(): _set_row_price(rd); rd["ts"].config(text=rec.get("ts", ""))
             return
+    if _hist_sort[0] != "date" or not _hist_sort_desc[0]:   # 並べ替え中の新規は正しい位置へ＝全再構築
+        _refresh_history(); return
     if not _hist_rows:                               # 空表示ラベルがあれば消す
         for w in inner.winfo_children():
             try: w.destroy()
@@ -1891,6 +1926,29 @@ def show_history(root):
     _hist_update_btn[0] = round_pill(hdr, ("⏳ " + T("updating_btn")) if _hist_updating[0] else ("↻ " + T("update_all")),
                                      C_ACCENT, "#0c0c0c", _hist_update_all, f_hbtn)
     _hist_update_btn[0].pack(side="right")
+    now_row = tk.Frame(win, bg=C_CARD); now_row.pack(side="top", fill="x", padx=12)   # 更新ボタンの下に現在日時を1つ
+    _hist_now[0] = tk.Label(now_row, text=_now_str(), bg=C_CARD, fg=C_META,
+                            font=("Yu Gothic UI", 8), anchor="e"); _hist_now[0].pack(side="right")
+    # ── 並べ替え：追加日 / 最安 / 中央値（単一選択。選択中を再タップで昇順⇄降順） ──
+    sortf = tk.Frame(win, bg=C_CARD); sortf.pack(side="top", fill="x", padx=12, pady=(2, 2))
+    _hist_sort_pills.clear()
+    def _sort_face():
+        for mode, pill, lab in _hist_sort_pills:
+            on = (_hist_sort[0] == mode)
+            arrow = (" ▼" if _hist_sort_desc[0] else " ▲") if on else ""
+            _pill_set_text(pill, lab() + arrow)
+            recolor_pill(pill, C_ACCENT if on else "#2a2f3a")
+            try: pill.itemconfig("txt", fill="#0c0c0c" if on else C_NAME)
+            except Exception: pass
+    _hist_sort_face[0] = _sort_face
+    def _pick_sort(m):
+        if _hist_sort[0] == m: _hist_sort_desc[0] = not _hist_sort_desc[0]   # 同じソート再タップ＝方向反転
+        else: _hist_sort[0] = m; _hist_sort_desc[0] = True                   # 切替時は降順（新しい/高い順）から
+        _save_settings(); _sort_face(); _refresh_history()
+    for m, lab in (("date", lambda: T("sort_added")), ("sell", lambda: T("low")), ("median", lambda: T("med"))):
+        p = round_pill(sortf, lab(), "#2a2f3a", C_NAME, (lambda mm=m: _pick_sort(mm)), f_hbtn)
+        p.pack(side="left", padx=(0, 6)); _hist_sort_pills.append((m, p, lab))
+    _sort_face()
     _hist_status[0] = tk.Label(win, text="", bg=C_CARD, fg=C_ACCENT,
                                font=("Yu Gothic UI", 9), anchor="w")
     _hist_status[0].pack(side="top", fill="x", padx=12, pady=(0, 2))
@@ -1904,6 +1962,12 @@ def show_history(root):
     # ポップ表示中(_open非空)は最前面の再主張を休む＝価格ポップと奪い合わずチラつかない。
     _keep_on_top(win, pause=lambda: bool(_open))
     _refresh_history()
+    def _now_tick():                               # 現在日時を更新し続ける（20秒毎。窓が消えたら止まる）
+        if _hist_now[0] and _hist_now[0].winfo_exists():
+            try: _hist_now[0].config(text=_now_str())
+            except Exception: pass
+            win.after(20000, _now_tick)
+    win.after(20000, _now_tick)
 
 def hide_history():
     _hist_visible[0] = False

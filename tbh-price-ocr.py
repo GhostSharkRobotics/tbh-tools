@@ -80,7 +80,7 @@ TR = {
         "help_main": "アイテムに合わせて発動キーを押すと、そのアイテムの\nSteamマーケット価格（最安値・中央値）が出ます。",
         "help_key": "発動キーの既定はマウスのサイドボタン（戻る）。「設定」で変更できます。",
         "help_tips": ["ポップは 外をクリック / カーソルを外す / Esc で閉じる",
-                      "名前が違う時はレア度ピルや名前で選び直し",
+                      "名前や等級が違う時は履歴一覧の右クリックで修正",
                       "履歴：トレイ『履歴一覧』で表示。右クリックでお気に入り・名前変更・レア度・削除、『全部更新』も",
                       "発動キー・表示言語は『設定』で変更",
                       "安全：ゲームには干渉しません（自分の画面OCR＋キーのみ）"],
@@ -130,7 +130,7 @@ TR = {
         "help_main": "Point at an item and press your hotkey — its Steam Market\nprice (lowest + median) pops up.",
         "help_key": "Default hotkey is the mouse side (back) button. Change it in Settings.",
         "help_tips": ["Close the popup by clicking away, moving off it, or pressing Esc",
-                      "Wrong name? re-pick via the rarity pill or the name",
+                      "Wrong name or rarity? fix it from the history window (right-click)",
                       "History: open from tray. Right-click a row for Favourite / Rename / Rarity / Delete, plus 'Update all'",
                       "Change the hotkey & language in Settings",
                       "Safe: it never touches the game (screen OCR + hotkey only)"],
@@ -180,7 +180,7 @@ TR = {
         "help_main": "将光标对准物品并按下触发键，即可显示该物品的\nSteam 市场价格（最低价·中位价）。",
         "help_key": "触发键默认是鼠标侧键（后退）。可在「设置」中修改。",
         "help_tips": ["点击外部 / 移开光标 / 按 Esc 关闭弹窗",
-                      "名称不对时，可用品质标签或名称重新选择",
+                      "名称或品质不对时，可在历史窗口右键修改",
                       "历史：从托盘「历史」打开。右键可收藏·重命名·改品质·删除，并有「全部更新」",
                       "在「设置」中修改触发键和显示语言",
                       "安全：不干预游戏（仅截屏OCR＋按键）"],
@@ -1266,7 +1266,6 @@ def show_popup(results, xy, text, root):
         return
     init_name = disp_name(e)
     init_rar = (e.get("rarity_en") if e else "") or ""
-    en2ja = {en: ja for en, ja in RARITIES}
     state = {"entry": e, "rarity": init_rar}
 
     content = tk.Frame(win, bg=C_CARD); content.pack()   # 枠なし（ダークカードのみ）
@@ -1276,20 +1275,14 @@ def show_popup(results, xy, text, root):
     name_lbl = tk.Label(content, text=init_name or "—", bg=C_CARD, fg=C_NAME, font=f_name, anchor="w")
     name_lbl.grid(row=0, column=0, sticky="we", padx=(14, 30), pady=(14, 6))   # 右上の✕分の余白
 
-    rar_holder = tk.Frame(content, bg=C_CARD); rar_holder.grid(row=1, column=0, sticky="w", padx=14, pady=2)
-    rar_menu = tk.Menu(win, tearoff=0, bg="#0d1016", fg=C_NAME, activebackground="#2a2f3a",
-                       activeforeground="#ffffff", bd=0, relief="flat")
-    for en, ja in RARITIES:
-        rar_menu.add_command(label=(ja if _ui_lang == "ja" else en), foreground=rarity_color(en),
-                             command=lambda en=en: set_rarity(en))
-    _rp = {"w": None}
+    # 等級：読むだけのプレーンテキスト。以前はドロップダウンだったが前面から裏に回る/消えて邪魔だったので廃止。
+    # 選び直しは履歴一覧の右クリック（レア度変更）で行える。
+    rar_lbl = tk.Label(content, text="", bg=C_CARD, font=f_meta, anchor="w")
+    rar_lbl.grid(row=1, column=0, sticky="w", padx=14, pady=2)
     def build_rar_pill():
-        if _rp["w"]: _rp["w"].destroy()
         r = state["rarity"]
-        txt = "▾ " + ((en2ja.get(r, r) if _ui_lang == "ja" else r) if r else T("rarity"))
-        p = round_pill(rar_holder, txt, rarity_color(r), "#0c0c0c",
-                       lambda: rar_menu.tk_popup(p.winfo_rootx(), p.winfo_rooty() + p.winfo_height()), f_meta)
-        p.pack(anchor="w"); _rp["w"] = p
+        ent = state["entry"]
+        rar_lbl.config(text=(disp_rarity(ent) if ent else "") or "", fg=rarity_color(r))
 
     price_lbl = tk.Label(content, text="", bg=C_CARD, font=f_price, anchor="w")
     price_lbl.grid(row=2, column=0, sticky="we", padx=14, pady=(8, 2))
@@ -1321,6 +1314,7 @@ def show_popup(results, xy, text, root):
         price_lbl.config(fg=ar); recolor_pill(mkt_pill, ar)
         if ent:
             name_lbl.config(text=disp_name(ent) or "—")
+        build_rar_pill()
         if ent and ent.get("sell") is not None:
             sc = ent.get("cur", 1)
             txt = f"{T('low')} {price(ent['sell'], sc)}   {T('med')} {price(ent['median'], sc)}"
@@ -1333,33 +1327,9 @@ def show_popup(results, xy, text, root):
             price_lbl.config(text=T("nomatch")); meta_lbl.config(text="")
         _place(win, xy)
 
-    _fetching = [False]
-    def _lookup(nm, rar_en):                        # 名前＋等級で引き直し→現在価格を取得→描画
-        _fetching[0] = True                         # 取得中はスピナーを回す（押した手応え＝動き）
-        def spin(i=0):
-            if not (_fetching[0] and price_lbl.winfo_exists()): return
-            price_lbl.config(text=_SPIN[i % len(_SPIN)], fg=C_META)
-            price_lbl.after(90, lambda: spin(i + 1))
-        spin()
-        def work():
-            r = matcher.match_item(nm, en2ja.get(rar_en, rar_en) if rar_en else "")
-            ent = r[0] if r else None
-            if ent: apply_live(ent, native_ok=True)
-            def _done():
-                _fetching[0] = False; render(ent)
-            win.after(0, _done)
-        threading.Thread(target=work, daemon=True).start()
-
-    def set_rarity(en):                             # 等級を選び直し→同名×新等級で引き直し
-        state["rarity"] = en; build_rar_pill()
-        cur = state["entry"]
-        nm = ((cur.get("ja") or cur.get("en")) if cur else (text or "")).strip()
-        _lookup(nm, en)
-
-    build_rar_pill()
     win.bind("<Escape>", lambda ev: win.destroy())
 
-    render(e)
+    render(e)        # render 内で等級ラベルも更新
     _round_corners(win)        # Win11のOS角丸（透過なし＝クリックで消えない）
     _keep_on_top(win)          # ゲームの前へ（NOACTIVATE維持＝クリックで後ろに行かない）
     _dismiss(win)              # 外側クリック/ホバーアウト/無操作で閉じるマナー
@@ -1544,9 +1514,15 @@ def _hist_update_all(force=True):
         while alive():                                 # 上書き(言語切替/再押下)されたら中断
             try: rec = work_q.get_nowait()
             except _q.Empty: return
-            before = rec.get("sell")
+            before = rec.get("sell"); before_cur = rec.get("cur", 1)
             apply_live(rec, native_ok=False, force=force)   # 単品USD（search/render・BANされない）
             if not alive(): return
+            after = rec.get("sell")
+            if before is not None and after is not None and after != before \
+               and rec.get("cur", 1) == before_cur:        # 同一通貨同士でだけ差額を出す（換算前の生値で比較）
+                rec["_delta"] = after - before; rec["_delta_cur"] = before_cur
+            else:
+                rec.pop("_delta", None); rec.pop("_delta_cur", None)   # 変化なし/比較不能は前回の上下を消す
             if rec.get("sell") != before or "cur" in rec:
                 _hist_after(lambda rec=rec: _hist_update_price(rec))   # その場で1行だけ更新＋光らせる
             with lock:
@@ -1620,6 +1596,16 @@ def _set_row_price(rd):
         rd["price"].config(text=txt, fg=C_PRICE)   # 普通の価格色（概算は数値の≈だけで示す）
     else:
         rd["price"].config(text=T("noprice"), fg=C_META)
+    # 前回更新からの最安値の上下（↑/↓＋差額）。安くなった=緑・高くなった=赤、変化なしは非表示
+    dl = rd.get("delta")
+    if dl is not None and dl.winfo_exists():
+        d = rec.get("_delta")
+        if d:
+            up = d > 0
+            dl.config(text=("↑ " if up else "↓ ") + price(abs(d), rec.get("_delta_cur", rec.get("cur", 1))),
+                      fg=("#f87171" if up else "#34d399"))
+        else:
+            dl.config(text="")
 
 def _build_hist_row(rec):
     """1行ぶんのウィジェットを作って返す（packは呼び出し側）。"""
@@ -1635,10 +1621,13 @@ def _build_hist_row(rec):
                         font=("Yu Gothic UI", 10, "bold"), anchor="w"); name_lbl.pack(side="left")
     ts_lbl = tk.Label(top, text=rec.get("ts", ""), bg=C_CARD, fg=C_META,
                       font=("Yu Gothic UI", 8), anchor="e"); ts_lbl.pack(side="right")
-    price_lbl = tk.Label(col, text="", bg=C_CARD, font=("Yu Gothic UI", 9), anchor="w"); price_lbl.pack(fill="x")
+    prow = tk.Frame(col, bg=C_CARD); prow.pack(fill="x")
+    price_lbl = tk.Label(prow, text="", bg=C_CARD, font=("Yu Gothic UI", 9), anchor="w"); price_lbl.pack(side="left")
+    delta_lbl = tk.Label(prow, text="", bg=C_CARD, font=("Yu Gothic UI", 9, "bold"), anchor="e"); delta_lbl.pack(side="right")
     tk.Label(col, text=disp_type(rec), bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(fill="x")
     sep = tk.Frame(inner, bg="#2a2f3a", height=1)
-    rd = {"rec": rec, "frame": row, "sep": sep, "price": price_lbl, "icon": icon_lbl, "name": name_lbl, "ts": ts_lbl}
+    rd = {"rec": rec, "frame": row, "sep": sep, "price": price_lbl, "delta": delta_lbl,
+          "icon": icon_lbl, "name": name_lbl, "ts": ts_lbl}
     _set_row_price(rd)
     if rec.get("icon"):
         _get_icon(rec["icon"], lambda ph, L=icon_lbl: L.winfo_exists() and L.config(image=ph))
@@ -1746,7 +1735,9 @@ def show_history(root):
     canvas = tk.Canvas(body, bg=C_CARD, highlightthickness=0)
     sb = tk.Scrollbar(body, orient="vertical", command=canvas.yview)
     inner = tk.Frame(canvas, bg=C_CARD)
-    canvas.create_window((0, 0), window=inner, anchor="nw", width=326)
+    inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=326)
+    # 窓幅に追従＝リサイズで行も横に伸びる（固定幅で取り残されない）
+    canvas.bind("<Configure>", lambda e: canvas.itemconfig(inner_id, width=e.width))
     canvas.configure(yscrollcommand=sb.set)
     canvas.pack(side="left", fill="both", expand=True); sb.pack(side="right", fill="y")
     win.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units"))
@@ -2296,7 +2287,9 @@ def show_sell(root):
     canvas = tk.Canvas(body, bg=C_CARD, highlightthickness=0)
     sb = tk.Scrollbar(body, orient="vertical", command=canvas.yview)
     inner = tk.Frame(canvas, bg=C_CARD)
-    canvas.create_window((0, 0), window=inner, anchor="nw", width=326)
+    inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=326)
+    # 窓幅に追従＝リサイズで行も横に伸びる（固定幅で取り残されない）
+    canvas.bind("<Configure>", lambda e: canvas.itemconfig(inner_id, width=e.width))
     canvas.configure(yscrollcommand=sb.set)
     canvas.pack(side="left", fill="both", expand=True); sb.pack(side="right", fill="y")
     win.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units"))

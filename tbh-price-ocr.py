@@ -1271,7 +1271,13 @@ def _scrolling_body(win, inner_w=326):
     # 固定幅のバーを先にpackして右端の領域を確保→残りをcanvasがexpandで埋める（順序が逆だと
     # expandするcanvasが余白を食い、バーの取り分＝幅依存になって「狭いと縦バーが消える」不具合になる）
     bar.pack(side="right", fill="y", padx=(2, 0)); canvas.pack(side="left", fill="both", expand=True)
-    win.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units"))
+    def _wheel(e):                                     # 1ノッチ＝約100px（canvasの"units"は極小なのでpx換算＝ブラウザ並み）
+        bb = canvas.bbox("all")
+        if not bb: return
+        content_h = bb[3] - bb[1]
+        if content_h <= 1: return
+        canvas.yview_moveto(canvas.yview()[0] + (-e.delta / 120) * 100 / content_h)
+    win.bind("<MouseWheel>", _wheel)
     for _d in (60, 250):                               # 開いた直後＝レイアウト確定後に必ず一度描く
         canvas.after(_d, redraw)
     return canvas, inner

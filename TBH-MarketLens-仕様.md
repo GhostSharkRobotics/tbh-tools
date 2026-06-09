@@ -31,10 +31,12 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 - 価格は日次GitHub Actionsで全自動更新（[[tbh-price-autoupdate-actions]]）。手動取得不要
 
 ## 4. 価格取得の仕様（最も誤解されやすい・実機検証済み 2026-06）
-**結論：普段は search/render の単品USD。現地¥は今Steamが出さない（=BANではない）。**
+**結論：表示通貨が¥/¥なら priceoverview の現地通貨を優先、ダメなら search/render の単品USD（為替換算）。**
 
-- **priceoverview**（`/market/priceoverview/`, 現地通貨¥を返す）は**全IPで429**。クリーンなMac(Steam未アクセス)でも429＝
-  **IP-BANではなくエンドポイント自体が匿名に出していないだけ**。「BANされた」と誤認しない。復活したら自動で正確¥に格上げ。
+- **priceoverview**（`/market/priceoverview/`, 現地通貨¥を返す）は時期により429のことがある（429時はsearch/renderにフォールバック）。**動いている時は現地¥の正確値**。
+  - **重要（在庫なし判定）**：在庫が無い品は `lowest_price`(現在の最安＝買える価格)が**返らず**、`median_price`(過去の中央値)と`volume`だけ返る。
+    **`lowest_price`無し＝現在出品0件＝「出品なし」**。`apply_live`は `low is None` で `ent["_nolist"]=True`（価格を出さない）。
+    ここで `cur` だけ更新して `sell`(USDバンドル値)を残すと**USDセントが現地通貨扱いになり¥31/¥1等の誤値**が出る（実機で確定した過去の不具合・要厳守）。`sell` と `cur` は必ずセットで更新。
 - **search/render**（`/market/search/render/`）が**本線**。`_render_price()`が**品名+レア度クエリ**で叩き、その変種の現在USDを**1リクエストで取得**。429になりにくい＝**BANされない**。
   - クエリは**記号除去必須**：`-`はSteam検索の除外演算子で誤爆。`"War Bow (Legendary) A"→"War Bow Legendary"`、`"Soulstone - Torment"→"Soulstone Torment"`
   - **USD固定**（currency/country パラメータ無視）。**10件/ページ固定**（全624種の一括取得は63req必要＝非現実的。だから単品クエリ方式）

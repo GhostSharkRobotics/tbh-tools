@@ -37,8 +37,8 @@ NAME_REGIONS = [
 ]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
-CALIBRATE     = True               # Trueで撮影画像を保存（調整用）
-DEBUG_UI      = True               # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
+CALIBRATE     = False              # Trueで撮影画像を保存（調整用）
+DEBUG_UI      = False              # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 _KEYCLR = "#ff00fe"   # 角丸の外側を透過させる魔法色（どの配色とも被らない）
@@ -505,12 +505,17 @@ def apply_live(ent, native_ok=False, force=False, cache_only=False):
                           f"cache={_render_cache.get(ent.get('hash'))} bundle_sell={ent.get('sell')}\n")
         except Exception: pass
     if lp is None: return                         # 取得失敗→既存(バンドル)価格を保持（従来通り）
-    if lp == _RENDER_EMPTY:                        # 市場に現在出品なし→バンドルの小額を出さず「出品なし」表示
+    if lp == _RENDER_EMPTY:                        # render検索で該当なし＝出品なし
+        ent["_nolist"] = True
+        return
+    low, med, vol, src = lp
+    # lowest_price(現在の最安＝買える価格)が無い＝現在出品0件＝出品なし。
+    # ここでcur/medianだけ更新するとUSDバンドル値が現地通貨扱いになり¥31/¥1等の誤値が出る（過去の不具合）。
+    if low is None:
         ent["_nolist"] = True
         return
     ent["_nolist"] = False
-    low, med, vol, src = lp
-    if low is not None: ent["sell"] = low
+    ent["sell"] = low
     if med is not None: ent["median"] = med
     if vol is not None: ent["volume"] = vol
     ent["cur"] = src

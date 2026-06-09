@@ -1236,9 +1236,17 @@ def _scrolling_body(win, inner_w=326):
     inner = tk.Frame(canvas, bg=C_CARD)
     inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=inner_w)
     bar = tk.Canvas(body, width=SBW, bg=C_CARD, highlightthickness=0, cursor="hand2")
+    def _diag(tag):
+        try:
+            with open(os.path.join(HERE, "sb-diag.txt"), "a", encoding="utf-8") as f:
+                f.write("%s tag=%s bar_h=%s can_h=%s can_w=%s inner_rh=%s bbox=%s yview=%s\n" % (
+                    time.strftime("%H:%M:%S"), tag, bar.winfo_height(), canvas.winfo_height(),
+                    canvas.winfo_width(), inner.winfo_reqheight(), canvas.bbox("all"), canvas.yview()))
+        except Exception: pass
     def redraw(*_):
         # canvasの現在のスクロール位置を毎回直接読む（キャッシュ値だと開いた直後＝レイアウト前は
         # 0..1のまま＝「全部見えてる」と誤判定して出てこない。リサイズで初めて出る不具合の原因）
+        _diag("redraw")
         if not bar.winfo_exists(): return
         bar.delete("all")
         h = bar.winfo_height()

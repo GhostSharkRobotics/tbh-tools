@@ -346,7 +346,7 @@ def price(c, src=1):
     val = c / 100 if src == cur else (c / 100) * (JPY_RATE if cur == 8 else CNY_RATE if cur == 23 else 1.0)
     if cur == 1: return f"${val:.2f}"
     if cur == 8: return f"¥{round(val):,}"           # 円は小数なし
-    return f"¥{val:,.2f}"                            # 人民元は小数2桁
+    return f"CN¥{val:,.2f}"                          # 人民元は小数2桁。円(¥)と区別するため CN¥
 
 def disp_name(e):                  # 現在の言語でアイテム名（zh→簡体、無ければen→ja）
     if not e: return ""

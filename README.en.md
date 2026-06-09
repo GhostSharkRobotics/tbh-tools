@@ -47,7 +47,7 @@ It lives in your system tray (near the clock). A how‑to shows on first run. Ch
 
 ### Is it safe? (anti‑cheat)
 
-Yes. MarketLens is a **completely separate program**. It only ① screenshots its own/the desktop screen and reads text, ② listens for your chosen hotkey, and ③ asks Steam's public price API. It **never reads or writes the game's memory, injects nothing, and never touches the game process.** No speed/time manipulation. Details: [dist-README.md](dist-README.md).
+Yes. MarketLens **only reads what's already on your screen.** It takes an ordinary screenshot (the standard Windows screen capture — the same as any screenshot app), recognizes the item name with OCR, and looks its price up on Steam. It runs as a separate program and **never reads or modifies the game's memory**, so the game's anti-cheat does **not** flag it as a cheat. Details: [dist-README.md](dist-README.md).
 
 ---
 
@@ -59,4 +59,10 @@ Yes. MarketLens is a **completely separate program**. It only ① screenshots it
 
 ---
 
-*An unofficial, fan‑made tool for Task Bar Hero. by **Ghost Shark Robotics** — [☕ Ko-fi](https://ko-fi.com/ghostsharkrobotics)*
+## Disclaimer
+
+Unofficial, fan‑made tool — **not affiliated with, endorsed by, or connected to the game's developer or Valve/Steam.** Provided **"as is," without warranty of any kind.**
+
+Prices come from the Steam Community Market and **may be inaccurate, delayed, or wrong** (non‑USD prices are currency‑converted estimates). They are **not trading or financial advice** — always confirm on the Steam Market before you buy or sell. **You use these tools entirely at your own risk; the author accepts no liability for any loss or damage (including from trades, purchases, or sales) arising from their use.**
+
+*by **Ghost Shark Robotics** · optional tip: [☕ Ko-fi](https://ko-fi.com/ghostsharkrobotics)*

@@ -21,7 +21,10 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 ## 3. ファイル構成（repo root。tools/はgitignoreのためroot配置）
 - `tbh-price-ocr.py` … 本体
 - `tbh-price-lookup.json` … 全アイテムの名前索引＋バンドル価格（USD, `cur:1`）。`tbh-build-price-lookup.py`が生成（`tbh-data.json`＋`tbh-prices.json`＋`localization.json`の中国語名＋`market-icons.json`から）
-- `frame_tpl.png` … 名前枠の左角テンプレート。**TBHのUI倍率「2x」で撮った固定ピクセル＝倍率1.0の基準**。`detect_boxes`がテンプレ側を多倍率にリサイズして相関最大の倍率`f`を毎回自動検出し（`_best_scale`/`_SCALE_GRID`、直近当選倍率を`_SCALE_CACHE`で先試し＝高速）、クロップ座標・クラスタ閾値を全て`f`倍する。よって**UI倍率1x/1.25x/1.5x/2x/3x（解像度で実ピクセルが変わる）に自動追従**＝再キャリブレーション不要。
+- `frame_tpl.png` … 名前枠の左角テンプレート。**TBHのUI倍率「2x」で撮った固定ピクセル＝倍率1.0の基準**。検出は`detect_boxes`で**UI倍率1x/1.25x/1.5x/2x/3x（解像度で実ピクセルが変わる）に自動追従**＝再キャリブレーション不要。要点：
+  - **倍率f自動検出**：テンプレ側を多倍率にリサイズ(`_SCALE_GRID`)して相関最大の倍率`f`を選ぶ(`_best_template_factor`)。クロップ座標・クラスタ閾値は全て`f`倍。
+  - **速度**：探索は`_SEARCH_MAXW`(=1100px)以下へ縮小した画像で実施（3x等の大画像でも軽い）。直近当選倍率は`_SCALE_CACHE`に保持し、まずそれだけ照合→相関`>=_SCALE_STRONG`なら**1回で即確定**（倍率を変えた直後だけ全grid走査）。倍率非依存でほぼ一定速度。
+  - **OCRは必ずベース文字サイズへ正規化**：`_ocr`/`_adapt`(BoxBlur半径固定)は2xの文字サイズ前提。crop を `1/f` 倍してからOCRに渡す。**これを外すと小さいUI倍率で枠は当たるのにOCRが空＝該当なしになる**（実機で確定した落とし穴）。
 - `tbh_price_match.py` … OCR文字→既知名の曖昧スナップ（stdlibのみ。`open`は`encoding=utf-8`必須＝Win cp932対策）
 - `i18n_lint.py` … TR(文言カタログ)完全性＋UIに日本語直書きが無いかをAST検査
 - `start-tbh-price.bat` / `tbh-price-ocr.ps1`(irm|iex導入) / `dist-README.md`(配布用)

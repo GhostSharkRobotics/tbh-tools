@@ -37,8 +37,8 @@ NAME_REGIONS = [
 ]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
-CALIBRATE     = True               # Trueで撮影画像を保存（調整用）
-DEBUG_UI      = True               # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
+CALIBRATE     = False              # Trueで撮影画像を保存（調整用）
+DEBUG_UI      = False              # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 _KEYCLR = "#ff00fe"   # 角丸の外側を透過させる魔法色（どの配色とも被らない）
@@ -1659,14 +1659,20 @@ def _build_hist_row(rec):
     icon_lbl = tk.Label(row, bg=C_CARD, image=init_img); icon_lbl.pack(side="left", padx=(2, 8))
     col = tk.Frame(row, bg=C_CARD); col.pack(side="left", fill="x", expand=True)
     top = tk.Frame(col, bg=C_CARD); top.pack(fill="x")
-    name_lbl = tk.Label(top, text=star + nm + (("  " + rj) if rj else ""), bg=C_CARD, fg=ar,
+    name_lbl = tk.Label(top, text=star + nm, bg=C_CARD, fg=ar,
                         font=("Yu Gothic UI", 10, "bold"), anchor="w"); name_lbl.pack(side="left")
     ts_lbl = tk.Label(top, text=rec.get("ts", ""), bg=C_CARD, fg=C_META,
                       font=("Yu Gothic UI", 8), anchor="e"); ts_lbl.pack(side="right")
     prow = tk.Frame(col, bg=C_CARD); prow.pack(fill="x")
     price_lbl = tk.Label(prow, text="", bg=C_CARD, font=("Yu Gothic UI", 9), anchor="w"); price_lbl.pack(side="left")
     delta_lbl = tk.Label(prow, text="", bg=C_CARD, font=("Yu Gothic UI", 9, "bold"), anchor="e"); delta_lbl.pack(side="right")
-    tk.Label(col, text=disp_type(rec), bg=C_CARD, fg=C_META, font=("Yu Gothic UI", 8), anchor="w").pack(fill="x")
+    meta = tk.Frame(col, bg=C_CARD); meta.pack(fill="x")   # 下の段：レア度（レア度色）＋種別（控えめ）
+    if rj:
+        tk.Label(meta, text=rj, bg=C_CARD, fg=ar, font=("Yu Gothic UI", 8, "bold"), anchor="w").pack(side="left")
+    ty = disp_type(rec)
+    if ty:
+        tk.Label(meta, text=("  ·  " + ty) if rj else ty, bg=C_CARD, fg=C_META,
+                 font=("Yu Gothic UI", 8), anchor="w").pack(side="left")
     sep = tk.Frame(inner, bg="#2a2f3a", height=1)
     rd = {"rec": rec, "frame": row, "sep": sep, "price": price_lbl, "delta": delta_lbl,
           "icon": icon_lbl, "name": name_lbl, "ts": ts_lbl}

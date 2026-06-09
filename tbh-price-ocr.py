@@ -37,8 +37,8 @@ NAME_REGIONS = [
 ]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
-CALIBRATE     = True               # Trueで撮影画像を保存（調整用）
-DEBUG_UI      = True               # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
+CALIBRATE     = False              # Trueで撮影画像を保存（調整用）
+DEBUG_UI      = False              # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 _KEYCLR = "#ff00fe"   # 角丸の外側を透過させる魔法色（どの配色とも被らない）
@@ -293,7 +293,7 @@ try:
     import mouse
     import keyboard
     import pystray
-    from tbh_price_match import Matcher, RARITIES, norm as _norm
+    from tbh_price_match import Matcher, RARITIES, extract_rarity, norm as _norm
 except Exception as e:
     log_fatal("import error:\n" + traceback.format_exc())
     try:
@@ -740,6 +740,38 @@ def _ocr_frame(img, x, y, f):
     rank = norm(img.crop((max(0, x - Sf(90)), y + Sf(56), x + Sf(560), y + Sf(122))))  # 枠直下＝等級
     return name, rank
 
+_RMAP_JA = dict(RARITIES)              # en -> ja
+_RARITY_HUES = [None]
+def _rarity_hues():
+    """各レア度の色相(度)。RARITY_COLORSから1回だけ算出。"""
+    if _RARITY_HUES[0] is None:
+        import colorsys
+        d = {}
+        for k, hx in RARITY_COLORS.items():
+            r, g, b = (int(hx[i:i+2], 16) / 255 for i in (1, 3, 5))
+            d[k] = colorsys.rgb_to_hsv(r, g, b)[0] * 360
+        _RARITY_HUES[0] = d
+    return _RARITY_HUES[0]
+
+def _frame_rarity(img, x, y, f):
+    """枠の『○○等級』テキスト色から等級(en)を推定（OCRより頑健）。
+    色が乏しい(素材等)・不確実な時はNone。等級OCRが読めない時の救済に使う。"""
+    Sf = lambda v: int(round(v * f))
+    try:
+        arr = np.asarray(img.crop((max(0, x - Sf(60)), y + Sf(58), x + Sf(260), y + Sf(92))))
+        if arr.size == 0: return None
+        hsv = cv2.cvtColor(arr, cv2.COLOR_RGB2HSV)        # H:0-179 S/V:0-255
+        mask = (hsv[..., 1] > 70) & (hsv[..., 2] > 110)   # 彩度・明度高め＝色付きの等級テキスト
+        hue = hsv[..., 0][mask].astype(np.int32) * 2      # cv2の0-179 → 0-358度
+        if hue.size < 25: return None                     # 色付き画素が少ない＝素材等→色判定しない
+        deg = int(np.bincount(hue, minlength=360).argmax())   # 最頻色相
+        rh = _rarity_hues()
+        best = min(rh, key=lambda k: min(abs(deg - rh[k]), 360 - abs(deg - rh[k])))
+        dist = min(abs(deg - rh[best]), 360 - abs(deg - rh[best]))
+        return best if dist <= 22 else None
+    except Exception:
+        return None
+
 
 def _annotate(img, boxes, cands, chosen, xy, off, scale=1.0):
     """デバッグ用: 撮影画像に 検出枠・読取・マッチ結果・カーソル を描いて縮小して返す。"""
@@ -841,8 +873,11 @@ def ocr_worker():
             cands = []
             for bx, by, sc_t in frames:
                 name, rank = _ocr_frame(img, bx, by, scale)
+                if not extract_rarity(rank):              # 等級OCRが読めない時は枠の色で補う（最高値変種への誤フォールバック防止）
+                    crar = _frame_rarity(img, bx, by, scale)
+                    if crar: rank = _RMAP_JA[crar]        # 色から等級を確定し、それを等級テキストとして渡す
                 boxes.append((name, rank, bx, by, sc_t))
-                best_r = matcher.match_item(name, rank)   # 名前で特定＋等級行から正しい等級を補う
+                best_r = matcher.match_item(name, rank)   # 名前で特定＋等級（OCRまたは色）から正しい変種を引く
                 if best_r:
                     sx, sy = ox + bx + oS(250), oy + by + oS(30)
                     d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2

@@ -21,8 +21,9 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 ## 3. ファイル構成（repo root。tools/はgitignoreのためroot配置）
 - `tbh-price-ocr.py` … 本体
 - `tbh-price-lookup.json` … 全アイテムの名前索引＋バンドル価格（USD, `cur:1`）。`tbh-build-price-lookup.py`が生成（`tbh-data.json`＋`tbh-prices.json`＋`localization.json`の中国語名＋`market-icons.json`から）
-- `frame_tpl.png` … 名前枠の左角テンプレート。**TBHのUI倍率「2x」で撮った固定ピクセル＝倍率1.0の基準**。検出は`detect_boxes`で**UI倍率1x/1.25x/1.5x/2x/3x（解像度で実ピクセルが変わる）に自動追従**＝再キャリブレーション不要。要点：
+- `frame_tpl.png` … 名前枠の左角テンプレート。**TBHのUI倍率「2x」で撮った固定ピクセル＝倍率1.0の基準**。検出は`detect_frames`で**UI倍率1x/1.25x/1.5x/2x/3x（解像度で実ピクセルが変わる）に自動追従**＝再キャリブレーション不要。要点：
   - **倍率f自動検出**：テンプレ側を多倍率にリサイズ(`_SCALE_GRID`)して相関最大の倍率`f`を選ぶ(`_best_template_factor`)。クロップ座標・クラスタ閾値は全て`f`倍。
+  - **OCRはカーソル最近枠だけ**：`detect_frames`は枠の位置だけ返し(OCRしない)、ワーカーがカーソルに近い枠から`_ocr_frame`でOCR→確信マッチ(>=0.85)で打ち切り。複数ツールチップが出ていても通常OCR1枠＝高速（デバッグ時のみ全枠OCR）。
   - **速度**：探索は`_SEARCH_MAXW`(=1100px)以下へ縮小した画像で実施（3x等の大画像でも軽い）。直近当選倍率は`_SCALE_CACHE`に保持し、まずそれだけ照合→相関`>=_SCALE_STRONG`なら**1回で即確定**（倍率を変えた直後だけ全grid走査）。倍率非依存でほぼ一定速度。
   - **OCRは必ずベース文字サイズへ正規化**：`_ocr`/`_adapt`(BoxBlur半径固定)は2xの文字サイズ前提。crop を `1/f` 倍してからOCRに渡す。**これを外すと小さいUI倍率で枠は当たるのにOCRが空＝該当なしになる**（実機で確定した落とし穴）。
 - `tbh_price_match.py` … OCR文字→既知名の曖昧スナップ（stdlibのみ。`open`は`encoding=utf-8`必須＝Win cp932対策）
@@ -61,9 +62,9 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 
 **履歴ウィンドウ**（`show_history`, トレイでオン/オフ, `tbh-price-history.json`永続化, 位置/サイズ記憶）:
 - 行：アイコン（CDN`/96x96`をmd5名でローカルキャッシュ。無い品はレア度色タイル）／名前・レア度／価格／種別／**右下に追加日時**（`rec["ts"]`=`_stamp_str()` 年なし「M/D H:M」）。右クリックで お気に入り・名前変更・レア度変更・削除。上限設定(既定50, お気に入りは対象外)。
-- **並べ替え**：ヘッダにpill「追加日(`sort_added`)/最安(`low`)/中央値(`med`)」。単一選択・選択中を再タップで昇順⇄降順(▼/▲)。`_hist_sort`/`_hist_sort_desc`（設定永続）。`_hist_ordered()`が並べ替え（**お気に入りは常に上／価格なしは常に末尾**）。価格ソート中の新規レンズは増分挿入でなく全再構築（正しい位置へ）。
-- ヘッダの更新ボタン下に**現在日時を1つ**（`_hist_now`=`_now_str()` 年あり、20秒毎更新）。
-- **全部更新ボタン**：押すと**ボタンにスピナー＋「12/50」件数**、ヘッダー下に**進捗バー**（緑=取得済、render待機中はアンバーの流れる帯＋⏳残り秒）、**各行は更新時に一瞬フラッシュ**、完了で✓。連打は無視(`_hist_updating`)、言語切替/再押下で世代`_hist_gen`が古い取得を中断。
+- **並べ替え**：ヘッダにpill「追加日(`sort_added`)/最安(`low`)/中央値(`med`)」。単一選択・選択中を再タップで昇順⇄降順(▼/▲)。`_hist_sort`/`_hist_sort_desc`（設定永続）。`_hist_ordered()`が並べ替え（**お気に入りは常に上／価格なしは常に末尾**）。pillは矢印分の幅を固定(`minw`)＝トグルで幅が変わらず残像が出ない。
+- **崩れない更新が鉄則**：一覧の全消し再構築(`_refresh_history`)は「初回/再表示/空になった時」だけ。お気に入り・削除・改名・レア度変更・上限・並べ替え・レンズの新規は**該当行だけ**を非破壊更新（`_reorder_rows`/`_hist_replace_row`/`_hist_remove_row`、新規はソート位置へ`before=`挿入）。`_hist`の構造変更はメインスレッドのみ（記録もpoll側＝反復中の競合回避）。
+- **全部更新ボタン**：押すと**スピナー＋「12/50」件数**、進捗バー、各行フラッシュ、完了で✓→**ボタンに最終更新時刻を常表示**（`_upd_btn_text`=「↻ 全部更新 最終 M/D H:M」、`_hist_last_update`設定永続）。連打は無視(`_hist_updating`)＋**完了後クールダウン**`_HIST_UPD_COOLDOWN`(8秒)でSteam連打防止。言語切替/再押下で世代`_hist_gen`が古い取得を中断。各セル右下に**追加日時**(`_stamp_str`)。
 - レンズ中は最新1件だけ増分反映(`_hist_sync_top`)＝全消ししない（チラつき防止）。
 - **状態は文章でなくUIで見せる**のが鉄則（ユーザー強い要望。[[tbh-ux-principles]] [[tbh-compact-display-principle]]）。
 
@@ -75,7 +76,8 @@ Steam在庫の出品ホールドを追跡し、出品可になったら通知。
 - 表示：🟢売れる／🕒解除日ごと（≈M/D・あとN日）にまとめ、同名は×個数集約。状態は文章でなくUIで（[[tbh-ux-principles]]）。
 - **制約**：TBH出品が一時停止中は在庫が全て marketable:0＝追跡対象の実ホールド無し→本番検証は市場再開後。機能は完成・配備済みで再開時に自動で効く（一時条件で諦めない [[dont-abandon-on-temporary-conditions]]）。
 
-**設定**（トレイ→設定）: 表示言語(ja/en/zh, 起動時PC言語自動取得)／発動キー割当(欄クリック→任意キー/組合せを押す、実況表示)／**Windowsと一緒に起動**(トグル)。`tbh-price-settings.json`永続化。初回起動で使い方画面。
+**設定**（トレイ→設定）: 表示言語(ja/en/zh, 起動時PC言語自動取得)／発動キー割当(欄クリック→任意キー/組合せを押す、実況表示)／**Windowsと一緒に起動**(トグル)／**常に前面**(トグル)。`tbh-price-settings.json`永続化。初回起動で使い方画面。
+- **常に前面**(`_always_top`既定オン)：履歴/出品待ちウィンドウを常時最前面に。オフで通常窓化(他窓の背後に回せる・NOACTIVATEも外す)。`_keep_on_top(..., respect_toggle=True)`が120ms毎に設定を拾い即反映。**レンズの価格ポップは対象外**(ゲーム前面に出す必要があるため常に最前面)。非表示中は`winfo_viewable()`でz順操作を休止＝無駄を省く。
 - **自動起動**は `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`(管理者不要)。**レジストリ自体が真実＝設定jsonに持たない**（トグルは`_autostart_get/_set`でRunキーを直接読み書き、既定オフ）。コマンドはexe化時=`sys.executable`単体／.py時=`pythonw + script`。起動毎に`_autostart_refresh()`が有効なら現在パスで貼り直す（フォルダ移動・バージョン更新でパスが変わっても効き続ける）。
 
 **配信系**: フッターに `v1.1 · by Ghost Shark Robotics`、Ko-fi寄付(`KOFI_URL`)、アプリ内フィードバック(`FEEDBACK_URL`→Cloudflare Worker→Slack, 匿名・返信先任意)。起動時にGitHub最新リリースを確認し新版を控えめ告知。

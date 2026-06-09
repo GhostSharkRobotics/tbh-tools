@@ -687,9 +687,16 @@ def detect_boxes(img):
         if len(picked) >= 10:
             break
     out = []
+    def ocr_norm(crop):
+        # OCR/_adapt は2xベース(f=1.0)の文字サイズ前提（BoxBlur半径も固定）。検出倍率に合わせて
+        # crop を 1/f 倍し常にベース相当の文字サイズでエンジンへ渡す＝小さいUI倍率で読めない問題の対策。
+        if abs(f - 1.0) > 0.02 and crop.width > 0 and crop.height > 0:
+            crop = crop.resize((max(1, int(round(crop.width / f))),
+                                max(1, int(round(crop.height / f)))), Image.LANCZOS)
+        return _ocr(crop)
     for x, y, s in picked:
-        name = _ocr(img.crop((max(0, x - S(90)), y + S(6), x + S(560), y + S(56))))   # 枠内＝名前（左に広め＝短名対策）
-        rank = _ocr(img.crop((max(0, x - S(90)), y + S(56), x + S(560), y + S(122)))) # 枠直下＝等級
+        name = ocr_norm(img.crop((max(0, x - S(90)), y + S(6), x + S(560), y + S(56))))   # 枠内＝名前（左に広め＝短名対策）
+        rank = ocr_norm(img.crop((max(0, x - S(90)), y + S(56), x + S(560), y + S(122)))) # 枠直下＝等級
         out.append((name, rank, x, y, s))   # 枠の左上座標とテンプレ一致度も返す
     return out, f
 
@@ -746,6 +753,7 @@ def show_debug(pim, root):
     lb = tk.Label(win, image=ph, bg="#000"); lb.image = ph; lb.pack()
     win.bind("<Button-1>", lambda e: win.destroy())
     win.geometry("+20+20")
+    _keep_on_top(win)          # ゲーム（ウィンドウ/ボーダーレス）の前へ出し続ける＝背面に回って見えない問題の対策
     _dbg_win[0] = win
 
 

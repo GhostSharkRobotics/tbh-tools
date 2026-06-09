@@ -1256,7 +1256,11 @@ def _scrolling_body(win, inner_w=326):
     canvas.configure(yscrollcommand=redraw)            # スクロール時につまみ追従
     canvas._sb_redraw = redraw                          # 行の増減後に外から再描画させる用
     canvas.bind("<Configure>", lambda e: (canvas.itemconfig(inner_id, width=e.width), redraw()))
-    inner.bind("<Configure>", lambda e: redraw())     # 行が増減した時もつまみを更新
+    def _on_inner(e):
+        # 中身がレイアウトされる度にscrollregionを実寸へ再計算（ここが肝。初回は開いた直後に
+        # 中身の高さが確定→このイベントで初めて正しいyview()になる。前は再計算せずバーが出なかった）
+        canvas.configure(scrollregion=canvas.bbox("all")); redraw()
+    inner.bind("<Configure>", _on_inner)
     bar.bind("<Configure>", lambda e: redraw())
     def jump(ev):
         h = bar.winfo_height()

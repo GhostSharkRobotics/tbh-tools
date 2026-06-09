@@ -26,6 +26,8 @@ export default {
     if (path === '/hit') return hit(req, env, url);
     if (path === '/stats') return stats(req, env, url);
     if (path === '/feedback') return feedback(req, env, url);
+    if (path === '/ml') return ml(req, env, url);          // MarketLens アプリ利用テレメトリ（匿名）
+    if (path === '/mlstats') return mlstats(req, env, url); // ↑のダッシュボード(?pw=)
 
     return new Response('TBH stats worker', { status: 200, headers: CORS });
   },
@@ -78,6 +80,168 @@ async function feedback(req, env, url) {
   } catch (e) {
     return new Response('err', { status: 200, headers: CORS });
   }
+}
+
+// ===== MarketLens アプリ利用テレメトリ（匿名）=====
+// POST /ml  body={cid,ev,ver,lang,item,rarity,msg}
+//   ev: "launch" | "lookup" | "error"
+//   cid = アプリが生成する匿名ランダムID（IP由来ではない）。国はエッジ(CF-IPCountry)で付与しIPは保存しない。
+//   集計は ml:<cid> へ read-modify-write。error は本文を mlerr:<ts> に別途保存（デバッグ用・60日TTL）。
+function _dayKey(ts) {
+  const d = new Date(ts), p = (n) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}`;
+}
+
+async function ml(req, env, url) {
+  try {
+    const country = req.headers.get('CF-IPCountry') || '';
+    let b = {};
+    try { b = await req.json(); } catch (_) {}
+    const cid = String(b.cid || '').slice(0, 40);
+    if (!cid) return new Response('no cid', { status: 400, headers: CORS });
+    const ev = String(b.ev || '').slice(0, 16);
+    const ver = String(b.ver || '').slice(0, 20);
+    const lang = String(b.lang || '').slice(0, 10);
+    const now = Date.now();
+    const day = _dayKey(now);
+
+    if (ev === 'error') {
+      const msg = String(b.msg || '').slice(0, 4000).trim();
+      if (msg) {
+        await env.STATS.put('mlerr:' + now + ':' + Math.random().toString(36).slice(2, 7),
+          JSON.stringify({ ts: now, cid: cid.slice(0, 8), ver, lang, country, msg }),
+          { expirationTtl: 60 * 60 * 24 * 60 });
+      }
+    }
+
+    const key = 'ml:' + cid;
+    let rec = await env.STATS.get(key, 'json');
+    if (!rec) rec = { cid, country, ver, lang, first: now, last: now, launches: 0, lookups: 0, errors: 0, days: {}, items: {} };
+    rec.last = now;
+    if (country) rec.country = country;
+    if (ver) rec.ver = ver;
+    if (lang) rec.lang = lang;
+    rec.days[day] = (rec.days[day] || 0) + 1;
+    // days は直近31日だけ保持（無限肥大を防ぐ）
+    const dks = Object.keys(rec.days).sort();
+    while (dks.length > 31) delete rec.days[dks.shift()];
+
+    if (ev === 'launch') rec.launches = (rec.launches || 0) + 1;
+    else if (ev === 'lookup') {
+      rec.lookups = (rec.lookups || 0) + 1;
+      const it = String(b.item || '').slice(0, 80).trim();
+      const rar = String(b.rarity || '').slice(0, 20).trim();
+      if (it) { const k = rar ? `${it} (${rar})` : it; rec.items[k] = (rec.items[k] || 0) + 1; }
+    } else if (ev === 'error') rec.errors = (rec.errors || 0) + 1;
+
+    await env.STATS.put(key, JSON.stringify(rec));
+    return new Response('ok', { headers: CORS });
+  } catch (e) {
+    return new Response('err', { status: 200, headers: CORS });
+  }
+}
+
+async function mlstats(req, env, url) {
+  if (url.searchParams.get('pw') !== env.DASH_PW) return new Response('unauthorized', { status: 401 });
+
+  const recs = [];
+  let cursor;
+  do {
+    const list = await env.STATS.list({ prefix: 'ml:', cursor });
+    for (const k of list.keys) { const r = await env.STATS.get(k.name, 'json'); if (r) recs.push(r); }
+    cursor = list.list_complete ? null : list.cursor;
+  } while (cursor);
+
+  // 直近のエラー本文
+  const errs = [];
+  cursor = undefined;
+  do {
+    const list = await env.STATS.list({ prefix: 'mlerr:', cursor });
+    for (const k of list.keys) { const r = await env.STATS.get(k.name, 'json'); if (r) errs.push(r); }
+    cursor = list.list_complete ? null : list.cursor;
+  } while (cursor);
+  errs.sort((a, b) => b.ts - a.ts);
+
+  const users = recs.length;
+  const totalLaunch = recs.reduce((s, r) => s + (r.launches || 0), 0);
+  const totalLookup = recs.reduce((s, r) => s + (r.lookups || 0), 0);
+  const totalErr = recs.reduce((s, r) => s + (r.errors || 0), 0);
+
+  // 国別（ユーザー数 / 参照数）
+  const byCountry = {};
+  for (const r of recs) {
+    const c = r.country || '?';
+    if (!byCountry[c]) byCountry[c] = { users: 0, lookups: 0 };
+    byCountry[c].users++; byCountry[c].lookups += (r.lookups || 0);
+  }
+  // 人気アイテム（全ユーザー横断）
+  const items = {};
+  for (const r of recs) for (const [k, v] of Object.entries(r.items || {})) items[k] = (items[k] || 0) + v;
+  // 日次アクティブ（直近14日：その日に1イベント以上あったユニークID数）
+  const dayActive = {};
+  for (const r of recs) for (const d of Object.keys(r.days || {})) dayActive[d] = (dayActive[d] || 0) + 1;
+
+  const fmt = (ts) => { const d = new Date(ts), p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const pw = esc(url.searchParams.get('pw'));
+
+  const countryRows = Object.entries(byCountry).sort((a, b) => b[1].lookups - a[1].lookups)
+    .map(([c, v]) => `<tr><td>${esc(c)}</td><td class="num">${v.users}</td><td class="num">${v.lookups}</td></tr>`).join('');
+  const itemRows = Object.entries(items).sort((a, b) => b[1] - a[1]).slice(0, 40)
+    .map(([k, v], i) => `<tr><td class="num">${i + 1}</td><td>${esc(k)}</td><td class="num">${v}</td></tr>`).join('');
+  const dayRows = Object.entries(dayActive).sort((a, b) => a[0] < b[0] ? 1 : -1).slice(0, 14)
+    .map(([d, v]) => `<tr><td>${esc(d)}</td><td class="num">${v}</td></tr>`).join('');
+  const userRows = recs.slice().sort((a, b) => (b.lookups || 0) - (a.lookups || 0)).slice(0, 100)
+    .map((r) => `<tr><td>${esc(r.country || '?')}</td><td>${esc(r.ver || '?')}/${esc(r.lang || '?')}</td><td class="num">${r.launches || 0}</td><td class="num">${r.lookups || 0}</td><td class="num">${r.errors || 0}</td><td>${fmt(r.last)}</td><td>${fmt(r.first)}</td></tr>`).join('');
+  const errRows = errs.slice(0, 100)
+    .map((r) => `<tr><td>${fmt(r.ts)}</td><td>${esc(r.country || '?')}/${esc(r.ver || '?')}</td><td class="msg">${esc(r.msg).replace(/\n/g, '<br>')}</td></tr>`).join('');
+
+  const html = `<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MarketLens 利用解析</title>
+<style>
+  :root{color-scheme:dark}
+  body{background:#14161b;color:#e6e8ec;font:14px/1.5 system-ui,sans-serif;margin:0;padding:20px}
+  h1{font-size:18px;margin:0 0 4px} h2{font-size:14px;color:#9aa0a6;margin:22px 0 8px}
+  .sub{color:#9aa0a6;margin:0 0 16px}
+  .cards{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .card{background:#1d2027;border:1px solid #2a2e37;border-radius:10px;padding:10px 14px;min-width:110px}
+  .card b{display:block;font-size:22px} .card span{color:#9aa0a6;font-size:12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{text-align:left;padding:6px 9px;border-bottom:1px solid #262a33}
+  th{color:#9aa0a6;font-weight:600}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+  td.msg{font-family:ui-monospace,monospace;color:#f0a0a0;max-width:680px;font-size:12px}
+  a{color:#6cb6ff}
+  @media(max-width:780px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<h1>MarketLens 利用解析（匿名）</h1>
+<p class="sub">配布版アプリの利用状況。IPは保存せず、国はエッジ付与・IDは匿名ランダム。<a href="?pw=${pw}">更新</a> · <a href="/stats?pw=${pw}">サイトのアクセス記録へ</a></p>
+<div class="cards">
+  <div class="card"><b>${users}</b><span>ユニーク利用者</span></div>
+  <div class="card"><b>${totalLaunch}</b><span>総起動</span></div>
+  <div class="card"><b>${totalLookup}</b><span>総アイテム参照</span></div>
+  <div class="card"><b>${totalErr}</b><span>エラー報告</span></div>
+</div>
+<div class="grid">
+  <div>
+    <h2>国別</h2>
+    <table><thead><tr><th>国</th><th>人</th><th>参照</th></tr></thead><tbody>${countryRows || '<tr><td colspan=3 style="color:#9aa0a6">まだありません</td></tr>'}</tbody></table>
+    <h2>日次アクティブ（直近14日・ユニーク）</h2>
+    <table><thead><tr><th>日(UTC)</th><th>人</th></tr></thead><tbody>${dayRows || '<tr><td colspan=2 style="color:#9aa0a6">まだありません</td></tr>'}</tbody></table>
+  </div>
+  <div>
+    <h2>人気アイテム Top40</h2>
+    <table><thead><tr><th>#</th><th>アイテム</th><th>参照</th></tr></thead><tbody>${itemRows || '<tr><td colspan=3 style="color:#9aa0a6">まだありません</td></tr>'}</tbody></table>
+  </div>
+</div>
+<h2>利用者（参照数順・上位100）</h2>
+<table><thead><tr><th>国</th><th>版/言語</th><th>起動</th><th>参照</th><th>エラー</th><th>最終</th><th>初回</th></tr></thead><tbody>${userRows || '<tr><td colspan=7 style="color:#9aa0a6">まだありません</td></tr>'}</tbody></table>
+<h2>エラー報告（直近100・デバッグ用）</h2>
+<table><thead><tr><th>時刻</th><th>環境</th><th>本文</th></tr></thead><tbody>${errRows || '<tr><td colspan=3 style="color:#9aa0a6">まだありません</td></tr>'}</tbody></table>
+</body></html>`;
+  return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
 
 async function hit(req, env, url) {

@@ -26,6 +26,7 @@ APP_AUTHOR    = "Ghost Shark Robotics"
 KOFI_URL      = "https://ko-fi.com/ghostsharkrobotics"        # Ko-fi（空なら寄付ボタン非表示）
 APP_REPO      = "GhostSharkRobotics/tbh-marketlens"           # 更新通知の取得元（GitHub Releases）
 FEEDBACK_URL  = "https://tbh-stats.monoqulo.workers.dev/feedback"   # アプリ内フィードバック送信先（Worker→Slack）
+STATS_URL     = "https://tbh-stats.monoqulo.workers.dev/ml"         # 匿名の利用テレメトリ送信先（IP非保存・国はエッジ付与）
 SIDE_BUTTON   = "x"                # マウスの「戻る」(XBUTTON1)。効かなければ "x2" に変更
 GAME_EXE      = "taskbarhero.exe"  # この実行ファイルが前面の時だけ反応
 APPID         = "3678970"          # TBH の Steam appid（マーケットURL用）

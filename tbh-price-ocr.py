@@ -89,6 +89,15 @@ TR = {
         "dbg_title": "デバッグ",
         "err_deps": "必要なライブラリが不足:\n{e}\n\npip install mss pillow winocr mouse keyboard pystray",
         "err_start": "起動に失敗しました。error.log を確認してください。",
+        "tray_sell": "出品待ち", "sell_title": "出品待ち", "sell_refresh": "更新", "sell_recheck": "再確認",
+        "sell_loading": "確認中…", "sell_ready_group": "売れる", "sell_ready": "売れる",
+        "sell_days": "あと{n}日", "sell_soon": "まもなく",
+        "sell_private_title": "インベントリが非公開です",
+        "sell_private_msg": "Steam在庫を読むにはインベントリの公開が必要です。下のボタンから設定を開き「ゲームの詳細」を公開にしてください。",
+        "sell_open_privacy": "公開設定を開く", "sell_empty": "Steam在庫にアイテムがありません",
+        "sell_no_steam": "Steamが見つかりません。起動してログインしてください",
+        "sell_error": "取得に失敗しました", "sell_notify_title": "出品できます",
+        "sell_notify": "「{name}」が出品可能になりました",
     },
     "en": {
         "low": "Low", "med": "Median", "lst": "List", "sold": "Sold", "quote": "Updated",
@@ -125,6 +134,15 @@ TR = {
         "dbg_title": "Debug",
         "err_deps": "Missing libraries:\n{e}\n\npip install mss pillow winocr mouse keyboard pystray",
         "err_start": "Failed to start. Please check error.log.",
+        "tray_sell": "Sell timer", "sell_title": "Sell timer", "sell_refresh": "Refresh", "sell_recheck": "Re-check",
+        "sell_loading": "Checking…", "sell_ready_group": "Sellable", "sell_ready": "Ready",
+        "sell_days": "{n}d left", "sell_soon": "soon",
+        "sell_private_title": "Inventory is private",
+        "sell_private_msg": "To read your Steam inventory, set it to public. Open settings below and make 'Game details' public.",
+        "sell_open_privacy": "Open privacy settings", "sell_empty": "No items in your Steam inventory",
+        "sell_no_steam": "Steam not found. Launch and sign in.",
+        "sell_error": "Failed to fetch", "sell_notify_title": "Ready to sell",
+        "sell_notify": "“{name}” can now be listed",
     },
     "zh": {
         "low": "最低", "med": "中位", "lst": "在售", "sold": "成交", "quote": "行情",
@@ -161,6 +179,15 @@ TR = {
         "dbg_title": "调试",
         "err_deps": "缺少必要的库:\n{e}\n\npip install mss pillow winocr mouse keyboard pystray",
         "err_start": "启动失败。请查看 error.log。",
+        "tray_sell": "可出售计时", "sell_title": "可出售计时", "sell_refresh": "刷新", "sell_recheck": "重新检查",
+        "sell_loading": "检查中…", "sell_ready_group": "可出售", "sell_ready": "可售",
+        "sell_days": "还剩{n}天", "sell_soon": "即将",
+        "sell_private_title": "库存未公开",
+        "sell_private_msg": "要读取 Steam 库存，请将其设为公开。点击下方打开设置，将「游戏详情」设为公开。",
+        "sell_open_privacy": "打开隐私设置", "sell_empty": "Steam 库存中没有物品",
+        "sell_no_steam": "未找到 Steam，请启动并登录。",
+        "sell_error": "获取失败", "sell_notify_title": "可以出售",
+        "sell_notify": "“{name}”现在可以上架了",
     },
 }
 
@@ -786,7 +813,7 @@ def _save_settings():
     try:
         with open(SET_FILE, "w", encoding="utf-8") as f:
             json.dump({"trigger": _trigger, "lang": _lang_mode[0], "intro_seen": _intro_seen[0],
-                       "hist_geo": _hist_geo[0]},
+                       "hist_geo": _hist_geo[0], "sell_geo": _sell_geo[0]},
                       f, ensure_ascii=False)
     except Exception: pass
 
@@ -800,6 +827,7 @@ def _load_settings():
             _lang_mode[0] = d["lang"]
         _intro_seen[0] = bool(d.get("intro_seen"))
         if isinstance(d.get("hist_geo"), str): _hist_geo[0] = d["hist_geo"]
+        if isinstance(d.get("sell_geo"), str): _sell_geo[0] = d["sell_geo"]
     except Exception: pass
 
 def _bind_trigger():
@@ -1273,7 +1301,8 @@ def _get_icon(h, cb):
             bb = im.getbbox()                        # 透明の余白を切ってセルいっぱいに
             if bb: im = im.crop(bb)
             im = im.resize((ICON_PX, ICON_PX), Image.NEAREST)
-            w = _hist_win[0]
+            w = next((x[0] for x in (_sell_win, _hist_win)              # 履歴/出品待ちのどちらか生きてる窓で描画
+                      if x[0] and x[0].winfo_exists()), None)
             if not (w and w.winfo_exists()): return
             def ready():
                 if h not in _icon_cache:
@@ -1767,6 +1796,10 @@ def poll(root):
                 if _hist_visible[0]: show_history(root)
                 else: hide_history()
                 continue
+            if results == "__sell__":              # トレイから出品待ち表示の同期
+                if _sell_visible[0]: show_sell(root)
+                else: hide_sell(root)
+                continue
             if results == "__hist_trim__":         # 上限変更→切り詰め＋更新
                 _hist_trim(); _save_hist(); _refresh_history()
                 continue
@@ -1798,6 +1831,302 @@ def poll(root):
     root.after(80, lambda: poll(root))
 
 
+# ---- 出品待ち（Steam在庫のトレードホールド追跡）---------------------------
+# Steamは未ログインの新inventory APIを403で塞いだため、旧 inventory/json を使う。
+# 旧APIはインベントリが「公開」なら未ログインでも読める。tradableフラグは取れるが、
+# 正確な解除日(owner_descriptions)はowner限定で公開では取れない→「初めてロックを見た時刻
+# +7日」を上限推定として残り日数を出し、解除(tradable 1)に変わった瞬間を確実に通知する。
+TBH_INV_APPID = "3678970"
+HOLD_DAYS = 7
+SELL_FILE = os.path.join(HERE, "tbh-sell-state.json")
+
+_sell_win = [None]
+_sell_inner = [None]               # (canvas, inner)
+_sell_visible = [False]
+_sell_geo = [None]
+_sell_state = {"status": "init", "items": [], "ts": 0}   # 直近の取得結果
+_sell_seen = {}                    # assetid -> 初めてロックを見たepoch（永続）
+_sell_known = {}                   # assetid -> 直近のtradable（解除flip通知用・永続）
+_tray_icon = [None]                # 通知用にトレイIconを保持
+
+def _detect_steamid():
+    """ローカルSteamからログイン中のSteamID64を取得（レジストリ→loginusers.vdf）。配布時も各PCで自動。"""
+    try:
+        import winreg
+        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam\ActiveProcess")
+        au = winreg.QueryValueEx(k, "ActiveUser")[0]
+        if au:
+            return str(76561197960265728 + int(au))
+    except Exception:
+        pass
+    try:
+        import winreg
+        k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam")
+        path = winreg.QueryValueEx(k, "SteamPath")[0]
+    except Exception:
+        path = r"C:\Program Files (x86)\Steam"
+    try:
+        vdf = os.path.join(path.replace("/", "\\"), "config", "loginusers.vdf")
+        txt = open(vdf, encoding="utf-8", errors="ignore").read()
+        best = None
+        for m in re.finditer(r'"(7656\d{13})"\s*\{(.*?)\}', txt, re.S):
+            sid, body = m.group(1), m.group(2)
+            if best is None:
+                best = sid
+            if re.search(r'"MostRecent"\s*"1"', body):
+                return sid
+        return best
+    except Exception:
+        return None
+
+def _steam_privacy_url():
+    sid = _detect_steamid()
+    return f"https://steamcommunity.com/profiles/{sid}/edit/settings" if sid \
+        else "https://steamcommunity.com/my/edit/settings"
+
+def _save_sell_state():
+    try:
+        with open(SELL_FILE, "w", encoding="utf-8") as f:
+            json.dump({"seen": _sell_seen, "known": _sell_known}, f, ensure_ascii=False)
+    except Exception:
+        pass
+
+def _load_sell_state():
+    try:
+        d = json.load(open(SELL_FILE, encoding="utf-8"))
+        _sell_seen.update({str(k): float(v) for k, v in (d.get("seen") or {}).items()})
+        _sell_known.update({str(k): int(v) for k, v in (d.get("known") or {}).items()})
+    except Exception:
+        pass
+
+def _sell_notify(names):
+    try:
+        ic = _tray_icon[0]
+        if ic:
+            body = "、".join(names[:5]) + ("…" if len(names) > 5 else "")
+            ic.notify(T("sell_notify", name=body), T("sell_notify_title"))
+    except Exception:
+        pass
+
+def _sell_fetch():
+    """Steam在庫を取得して _sell_state を更新（バックグラウンドスレッドから呼ぶ）。"""
+    sid = _detect_steamid()
+    if not sid:
+        _sell_state.update(status="no_steam", items=[]); return
+    url = f"https://steamcommunity.com/profiles/{sid}/inventory/json/{TBH_INV_APPID}/2"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        d = json.loads(urllib.request.urlopen(req, timeout=20).read())
+    except Exception:
+        _sell_state.update(status="error"); return
+    if not d.get("success"):
+        err = (d.get("Error") or "").lower()
+        _sell_state.update(status="private" if "private" in err else "error"); return
+    inv = d.get("rgInventory") or {}
+    desc = d.get("rgDescriptions") or {}
+    now = time.time()
+    items = []
+    for a in (inv.values() if isinstance(inv, dict) else []):
+        x = desc.get(f"{a.get('classid')}_{a.get('instanceid')}") or {}
+        rar = ""
+        for t in (x.get("tags") or []):
+            if (t.get("category") or "").lower() in ("rarity", "quality"):
+                rar = t.get("internal_name") or t.get("name") or ""
+        items.append({
+            "assetid": str(a.get("id") or a.get("assetid") or ""),
+            "name": x.get("name") or x.get("market_hash_name") or "?",
+            "icon": x.get("icon_url") or "",
+            "tradable": int(x.get("tradable") or 0),
+            "marketable": int(x.get("marketable") or 0),
+            "rarity": rar,
+        })
+    notify = []
+    for it in items:
+        aid = it["assetid"]
+        if _sell_known.get(aid) == 0 and it["tradable"] == 1:   # ロック→解除 を検知
+            notify.append(it["name"])
+        _sell_known[aid] = it["tradable"]
+        if it["tradable"] == 0:
+            _sell_seen.setdefault(aid, now)                     # 初めてロックを見た時刻を固定
+        else:
+            _sell_seen.pop(aid, None)
+    live = {it["assetid"] for it in items}                       # 在庫から消えたものを掃除
+    for aid in list(_sell_seen):
+        if aid not in live: _sell_seen.pop(aid, None)
+    for aid in list(_sell_known):
+        if aid not in live: _sell_known.pop(aid, None)
+    _save_sell_state()
+    _sell_state.update(status=("empty" if not items else "ok"), items=items, ts=now)
+    if notify:
+        _sell_notify(notify)
+
+def _sell_refresh_async():
+    def work():
+        _sell_fetch()
+        w = _sell_win[0]
+        if w:
+            try: w.after(0, _refresh_sell)
+            except Exception: pass
+    threading.Thread(target=work, daemon=True).start()
+
+def _sell_poller():
+    """30分ごとに在庫を確認（窓を開いていなくても解除通知が出るように）。"""
+    while True:
+        try:
+            _sell_fetch()
+            w = _sell_win[0]
+            if w:
+                try: w.after(0, _refresh_sell)
+                except Exception: pass
+        except Exception:
+            pass
+        time.sleep(1800)
+
+def _set_sell_loading():
+    _sell_state["status"] = "loading"; _refresh_sell()
+
+def _sell_scroll():
+    c = _sell_inner[0][0] if _sell_inner[0] else None
+    if c:
+        try: c.update_idletasks(); c.configure(scrollregion=c.bbox("all"))
+        except Exception: pass
+
+def _sell_agg(items):
+    """同名アイテムを ×個数 にまとめる（解除日でまとめた後、見た目の重複を畳む）。"""
+    out = {}
+    order = []
+    for it in items:
+        k = it["name"]
+        if k not in out:
+            out[k] = {"name": it["name"], "icon": it["icon"], "rarity": it["rarity"], "count": 0}
+            order.append(k)
+        out[k]["count"] += 1
+    return [out[k] for k in order]
+
+def _sell_header(inner, text, color):
+    h = tk.Frame(inner, bg=C_CARD); h.pack(fill="x", padx=8, pady=(10, 2))
+    tk.Label(h, text=text, bg=C_CARD, fg=color, font=("Yu Gothic UI", 10, "bold"), anchor="w").pack(side="left")
+
+def _sell_item_row(inner, g, right_text, right_color):
+    ar = rarity_color(g.get("rarity") or "")
+    row = tk.Frame(inner, bg=C_CARD); row.pack(fill="x", padx=6, pady=(4, 0))
+    img = _blank_icon[0] if g.get("icon") else _placeholder_icon(ar)
+    il = tk.Label(row, bg=C_CARD, image=img); il.pack(side="left", padx=(2, 8))
+    if right_text:
+        tk.Label(row, text=right_text, bg=C_CARD, fg=right_color,
+                 font=("Yu Gothic UI", 9, "bold")).pack(side="right", padx=(6, 4))
+    nm = g["name"] + (f"  ×{g['count']}" if g.get("count", 1) > 1 else "")
+    tk.Label(row, text=nm, bg=C_CARD, fg=ar, font=("Yu Gothic UI", 10, "bold"),
+             anchor="w").pack(side="left", fill="x", expand=True)
+    if g.get("icon"):
+        _get_icon(g["icon"], lambda ph, L=il: L.winfo_exists() and L.config(image=ph))
+    tk.Frame(inner, bg="#2a2f3a", height=1).pack(fill="x", padx=6, pady=(4, 0))
+
+def _refresh_sell():
+    if not (_sell_win[0] and _sell_win[0].winfo_exists() and _sell_inner[0]): return
+    inner = _sell_inner[0][1]
+    for w in inner.winfo_children():
+        try: w.destroy()
+        except Exception: pass
+    if _blank_icon[0] is None:
+        try:
+            from PIL import ImageTk
+            _blank_icon[0] = ImageTk.PhotoImage(Image.new("RGBA", (ICON_PX, ICON_PX), (0, 0, 0, 0)))
+        except Exception: pass
+    fb = tkfont.Font(family="Yu Gothic UI", size=10)
+    st = _sell_state.get("status")
+    if st in (None, "init", "loading"):
+        tk.Label(inner, text=T("sell_loading"), bg=C_CARD, fg=C_META, anchor="w").pack(fill="x", padx=12, pady=10)
+        _sell_scroll(); return
+    if st == "no_steam":
+        tk.Label(inner, text=T("sell_no_steam"), bg=C_CARD, fg=C_META, anchor="w",
+                 justify="left", wraplength=300).pack(fill="x", padx=12, pady=10)
+        _sell_scroll(); return
+    if st in ("private", "error"):
+        box = tk.Frame(inner, bg=C_CARD); box.pack(fill="x", padx=14, pady=12)
+        if st == "private":
+            tk.Label(box, text=T("sell_private_title"), bg=C_CARD, fg=C_NAME, font=("Yu Gothic UI", 11, "bold"),
+                     anchor="w", justify="left", wraplength=300).pack(fill="x", anchor="w")
+            tk.Label(box, text=T("sell_private_msg"), bg=C_CARD, fg=C_META,
+                     anchor="w", justify="left", wraplength=300).pack(fill="x", anchor="w", pady=(4, 10))
+            round_pill(box, "🔓 " + T("sell_open_privacy"), C_ACCENT, "#0c0c0c",
+                       lambda: webbrowser.open(_steam_privacy_url()), fb).pack(anchor="w")
+        else:
+            tk.Label(box, text=T("sell_error"), bg=C_CARD, fg=C_ERR, anchor="w").pack(fill="x", anchor="w", pady=(0, 8))
+        round_pill(box, "↻ " + T("sell_recheck"), "#2a2f3a", C_NAME,
+                   lambda: (_set_sell_loading(), _sell_refresh_async()), fb).pack(anchor="w", pady=(6, 0))
+        _sell_scroll(); return
+    items = _sell_state.get("items") or []
+    if st == "empty" or not items:
+        tk.Label(inner, text=T("sell_empty"), bg=C_CARD, fg=C_META, anchor="w",
+                 justify="left", wraplength=300).pack(fill="x", padx=12, pady=10)
+        _sell_scroll(); return
+    now = time.time()
+    ready = [it for it in items if it["tradable"] == 1]
+    locked = [it for it in items if it["tradable"] == 0]
+    if ready:
+        _sell_header(inner, f"🟢 {T('sell_ready_group')} ({len(ready)})", C_PRICE)
+        for g in _sell_agg(ready):
+            _sell_item_row(inner, g, T("sell_ready"), C_PRICE)
+    byday = {}
+    for it in locked:
+        unlock = _sell_seen.get(it["assetid"], now) + HOLD_DAYS * 86400
+        byday.setdefault(int(unlock // 86400), []).append((it, unlock))
+    for dkey in sorted(byday):
+        grp = byday[dkey]
+        unlock = grp[0][1]
+        days = max(0, (int(unlock - now) + 86399) // 86400)
+        md = time.strftime("%#m/%#d" if os.name == "nt" else "%-m/%-d", time.localtime(unlock))
+        dleft = T("sell_soon") if days <= 0 else T("sell_days", n=days)
+        _sell_header(inner, f"🕒 ≈{md} ・ {dleft} ({len(grp)})", C_WAIT)
+        for g in _sell_agg([it for it, _ in grp]):
+            _sell_item_row(inner, g, "", C_META)
+    _sell_scroll()
+
+def show_sell(root):
+    if _sell_win[0] and _sell_win[0].winfo_exists():
+        _sell_win[0].deiconify(); _refresh_sell(); return
+    win = tk.Toplevel(root)
+    win.title("TBH MarketLens — " + T("sell_title"))
+    win.config(bg=C_CARD); win.geometry(_sell_geo[0] or "360x460"); win.attributes("-topmost", True)
+    win.protocol("WM_DELETE_WINDOW", lambda: toggle_sell(root))
+    def _rg(e):
+        if e.widget is win and win.winfo_width() > 80:
+            _sell_geo[0] = win.geometry()
+    win.bind("<Configure>", _rg)
+    f_btn = tkfont.Font(family="Yu Gothic UI", size=9)
+    hdr = tk.Frame(win, bg=C_CARD); hdr.pack(fill="x", padx=12, pady=(10, 0))
+    tk.Label(hdr, text=T("sell_title"), bg=C_CARD, fg=C_NAME,
+             font=("Yu Gothic UI", 13, "bold"), anchor="w").pack(side="left")
+    round_pill(hdr, "↻ " + T("sell_refresh"), C_ACCENT, "#0c0c0c",
+               lambda: (_set_sell_loading(), _sell_refresh_async()), f_btn).pack(side="right")
+    body = tk.Frame(win, bg=C_CARD); body.pack(fill="both", expand=True, padx=6, pady=(6, 8))
+    canvas = tk.Canvas(body, bg=C_CARD, highlightthickness=0)
+    sb = tk.Scrollbar(body, orient="vertical", command=canvas.yview)
+    inner = tk.Frame(canvas, bg=C_CARD)
+    canvas.create_window((0, 0), window=inner, anchor="nw", width=326)
+    canvas.configure(yscrollcommand=sb.set)
+    canvas.pack(side="left", fill="both", expand=True); sb.pack(side="right", fill="y")
+    win.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units"))
+    _sell_win[0] = win; _sell_inner[0] = (canvas, inner)
+    _keep_on_top(win, pause=lambda: bool(_open))
+    _refresh_sell()
+    _set_sell_loading(); _sell_refresh_async()    # 開いたら最新を取りに行く
+
+def hide_sell(root=None):
+    if _sell_win[0]:
+        try:
+            if _sell_win[0].winfo_width() > 80: _sell_geo[0] = _sell_win[0].geometry()
+            _sell_win[0].withdraw()
+        except Exception: pass
+    _save_settings()
+
+def toggle_sell(root):
+    _sell_visible[0] = not _sell_visible[0]
+    if _sell_visible[0]: show_sell(root)
+    else: hide_sell(root)
+
+
 # ---- タスクトレイ --------------------------------------------------------
 def tray_image():
     img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
@@ -1816,6 +2145,10 @@ def run_tray(root):
     def _toggle_hist(icon, item):
         _hist_visible[0] = not _hist_visible[0]       # 状態を反転（×と二重反転しないようpoll側は同期のみ）
         PQ.put(("__history__", None, None))
+        icon.update_menu()
+    def _toggle_sell(icon, item):
+        _sell_visible[0] = not _sell_visible[0]
+        PQ.put(("__sell__", None, None))
         icon.update_menu()
     def _mk_limit(n):
         def _cb(icon, item):
@@ -1841,10 +2174,14 @@ def run_tray(root):
                          lambda icon, item: PQ.put(("__settings__", None, None))),
         pystray.MenuItem(lambda item: T("tray_history"), _toggle_hist,
                          checked=lambda item: _hist_visible[0]),
+        pystray.MenuItem(lambda item: T("tray_sell"), _toggle_sell,
+                         checked=lambda item: _sell_visible[0]),
         pystray.MenuItem(lambda item: T("tray_limit"), limit_menu),
         pystray.MenuItem(lambda item: T("tray_quit"), _quit),
     )
-    pystray.Icon("tbh_marketlens", tray_image(), "TBH MarketLens", menu).run()
+    icon = pystray.Icon("tbh_marketlens", tray_image(), "TBH MarketLens", menu)
+    _tray_icon[0] = icon                                  # 出品解除の通知に使う
+    icon.run()
 
 
 # ---- main ----------------------------------------------------------------
@@ -1854,6 +2191,8 @@ def main():
     for _r in _hist:
         if not _r.get("icon") and _r.get("hash"): _r["icon"] = _im.get(_r["hash"], "")
     _load_settings()                                           # 保存済み設定を復元
+    _load_sell_state()                                         # 出品待ちの追跡状態（解除時刻/ロック履歴）を復元
+    threading.Thread(target=_sell_poller, daemon=True).start() # 在庫を定期確認→解除を通知
     if _lang_mode[0] is None:                                  # 初回はPCの言語を既定に
         _lang_mode[0] = _detect_pc_lang()
     _apply_lang(_lang_mode[0])                                 # _ui_langへ反映

@@ -1006,6 +1006,7 @@ def _save_settings():
         with open(SET_FILE, "w", encoding="utf-8") as f:
             json.dump({"trigger": _trigger, "lang": _lang_mode[0], "intro_seen": _intro_seen[0],
                        "hist_geo": _hist_geo[0], "sell_geo": _sell_geo[0],
+                       "hist_open": _hist_visible[0], "sell_open": _sell_visible[0],
                        "cid": _cid[0], "telemetry": _telemetry[0]},
                       f, ensure_ascii=False)
     except Exception: pass
@@ -1021,6 +1022,8 @@ def _load_settings():
         _intro_seen[0] = bool(d.get("intro_seen"))
         if isinstance(d.get("hist_geo"), str): _hist_geo[0] = d["hist_geo"]
         if isinstance(d.get("sell_geo"), str): _sell_geo[0] = d["sell_geo"]
+        _hist_visible[0] = bool(d.get("hist_open"))    # 前回の開閉状態（再起動で復元）
+        _sell_visible[0] = bool(d.get("sell_open"))
         if isinstance(d.get("cid"), str) and d["cid"]: _cid[0] = d["cid"]
         if "telemetry" in d: _telemetry[0] = bool(d["telemetry"])
     except Exception: pass
@@ -1854,6 +1857,7 @@ def _hist_sync_top():
     _hist_scroll()
 
 def show_history(root):
+    _hist_visible[0] = True; _save_settings()      # 開いた状態を保存（再起動後も復元）
     if _hist_win[0] and _hist_win[0].winfo_exists():
         _hist_win[0].deiconify(); _refresh_history(); return
     win = tk.Toplevel(root)
@@ -1886,12 +1890,13 @@ def show_history(root):
     _refresh_history()
 
 def hide_history():
+    _hist_visible[0] = False
     if _hist_win[0]:
         try:
             if _hist_win[0].winfo_width() > 80: _hist_geo[0] = _hist_win[0].geometry()
             _hist_win[0].withdraw()
         except Exception: pass
-    _save_settings()           # 位置・サイズを保存
+    _save_settings()           # 位置・サイズ＋開閉状態を保存
 
 def toggle_history(root):
     _hist_visible[0] = not _hist_visible[0]
@@ -2426,6 +2431,7 @@ def _refresh_sell():
     _sell_scroll()
 
 def show_sell(root):
+    _sell_visible[0] = True; _save_settings()      # 開いた状態を保存（再起動後も復元）
     if _sell_win[0] and _sell_win[0].winfo_exists():
         _sell_win[0].deiconify(); _refresh_sell(); return
     win = tk.Toplevel(root)
@@ -2449,6 +2455,7 @@ def show_sell(root):
     _set_sell_loading(); _sell_refresh_async()    # 開いたら最新を取りに行く
 
 def hide_sell(root=None):
+    _sell_visible[0] = False
     if _sell_win[0]:
         try:
             if _sell_win[0].winfo_width() > 80: _sell_geo[0] = _sell_win[0].geometry()
@@ -2556,6 +2563,10 @@ def main():
         root.after(700, lambda: show_help(root))
     if _ocr_lang_missing():                                    # 表示言語のOCRが無い→原因と直し方を案内
         root.after(1200, lambda: show_ocr_warn(root))
+    if _hist_visible[0]:                                       # 前回開いていた履歴ウィンドウを復元
+        root.after(300, lambda: show_history(root))
+    if _sell_visible[0]:                                       # 前回開いていた出品待ちウィンドウを復元
+        root.after(300, lambda: show_sell(root))
     poll(root)
     root.mainloop()
 

@@ -56,7 +56,7 @@ LANGS = ("ja", "en", "zh")
 LANG_NAMES = {"ja": "日本語", "en": "English", "zh": "中文"}   # 言語自身の表示名（モード非依存のデータ）
 TR = {
     "ja": {
-        "low": "最安", "med": "中央値", "lst": "出品", "sold": "売買", "quote": "相場", "sort_added": "追加日",
+        "low": "最安", "med": "中央値", "lst": "出品", "sold": "売買", "quote": "相場", "sort_added": "追加日", "hist_last": "最終",
         "mkt": "クリックでSteamマーケットを開く", "noprice": "市場価格なし（非取引）", "nolisting": "出品なし",
         "nomatch": "該当なし", "reading": "🔍 読み取り中…", "read": "読取",
         "rarity": "等級", "history": "履歴",
@@ -107,7 +107,7 @@ TR = {
         "sell_notify": "「{name}」が出品可能になりました",
     },
     "en": {
-        "low": "Low", "med": "Median", "lst": "List", "sold": "Sold", "quote": "Updated", "sort_added": "Added",
+        "low": "Low", "med": "Median", "lst": "List", "sold": "Sold", "quote": "Updated", "sort_added": "Added", "hist_last": "Last",
         "mkt": "Click to open Steam Market", "noprice": "Not on market", "nolisting": "No listings",
         "nomatch": "No match", "reading": "🔍 Reading…", "read": "OCR",
         "rarity": "Rarity", "history": "History",
@@ -158,7 +158,7 @@ TR = {
         "sell_notify": "“{name}” can now be listed",
     },
     "zh": {
-        "low": "最低", "med": "中位", "lst": "在售", "sold": "成交", "quote": "行情", "sort_added": "添加",
+        "low": "最低", "med": "中位", "lst": "在售", "sold": "成交", "quote": "行情", "sort_added": "添加", "hist_last": "最近",
         "mkt": "点击打开 Steam 市场", "noprice": "无市场价格（不可交易）", "nolisting": "暂无在售",
         "nomatch": "无匹配", "reading": "🔍 识别中…", "read": "识别",
         "rarity": "品质", "history": "历史",
@@ -908,7 +908,7 @@ _hist_sort = ["date"]      # 並び順: "date"=追加日 / "sell"=最安 / "medi
 _hist_sort_desc = [True]   # True=降順（新しい順/高い順）。同じソートを再タップで反転
 _hist_sort_pills = []      # ソートpill [(mode, pill, label_fn)]
 _hist_sort_face = [None]   # pillの見た目更新関数（_refresh時に同期）
-_hist_now = [None]         # ヘッダの現在日時ラベル
+_hist_last_update = [None] # 最終「全部更新」時刻の表示文字列（更新ボタンに常表示。設定で永続）
 HIST_FILE = os.path.join(HERE, "tbh-price-history.json")   # 履歴の保存先（再起動で消えないように）
 SET_FILE = os.path.join(HERE, "tbh-price-settings.json")   # 設定の保存先
 
@@ -1020,6 +1020,7 @@ def _save_settings():
                        "hist_geo": _hist_geo[0], "sell_geo": _sell_geo[0],
                        "hist_open": _hist_visible[0], "sell_open": _sell_visible[0],
                        "hist_sort": _hist_sort[0], "hist_sort_desc": _hist_sort_desc[0],
+                       "hist_last_update": _hist_last_update[0],
                        "cid": _cid[0], "telemetry": _telemetry[0]},
                       f, ensure_ascii=False)
     except Exception: pass
@@ -1039,6 +1040,7 @@ def _load_settings():
         _sell_visible[0] = bool(d.get("sell_open"))
         if d.get("hist_sort") in ("date", "sell", "median"): _hist_sort[0] = d["hist_sort"]
         if "hist_sort_desc" in d: _hist_sort_desc[0] = bool(d["hist_sort_desc"])
+        if isinstance(d.get("hist_last_update"), str): _hist_last_update[0] = d["hist_last_update"]
         if isinstance(d.get("cid"), str) and d["cid"]: _cid[0] = d["cid"]
         if "telemetry" in d: _telemetry[0] = bool(d["telemetry"])
     except Exception: pass
@@ -1173,13 +1175,9 @@ def _icon_by_hash():
             _icon_map[0] = {}
     return _icon_map[0]
 
-def _stamp_str():                  # セル右下の追加日時（年なし。例 6/9 21:30）。Win strftimeの-m非対応を避け手組み
+def _stamp_str():                  # 追加日時/最終更新時刻（年なし。例 6/9 21:30）。Win strftimeの-m非対応を避け手組み
     t = time.localtime()
     return f"{t.tm_mon}/{t.tm_mday} {t.tm_hour:02d}:{t.tm_min:02d}"
-
-def _now_str():                    # ヘッダの現在日時（年あり。例 2026/6/9 21:30）
-    t = time.localtime()
-    return f"{t.tm_year}/{t.tm_mon}/{t.tm_mday} {t.tm_hour:02d}:{t.tm_min:02d}"
 
 def _record_history(ent):
     if not ent: return
@@ -1293,24 +1291,36 @@ def _dismiss(win, is_editing=lambda: False):
         win.after(80, tick)
     win.after(80, tick)
 
-def round_pill(parent, text, fill, fg, cmd, font, padx=14, pady=6):
-    """角丸（ピル型）ボタン。canvasで描画。"""
+def _pill_draw(cv, text):
+    """pillをテキストに合わせて再描画（canvas幅・背景・文字を作り直す＝文字がはみ出さない）。"""
+    p = cv._pill
+    font, padx, pady = p["font"], p["padx"], p["pady"]
     tw, th = font.measure(text), font.metrics("linespace")
     w, h = tw + padx * 2, th + pady * 2
-    cv = tk.Canvas(parent, width=w, height=h, bg=parent.cget("bg"), highlightthickness=0, cursor="hand2")
-    cv.create_arc(0, 0, h, h, start=90, extent=180, fill=fill, outline=fill, tags="bg")
-    cv.create_arc(w - h, 0, w, h, start=-90, extent=180, fill=fill, outline=fill, tags="bg")
-    cv.create_rectangle(h / 2, 0, w - h / 2, h, fill=fill, outline=fill, tags="bg")
-    cv.create_text(w / 2, h / 2 + 1, text=text, fill=fg, font=font, tags="txt")
+    cv.configure(width=w, height=h)
+    cv.delete("all")
+    f = p["fill"]
+    cv.create_arc(0, 0, h, h, start=90, extent=180, fill=f, outline=f, tags="bg")
+    cv.create_arc(w - h, 0, w, h, start=-90, extent=180, fill=f, outline=f, tags="bg")
+    cv.create_rectangle(h / 2, 0, w - h / 2, h, fill=f, outline=f, tags="bg")
+    cv.create_text(w / 2, h / 2 + 1, text=text, fill=p["fg"], font=font, tags="txt")
+
+def round_pill(parent, text, fill, fg, cmd, font, padx=14, pady=6):
+    """角丸（ピル型）ボタン。canvasで描画。テキスト変更時は _pill_set_text が幅ごと作り直す。"""
+    cv = tk.Canvas(parent, bg=parent.cget("bg"), highlightthickness=0, cursor="hand2")
+    cv._pill = {"font": font, "padx": padx, "pady": pady, "fill": fill, "fg": fg}
     cv.bind("<Button-1>", lambda e: cmd())
+    _pill_draw(cv, text)
     return cv
 
 def recolor_pill(cv, color):
-    try: cv.itemconfig("bg", fill=color, outline=color)
+    try:
+        cv._pill["fill"] = color                        # 次回再描画でも色を保つ
+        cv.itemconfig("bg", fill=color, outline=color)
     except Exception: pass
 
 def _pill_set_text(cv, text):
-    try: cv.itemconfig("txt", text=text)
+    try: _pill_draw(cv, text)                            # 文字に合わせて幅・背景も作り直す（はみ出し防止）
     except Exception: pass
 
 def _rrect(cv, x1, y1, x2, y2, r, fill, tag):
@@ -1671,6 +1681,13 @@ _hist_gen = [0]            # 全部更新の世代。新しい更新が始まる
 _hist_updating = [False]   # 全部更新が実行中か（連打で多重起動しないように）
 _hist_update_btn = [None]  # 「全部更新」ボタン（実行中は表示を変える）
 
+def _upd_btn_text():
+    """全部更新ボタンの通常表示。最終更新時刻があれば併記（pillは自動で幅が伸びる）。"""
+    t = "↻ " + T("update_all")
+    if _hist_last_update[0]:
+        t += f"  {T('hist_last')} {_hist_last_update[0]}"
+    return t
+
 def _hist_update_all(force=True):
     if _hist_updating[0]: return                       # 実行中の連打は無視（多重起動しない）
     recs = [r for r in list(_hist) if r.get("hash")]
@@ -1713,17 +1730,17 @@ def _hist_update_all(force=True):
         _hist_updating[0] = False                      # 完了→再度押せる
         _hist_prog_state["on"] = False                 # バー消灯＋アニメ停止
         if not alive():
-            _hist_after(lambda: _btn("↻ " + T("update_all")))
+            _hist_after(lambda: _btn(_upd_btn_text()))
             return
-        _save_hist()
-        def _fin():                                    # ✓を一瞬見せてから通常表示へ（完了の手応え）
+        _hist_last_update[0] = _stamp_str()            # 最終更新時刻＝ボタンに常表示（設定で永続）
+        _save_hist(); _save_settings()
+        def _fin():                                    # ✓を一瞬見せてから通常表示（時刻入り）へ（完了の手応え）
             _btn("✓ " + T("update_all"))
             s = _hist_status[0]
-            if s and s.winfo_exists():
-                s.config(text="✓ " + time.strftime("%H:%M:%S"), fg=C_ACCENT)
+            if s and s.winfo_exists(): s.config(text="")   # 時刻はボタンに出すのでステータスは消す
             b = _hist_update_btn[0]
             if b and b.winfo_exists():
-                b.after(1400, lambda: b.winfo_exists() and _pill_set_text(b, "↻ " + T("update_all")))
+                b.after(1400, lambda: b.winfo_exists() and _pill_set_text(b, _upd_btn_text()))
         _hist_after(_fin)
     threading.Thread(target=waiter, daemon=True).start()
 
@@ -1908,32 +1925,31 @@ def _hist_sync_top():
         if rd["rec"] is rec:
             if rd["price"].winfo_exists(): _set_row_price(rd); rd["ts"].config(text=rec.get("ts", ""))
             return
-    new_sort = (_hist_sort[0] != "date" or not _hist_sort_desc[0])   # 並べ替え中か
     if not _hist_rows:                               # 空表示ラベルがあれば消す
         for w in inner.winfo_children():
             try: w.destroy()
             except Exception: pass
     rd = _build_hist_row(rec)
-    if new_sort:                                      # 並べ替え中：末尾に作り、あとで正しい位置へ（破棄せず）
+    # 新規1行だけを「ソート順での正しい位置」に差し込む。既存行は一切動かさない＝全消し/再構築なし
+    # ＝レンズ中に履歴が一瞬消える現象を防ぐ（どのソートでも増分挿入）。
+    order = _hist_ordered(); ids = [id(r) for r in order]
+    try: nxt = order[ids.index(id(rec)) + 1]          # recの直後に来るべきrec
+    except (ValueError, IndexError): nxt = None
+    anchor = next((r for r in _hist_rows if r["rec"] is nxt), None) if nxt is not None else None
+    if anchor:
+        rd["frame"].pack(fill="x", padx=6, pady=(4, 0), before=anchor["frame"])
+        rd["sep"].pack(fill="x", padx=6, pady=(4, 0), before=anchor["frame"])
+        _hist_rows.insert(_hist_rows.index(anchor), rd)
+    else:
         rd["frame"].pack(fill="x", padx=6, pady=(4, 0)); rd["sep"].pack(fill="x", padx=6, pady=(4, 0))
         _hist_rows.append(rd)
-    else:                                             # 追加日↓：お気に入りの下（非お気に入りの先頭）に差し込む
-        anchor = next((r for r in _hist_rows if not r["rec"].get("fav")), None)
-        if anchor:
-            rd["frame"].pack(fill="x", padx=6, pady=(4, 0), before=anchor["frame"])
-            rd["sep"].pack(fill="x", padx=6, pady=(4, 0), before=anchor["frame"])
-            _hist_rows.insert(_hist_rows.index(anchor), rd)
-        else:
-            rd["frame"].pack(fill="x", padx=6, pady=(4, 0)); rd["sep"].pack(fill="x", padx=6, pady=(4, 0))
-            _hist_rows.append(rd)
     present = {id(r) for r in _hist}                  # 上限で押し出された行を撤去
     for rd2 in _hist_rows[:]:
         if id(rd2["rec"]) not in present:
             try: rd2["frame"].destroy(); rd2["sep"].destroy()
             except Exception: pass
             _hist_rows.remove(rd2)
-    if new_sort: _reorder_rows()                      # 正しい位置へ（破棄せず並べ替え）
-    else: _hist_scroll()
+    _hist_scroll()
 
 def show_history(root):
     _hist_visible[0] = True; _save_settings()      # 開いた状態を保存（再起動後も復元）
@@ -1951,12 +1967,9 @@ def show_history(root):
     hdr = tk.Frame(win, bg=C_CARD); hdr.pack(fill="x", padx=12, pady=(10, 0))
     tk.Label(hdr, text=T("hist_title"), bg=C_CARD, fg=C_NAME,
              font=("Yu Gothic UI", 13, "bold"), anchor="w").pack(side="left")
-    _hist_update_btn[0] = round_pill(hdr, ("⏳ " + T("updating_btn")) if _hist_updating[0] else ("↻ " + T("update_all")),
+    _hist_update_btn[0] = round_pill(hdr, ("⏳ " + T("updating_btn")) if _hist_updating[0] else _upd_btn_text(),
                                      C_ACCENT, "#0c0c0c", _hist_update_all, f_hbtn)
     _hist_update_btn[0].pack(side="right")
-    now_row = tk.Frame(win, bg=C_CARD); now_row.pack(side="top", fill="x", padx=12)   # 更新ボタンの下に現在日時を1つ
-    _hist_now[0] = tk.Label(now_row, text=_now_str(), bg=C_CARD, fg=C_META,
-                            font=("Yu Gothic UI", 8), anchor="e"); _hist_now[0].pack(side="right")
     # ── 並べ替え：追加日 / 最安 / 中央値（単一選択。選択中を再タップで昇順⇄降順） ──
     sortf = tk.Frame(win, bg=C_CARD); sortf.pack(side="top", fill="x", padx=12, pady=(2, 2))
     _hist_sort_pills.clear()
@@ -1990,12 +2003,6 @@ def show_history(root):
     # ポップ表示中(_open非空)は最前面の再主張を休む＝価格ポップと奪い合わずチラつかない。
     _keep_on_top(win, pause=lambda: bool(_open))
     _refresh_history()
-    def _now_tick():                               # 現在日時を更新し続ける（20秒毎。窓が消えたら止まる）
-        if _hist_now[0] and _hist_now[0].winfo_exists():
-            try: _hist_now[0].config(text=_now_str())
-            except Exception: pass
-            win.after(20000, _now_tick)
-    win.after(20000, _now_tick)
 
 def hide_history():
     _hist_visible[0] = False

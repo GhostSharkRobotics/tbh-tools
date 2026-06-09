@@ -72,9 +72,11 @@ async function feedback(req, env, url) {
     const rec = { ts: now, msg, contact, ver, lang, ip, country };
     await env.STATS.put('fb:' + now + ':' + Math.random().toString(36).slice(2, 7), JSON.stringify(rec), { expirationTtl: 60 * 60 * 24 * 180 });
     await env.STATS.put(tkey, '1', { expirationTtl: 20 });
-    if (env.FEEDBACK_WEBHOOK) {                       // Slack等のIncoming Webhookへ転送（URLは秘密）
-      const text = `:speech_balloon: *MarketLens feedback*  (v${ver || '?'} · ${lang || '?'} · ${country || '?'})\n${msg}` + (contact ? `\n_reply to:_ ${contact}` : '');
-      try { await fetch(env.FEEDBACK_WEBHOOK, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }) }); } catch (_) {}
+    if (env.FEEDBACK_WEBHOOK) {                       // Slack/Discord どちらのIncoming Webhookでも転送（URLは秘密）
+      const body = `💬 MarketLens feedback  (v${ver || '?'} · ${lang || '?'} · ${country || '?'})\n${msg}` + (contact ? `\n↩ reply to: ${contact}` : '');
+      const isDiscord = /discord(app)?\.com/.test(env.FEEDBACK_WEBHOOK);   // DiscordはcontentキーでSlackはtextキー
+      const payload = isDiscord ? { content: body } : { text: body };
+      try { await fetch(env.FEEDBACK_WEBHOOK, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }); } catch (_) {}
     }
     return new Response('ok', { headers: CORS });
   } catch (e) {

@@ -37,8 +37,8 @@ NAME_REGIONS = [
 ]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
-CALIBRATE     = True               # Trueで撮影画像を保存（調整用）
-DEBUG_UI      = True               # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
+CALIBRATE     = False              # Trueで撮影画像を保存（調整用）
+DEBUG_UI      = False              # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 _KEYCLR = "#ff00fe"   # 角丸の外側を透過させる魔法色（どの配色とも被らない）
@@ -723,10 +723,12 @@ def detect_frames(img):
     pk = sorted(zip(xs.tolist(), ys.tolist(), res[ys, xs].tolist()), key=lambda p: -p[2])
     picked = []
     for x, y, s in pk:                          # 同じ枠の重複ピークをまとめる（高スコア順なので最良が残る）
+        # ※比較は縮小空間で統一（元解像度に混ぜると長名で重複が消えず誤マッチ＝過去の不具合）
         if all(abs(x - px) > dx or abs(y - py) > dy for px, py, _ in picked):
-            picked.append((int(round(x / ds)), int(round(y / ds)), s))   # 縮小空間→元解像度
+            picked.append((x, y, s))                  # 縮小空間のまま保持
         if len(picked) >= 10:
             break
+    picked = [(int(round(x / ds)), int(round(y / ds)), s) for x, y, s in picked]   # 最後に元解像度へ
     return picked, f
 
 def _ocr_frame(img, x, y, f):

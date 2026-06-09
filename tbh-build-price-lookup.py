@@ -33,6 +33,7 @@ def main():
 
     # ゲーム本体ロケから en/ja -> 中国語(簡体zh-hans / 繁体zh-hant) を引くマップ
     EN2ZH = {}; JA2ZH = {}; EN2ZHT = {}; JA2ZHT = {}
+    RARITY_ZH = {}; GEAR_ZH = {}; MAT_ZH = {}; ITEMTYPE_ZH = {}   # レア度/装備種別/素材種別/アイテム種別の中国語
     try:
         loc = json.load(open(os.path.join(ROOT, "tools/extracted/localization.json"), encoding="utf-8"))
         for k, v in loc.items():
@@ -46,6 +47,19 @@ def main():
                 j = v["ja-jp"].strip()
                 if hs: JA2ZH[j] = hs
                 if ht: JA2ZHT[j] = ht
+        def _zh(key):
+            v = loc.get(key); return ((v.get("zh-hans") if isinstance(v, dict) else "") or "")
+        for ren, gk in (("Common", "COMMON"), ("Uncommon", "UNCOMMON"), ("Rare", "RARE"),
+                        ("Legendary", "LEGENDARY"), ("Immortal", "IMMORTAL"), ("Arcana", "ARCANA"),
+                        ("Beyond", "BEYOND"), ("Celestial", "CELESTIAL"), ("Divine", "DIVINE"), ("Cosmic", "COSMIC")):
+            RARITY_ZH[ren] = _zh("Grade_" + gk)                  # レア度 例: Legendary->传奇
+        for k, v in loc.items():                                 # 装備スロット 例: BOW->弓
+            if k.startswith("GearType_") and isinstance(v, dict) and v.get("zh-hans"):
+                GEAR_ZH[k[len("GearType_"):].upper()] = v["zh-hans"]
+        for mt in ("CRAFTING", "DECORATION", "ENGRAVING", "INSCRIPTION", "OFFERING"):
+            MAT_ZH[mt] = _zh(mt)                                 # 素材種別 例: ENGRAVING->雕刻
+        MAT_ZH["SOULSTONE"] = _zh("UI_ItemTooltip_SoulstoneMaterial") or "灵魂石"
+        ITEMTYPE_ZH["MATERIAL"] = _zh("ItemType_MATERIAL"); ITEMTYPE_ZH["STAGEBOX"] = _zh("ItemType_STAGEBOX")
     except Exception as ex:
         print("localization読込失敗(中国語名なしで継続):", ex)
     def zh_of(en, ja):
@@ -66,15 +80,15 @@ def main():
         return icons.get(x.get("icon", ""), "") if isinstance(x, dict) else ""
 
     entries = {}   # キー(ja, rarity_ja) -> entry。A/Bは価格ある方を採用してまとめる
-    def put(ja, en, rarity_en, hashkey, type_ja, type_en, variant="", icon=""):
+    def put(ja, en, rarity_en, hashkey, type_ja, type_en, variant="", icon="", type_zh=""):
         if not ja and not en: return
         rja_ = RMAP.get(rarity_en, "")
         k = (ja, rja_, en)
         e = entries.get(k)
         if e is None:
             e = {"ja": ja, "en": en, "zh": zh_of(en, ja), "zh_hant": zht_of(en, ja),
-                 "rarity_ja": rja_, "rarity_en": rarity_en or "",
-                 "type_ja": type_ja or "", "type_en": type_en or type_ja or "", "type": type_ja or "",
+                 "rarity_ja": rja_, "rarity_en": rarity_en or "", "rarity_zh": RARITY_ZH.get(rarity_en or "", ""),
+                 "type_ja": type_ja or "", "type_en": type_en or type_ja or "", "type_zh": type_zh or "", "type": type_ja or "",
                  "hash": hashkey, "variant": variant, "icon": icon or "",
                  "sell": None, "median": None, "listings": None, "volume": None}
             entries[k] = e
@@ -91,22 +105,24 @@ def main():
         var = x.get("variant", "") or ""
         hk = f"{x['nameEn']} ({x['rarity']})" + (f" {var}" if var else "")
         lvl = x.get("lvl", "")
+        gz = GEAR_ZH.get((x.get("gear", "") or "").upper(), "")
         tj = f"{x.get('gearJa','')} Lv.{lvl}"; te = f"{(x.get('gear','') or '').title()} Lv.{lvl}"
-        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), hk, tj, te, var, icon_of(x))
+        tz = f"{gz} Lv.{lvl}" if gz else ""
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), hk, tj, te, var, icon_of(x), type_zh=tz)
 
     # 宝石・彫刻: nameEn（市場は素名）
     for x in data.get("gems", []):
-        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "宝石", "Gem", icon=icon_of(x))
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "宝石", "Gem", icon=icon_of(x), type_zh="宝石")
     for x in data.get("engravings", []):
-        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "彫刻素材", "Engraving", icon=icon_of(x))
+        put(x.get("name", ""), x.get("nameEn", ""), x.get("rarity"), x.get("nameEn", ""), "彫刻素材", "Engraving", icon=icon_of(x), type_zh="雕刻材料")
     # 素材: name.{ja,en}
     for x in data.get("materials", []):
         nm = x.get("name", {}); mt = (x.get("materialType", "") or "素材")
-        put(nm.get("ja", ""), nm.get("en", ""), None, nm.get("en", ""), mt, mt.title())
+        put(nm.get("ja", ""), nm.get("en", ""), None, nm.get("en", ""), mt, mt.title(), type_zh=MAT_ZH.get(mt.upper(), ""))
     # アイテム類: name.{ja,en}
     for x in data.get("items", []):
         nm = x.get("name", {}); tp = x.get("type", "")
-        put(nm.get("ja", ""), nm.get("en", ""), None, nm.get("en", ""), tp, tp)
+        put(nm.get("ja", ""), nm.get("en", ""), None, nm.get("en", ""), tp, tp, type_zh=ITEMTYPE_ZH.get(tp.upper(), ""))
 
     # 価格にあってDBで拾えなかったキーはそのまま追加（取りこぼし防止）
     seen_hash = {e["hash"] for e in entries.values()}
@@ -123,7 +139,8 @@ def main():
         entries[k] = {"ja": pr.get("name_ja", ""), "en": en_base,
                       "zh": zh_of(en_base, pr.get("name_ja", "")), "zh_hant": zht_of(en_base, pr.get("name_ja", "")),
                       "rarity_ja": RMAP.get(rar, ""),
-                      "rarity_en": rar or "", "type_ja": tp, "type_en": tp, "type": tp,
+                      "rarity_en": rar or "", "rarity_zh": RARITY_ZH.get(rar or "", ""),
+                      "type_ja": tp, "type_en": tp, "type_zh": "", "type": tp,
                       "hash": hk, "variant": var, "cur": 1,
                       "sell": pr.get("sell"), "median": pr.get("median"),
                       "listings": pr.get("listings"), "volume": pr.get("volume")}

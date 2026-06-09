@@ -37,8 +37,8 @@ NAME_REGIONS = [
 ]
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
-CALIBRATE     = False              # Trueで撮影画像を保存（調整用）
-DEBUG_UI      = False              # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
+CALIBRATE     = True               # Trueで撮影画像を保存（調整用）
+DEBUG_UI      = True               # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 _KEYCLR = "#ff00fe"   # 角丸の外側を透過させる魔法色（どの配色とも被らない）
@@ -614,6 +614,7 @@ def _ocr_lang_missing():
 # ゲームのUI倍率(1x/1.25x/1.5x/2x/3x。解像度で同じ表記でも実ピクセルが変わる)を毎回テンプレ側を
 # リサイズしながら相関が最大の倍率を探して自動追従する。当たった倍率は全クロップ座標に乗せる。
 _SCALE_CACHE = [1.0]      # 直近に当選した倍率（探索の初手＝同じ倍率なら数回の相関で済む）
+_DBG_LAST    = [(1.0, 0.0)]   # CALIBRATE用：直近検出の (倍率f, テンプレ相関ピーク)
 _SCALE_GRID  = [0.45, 0.5, 0.55, 0.625, 0.7, 0.75, 0.85, 1.0, 1.15, 1.3, 1.5, 1.65]
 _SCALE_STRONG = 0.6       # 近傍がこの相関を超えたら全域スキャンを省く（高速パス）
 
@@ -671,7 +672,9 @@ def detect_boxes(img):
     _SCALE_CACHE[0] = f
     res = _match_at(arr, arr_e, f)
     if res is None:
+        _DBG_LAST[0] = (f, 0.0)
         return [], f
+    _DBG_LAST[0] = (f, float(res.max()))              # CALIBRATE診断用：採用倍率と相関ピーク
     S = lambda v: int(round(v * f))                   # 2xベースのピクセル定数を検出倍率に合わせる
     # 閾値は低め＝枠を取りこぼさない。誤検出はマッチャの確信0.85で除外される。
     ys, xs = np.where(res >= 0.55)
@@ -808,12 +811,18 @@ def ocr_worker():
                 _telemetry_send("lookup", item=found[0].get("en"), rarity=found[0].get("rarity_en"))
             if CALIBRATE:                         # 失敗時の画像とログを残す（私が原因を見る用）
                 try:
+                    _f, _peak = _DBG_LAST[0]
                     with open(os.path.join(HERE, "ocr-text.txt"), "w", encoding="utf-8") as f:
-                        f.write(f"lang={_ui_lang} cursor={xy} off=({ox},{oy}) 枠数={len(boxes)} 結果={'OK' if found else 'なし'}\n")
+                        f.write(f"lang={_ui_lang} cursor={xy} off=({ox},{oy}) imgWH=({img.width}x{img.height}) "
+                                f"scale={_f:.3f} peak={_peak:.3f} 枠数={len(boxes)} 結果={'OK' if found else 'なし'}\n")
                         for n, r, bx, by, st in boxes:
                             f.write(f" 枠@({bx},{by}) t={st:.2f} 名[{(n or '')[:26]}] 級[{(r or '')[:16]}]\n")
                         for c in sorted(cands, key=lambda c: c[1]):
                             f.write(f" 候補 {c[4][0].get('en')} / {c[4][0].get('ja')} s={c[0]} d={int(c[1]**.5)}\n")
+                    try:                              # 注釈画像（枠・倍率・読取・候補・カーソル）を常に保存＝私が見る用
+                        _annotate(img, boxes, cands, chosen, xy, (ox, oy), scale).save(os.path.join(HERE, "annot.png"))
+                    except Exception:
+                        pass
                     if not found:
                         img.save(os.path.join(HERE, "fail.png"))
                         import shutil; shutil.copy(os.path.join(HERE, "ocr-text.txt"), os.path.join(HERE, "fail.txt"))

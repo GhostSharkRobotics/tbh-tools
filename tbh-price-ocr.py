@@ -610,36 +610,92 @@ def _ocr_lang_missing():
     return not any(t.startswith(need) for t in tags)   # 例: "zh-hans-cn".startswith("zh-hans")
 
 
+# テンプレ frame_tpl.png は TBH ウィンドウ倍率「2x」で撮影した固定ピクセル＝倍率1.0の基準。
+# ゲームのUI倍率(1x/1.25x/1.5x/2x/3x。解像度で同じ表記でも実ピクセルが変わる)を毎回テンプレ側を
+# リサイズしながら相関が最大の倍率を探して自動追従する。当たった倍率は全クロップ座標に乗せる。
+_SCALE_CACHE = [1.0]      # 直近に当選した倍率（探索の初手＝同じ倍率なら数回の相関で済む）
+_SCALE_GRID  = [0.45, 0.5, 0.55, 0.625, 0.7, 0.75, 0.85, 1.0, 1.15, 1.3, 1.5, 1.65]
+_SCALE_STRONG = 0.6       # 近傍がこの相関を超えたら全域スキャンを省く（高速パス）
+
+def _match_at(arr, arr_e, f):
+    """テンプレを倍率fにリサイズして相関マップを返す。f=1.0が2xベース。入らない倍率はNone。"""
+    if abs(f - 1.0) < 1e-6:
+        tpl, tpl_e = _TPL, _TPL_E
+    else:
+        th, tw = _TPL.shape[:2]
+        nw, nh = max(8, int(round(tw * f))), max(8, int(round(th * f)))
+        interp = cv2.INTER_AREA if f < 1.0 else cv2.INTER_CUBIC
+        tpl = cv2.resize(_TPL, (nw, nh), interpolation=interp)
+        tpl_e = _edges(tpl) if _TPL_E is not None else None
+    if tpl.shape[0] >= arr.shape[0] or tpl.shape[1] >= arr.shape[1]:
+        return None                                   # テンプレが画像より大きい＝この倍率は不可
+    res = cv2.matchTemplate(arr, tpl, cv2.TM_CCOEFF_NORMED)
+    if tpl_e is not None:
+        res = np.maximum(res, cv2.matchTemplate(arr_e, tpl_e, cv2.TM_CCOEFF_NORMED))
+    return res
+
+def _best_scale(arr, arr_e):
+    """枠テンプレの最良倍率を探す。直近当選倍率の近傍を先に試し、弱ければ全域スキャン。"""
+    cached = _SCALE_CACHE[0]
+    order = sorted(set(_SCALE_GRID + [cached]), key=lambda f: abs(f - cached))
+    best_f, best_s = cached, -1.0
+    for f in order:
+        res = _match_at(arr, arr_e, f)
+        if res is None:
+            continue
+        s = float(res.max())
+        if s > best_s:
+            best_s, best_f = s, f
+        if best_s >= _SCALE_STRONG and abs(best_f - cached) <= 0.16:
+            break                                     # 近傍で十分一致＝倍率変わってない。全域探索は不要
+    # 採用倍率の周りを細かく詰める（クロップ座標を正確に乗せるため）
+    for f in (best_f - 0.08, best_f - 0.04, best_f + 0.04, best_f + 0.08):
+        if f <= 0.2:
+            continue
+        res = _match_at(arr, arr_e, f)
+        if res is None:
+            continue
+        s = float(res.max())
+        if s > best_s:
+            best_s, best_f = s, f
+    return best_f
+
 def detect_boxes(img):
-    """名前枠テンプレートで枠を位置特定し、各枠の (名前＋等級テキスト, 枠中心x, 中心y) を返す。
-    枠は毎回同じピクセル＝位置が左右・上下に動いてもテンプレートマッチで見つかる。"""
+    """名前枠テンプレートで枠を位置特定し、各枠の (名前, 等級テキスト, 枠左上x, 左上y, 一致度) と
+    検出したテンプレ倍率 f を返す。枠は固定ピクセル＝倍率を検出すれば任意のUIスケールに追従できる。"""
     if _TPL is None:
-        return []
+        return [], 1.0
     arr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-    res = cv2.matchTemplate(arr, _TPL, cv2.TM_CCOEFF_NORMED)        # 色マッチ（通常レア）
-    if _TPL_E is not None:                                          # エッジマッチを合成（高レアは背景色が変わる）
-        res = np.maximum(res, cv2.matchTemplate(_edges(arr), _TPL_E, cv2.TM_CCOEFF_NORMED))
+    arr_e = _edges(arr) if _TPL_E is not None else None
+    f = _best_scale(arr, arr_e)
+    _SCALE_CACHE[0] = f
+    res = _match_at(arr, arr_e, f)
+    if res is None:
+        return [], f
+    S = lambda v: int(round(v * f))                   # 2xベースのピクセル定数を検出倍率に合わせる
     # 閾値は低め＝枠を取りこぼさない。誤検出はマッチャの確信0.85で除外される。
     ys, xs = np.where(res >= 0.55)
     peaks = sorted(zip(xs.tolist(), ys.tolist(), res[ys, xs].tolist()), key=lambda p: -p[2])
+    dx, dy = S(420), S(36)
     picked = []
     for x, y, s in peaks:                       # 同じ枠の重複ピークをまとめる（高スコア順なので最良が残る）
-        if all(abs(x - px) > 420 or abs(y - py) > 36 for px, py, _ in picked):
+        if all(abs(x - px) > dx or abs(y - py) > dy for px, py, _ in picked):
             picked.append((x, y, s))
         if len(picked) >= 10:
             break
     out = []
     for x, y, s in picked:
-        name = _ocr(img.crop((max(0, x - 90), y + 6, x + 560, y + 56)))   # 枠内＝名前（左に広め＝短名対策）
-        rank = _ocr(img.crop((max(0, x - 90), y + 56, x + 560, y + 122))) # 枠直下＝等級
+        name = _ocr(img.crop((max(0, x - S(90)), y + S(6), x + S(560), y + S(56))))   # 枠内＝名前（左に広め＝短名対策）
+        rank = _ocr(img.crop((max(0, x - S(90)), y + S(56), x + S(560), y + S(122)))) # 枠直下＝等級
         out.append((name, rank, x, y, s))   # 枠の左上座標とテンプレ一致度も返す
-    return out
+    return out, f
 
 
-def _annotate(img, boxes, cands, chosen, xy, off):
+def _annotate(img, boxes, cands, chosen, xy, off, scale=1.0):
     """デバッグ用: 撮影画像に 検出枠・読取・マッチ結果・カーソル を描いて縮小して返す。"""
     from PIL import ImageDraw, ImageFont
     ox, oy = off
+    S = lambda v: int(round(v * scale))               # 検出倍率に合わせて枠位置を描く
     im = img.convert("RGB").copy()
     d = ImageDraw.Draw(im)
     try:
@@ -647,17 +703,17 @@ def _annotate(img, boxes, cands, chosen, xy, off):
     except Exception:
         fnt = ImageFont.load_default(); fbig = fnt
     for name, rank, bx, by, sc_t in boxes:
-        d.rectangle([bx - 90, by + 6, bx + 560, by + 56], outline=(0, 255, 255), width=3)
-        d.rectangle([bx - 90, by + 56, bx + 560, by + 122], outline=(0, 160, 255), width=2)
-        d.text((bx - 88, by - 26), f"枠 t={sc_t:.2f} 名[{name}] 級[{rank}]", fill=(255, 255, 0), font=fnt)
+        d.rectangle([bx - S(90), by + S(6), bx + S(560), by + S(56)], outline=(0, 255, 255), width=3)
+        d.rectangle([bx - S(90), by + S(56), bx + S(560), by + S(122)], outline=(0, 160, 255), width=2)
+        d.text((bx - S(88), by - 26), f"枠 t={sc_t:.2f} x{scale:.2f} 名[{name}] 級[{rank}]", fill=(255, 255, 0), font=fnt)
     for c in cands:
         sc, d2, sx, sy, r, bx, by, name, rank = c
         e = r[0]
         col = (0, 255, 0) if sc >= 0.85 else (255, 120, 120)
-        d.text((bx - 88, by + 124), f"= {e.get('ja','')}({e.get('rarity_ja','')}) s={sc} d={int(d2**0.5)}", fill=col, font=fnt)
+        d.text((bx - S(88), by + S(124)), f"= {e.get('ja','')}({e.get('rarity_ja','')}) s={sc} d={int(d2**0.5)}", fill=col, font=fnt)
     if chosen:
         bx, by = chosen[5], chosen[6]
-        d.rectangle([bx - 94, by + 2, bx + 564, by + 126], outline=(0, 255, 0), width=6)
+        d.rectangle([bx - S(94), by + S(2), bx + S(564), by + S(126)], outline=(0, 255, 0), width=6)
     cx, cy = xy[0] - ox, xy[1] - oy
     d.line([cx - 24, cy, cx + 24, cy], fill=(255, 0, 0), width=3)
     d.line([cx, cy - 24, cx, cy + 24], fill=(255, 0, 0), width=3)
@@ -725,11 +781,11 @@ def ocr_worker():
             if CALIBRATE:
                 try: img.save(os.path.join(HERE, "cap0.png"))
                 except Exception: pass
-            boxes = detect_boxes(img)            # 枠テンプレートで名前枠を位置特定→各枠OCR
+            boxes, scale = detect_boxes(img)     # 枠テンプレートで名前枠を位置特定→各枠OCR（scale=検出UI倍率）
             cands = []
             for name, rank, bx, by, sc_t in boxes:
                 best_r = matcher.match_item(name, rank)   # 名前で特定＋等級行から正しい等級を補う
-                cx, cy = bx + 250, by + 30
+                cx, cy = bx + int(round(250 * scale)), by + int(round(30 * scale))
                 if best_r:
                     sx, sy = ox + cx, oy + cy
                     d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
@@ -741,7 +797,8 @@ def ocr_worker():
             found, chosen = [], None
             if cands:
                 ax, ay = min(cands, key=lambda c: c[1])[2:4]   # カーソル最近の枠＝指してる位置
-                same = [c for c in cands if (c[2] - ax) ** 2 + (c[3] - ay) ** 2 < 80 ** 2]
+                rad = (80 * scale) ** 2
+                same = [c for c in cands if (c[2] - ax) ** 2 + (c[3] - ay) ** 2 < rad]
                 best = max(same, key=lambda c: c[0])
                 if best[0] >= 0.85:
                     found, chosen = best[4], best
@@ -764,12 +821,13 @@ def ocr_worker():
                     pass
             if DEBUG_UI:
                 try:
-                    PQ.put(("__debug__", _annotate(img, boxes, cands, chosen, xy, (ox, oy)), None))
+                    PQ.put(("__debug__", _annotate(img, boxes, cands, chosen, xy, (ox, oy), scale), None))
                 except Exception:
                     log_fatal("annotate:\n" + traceback.format_exc())
             hint = ""                              # カーソル最近枠の読取生テキスト（候補選び直し用）
             if boxes:
-                bb = min(boxes, key=lambda b: (ox + b[2] + 250 - xy[0]) ** 2 + (oy + b[3] + 30 - xy[1]) ** 2)
+                hcx, hcy = int(round(250 * scale)), int(round(30 * scale))
+                bb = min(boxes, key=lambda b: (ox + b[2] + hcx - xy[0]) ** 2 + (oy + b[3] + hcy - xy[1]) ** 2)
                 hint = ((bb[0] or "") + " " + (bb[1] or "")).strip()
             PQ.put((found, xy, hint))
         except Exception:

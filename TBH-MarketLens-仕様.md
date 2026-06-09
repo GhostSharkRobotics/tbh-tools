@@ -21,6 +21,7 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 ## 3. ファイル構成（repo root。tools/はgitignoreのためroot配置）
 - `tbh-price-ocr.py` … 本体
 - `tbh-price-lookup.json` … 全アイテムの名前索引＋バンドル価格（USD, `cur:1`）。`tbh-build-price-lookup.py`が生成（`tbh-data.json`＋`tbh-prices.json`＋`localization.json`の中国語名＋`market-icons.json`から）
+- `frame_tpl.png` … 名前枠の左角テンプレート。**TBHのUI倍率「2x」で撮った固定ピクセル＝倍率1.0の基準**。`detect_boxes`がテンプレ側を多倍率にリサイズして相関最大の倍率`f`を毎回自動検出し（`_best_scale`/`_SCALE_GRID`、直近当選倍率を`_SCALE_CACHE`で先試し＝高速）、クロップ座標・クラスタ閾値を全て`f`倍する。よって**UI倍率1x/1.25x/1.5x/2x/3x（解像度で実ピクセルが変わる）に自動追従**＝再キャリブレーション不要。
 - `tbh_price_match.py` … OCR文字→既知名の曖昧スナップ（stdlibのみ。`open`は`encoding=utf-8`必須＝Win cp932対策）
 - `i18n_lint.py` … TR(文言カタログ)完全性＋UIに日本語直書きが無いかをAST検査
 - `start-tbh-price.bat` / `tbh-price-ocr.ps1`(irm|iex導入) / `dist-README.md`(配布用)

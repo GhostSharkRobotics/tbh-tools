@@ -1218,6 +1218,48 @@ def _rrect(cv, x1, y1, x2, y2, r, fill, tag):
     cv.create_rectangle(x1 + r, y1, x2 - r, y2, fill=fill, outline=fill, tags=tag)
     cv.create_rectangle(x1, y1 + r, x2, y2 - r, fill=fill, outline=fill, tags=tag)
 
+def _scrolling_body(win, inner_w=326):
+    """縦スクロールする本体（履歴/出品待ち共通）。ダークテーマに馴染む自作スクロールバー付き。
+    つまみの高さ＝『あと全体のどれだけあるか』、位置＝今どこか。掴んでドラッグ／トラッククリックで移動。
+    全部が一画面に収まる時はバーを描かない（不要な飾りを出さない）。窓幅にも追従する。"""
+    SBW = 9
+    body = tk.Frame(win, bg=C_CARD); body.pack(fill="both", expand=True, padx=6, pady=(0, 8))
+    canvas = tk.Canvas(body, bg=C_CARD, highlightthickness=0)
+    inner = tk.Frame(canvas, bg=C_CARD)
+    inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=inner_w)
+    bar = tk.Canvas(body, width=SBW, bg=C_CARD, highlightthickness=0, cursor="hand2")
+    st = {"top": 0.0, "bot": 1.0}
+    def redraw():
+        if not bar.winfo_exists(): return
+        bar.delete("all")
+        h = bar.winfo_height()
+        if h <= 1: return
+        top, bot = st["top"], st["bot"]
+        if bot - top >= 0.999: return                 # 全部見えてる→バー不要
+        usable = h - 4
+        _rrect(bar, 2, 2, SBW - 1, h - 2, (SBW - 3) / 2, "#262a33", "trk")   # トラック（控えめ）
+        y1, y2 = 2 + top * usable, 2 + bot * usable
+        if y2 - y1 < 16:                              # 最小つまみ高（掴みやすく）
+            mid = (y1 + y2) / 2
+            y1, y2 = max(2, mid - 8), min(h - 2, mid + 8)
+        _rrect(bar, 2, y1, SBW - 1, y2, (SBW - 3) / 2, "#525868", "thm")     # つまみ
+    def on_set(top, bot):
+        st["top"], st["bot"] = float(top), float(bot); redraw()
+    canvas.configure(yscrollcommand=on_set)
+    canvas.bind("<Configure>", lambda e: (canvas.itemconfig(inner_id, width=e.width), redraw()))
+    inner.bind("<Configure>", lambda e: redraw())     # 行が増減した時もつまみを更新
+    bar.bind("<Configure>", lambda e: redraw())
+    def jump(ev):
+        h = bar.winfo_height()
+        if h <= 1: return
+        span = st["bot"] - st["top"]
+        frac = (ev.y - 2) / max(1, h - 4) - span / 2  # 掴んだ位置をつまみ中央に
+        canvas.yview_moveto(max(0.0, min(1.0 - span, frac)))
+    bar.bind("<Button-1>", jump); bar.bind("<B1-Motion>", jump)
+    canvas.pack(side="left", fill="both", expand=True); bar.pack(side="right", fill="y", padx=(2, 0))
+    win.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units"))
+    return canvas, inner
+
 def _place(win, xy):
     win.update_idletasks()
     sw, sh = win.winfo_screenwidth(), win.winfo_screenheight()
@@ -1731,16 +1773,7 @@ def show_history(root):
     _hist_prog[0] = tk.Canvas(win, height=6, bg=C_CARD, highlightthickness=0)   # 進捗バー（更新中だけ見える）
     _hist_prog[0].pack(side="top", fill="x", padx=12, pady=(0, 4))
     if _hist_updating[0]: _prog_anim()                 # 開き直した時に更新中なら即アニメ再開
-    body = tk.Frame(win, bg=C_CARD); body.pack(fill="both", expand=True, padx=6, pady=(0, 8))
-    canvas = tk.Canvas(body, bg=C_CARD, highlightthickness=0)
-    sb = tk.Scrollbar(body, orient="vertical", command=canvas.yview)
-    inner = tk.Frame(canvas, bg=C_CARD)
-    inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=326)
-    # 窓幅に追従＝リサイズで行も横に伸びる（固定幅で取り残されない）
-    canvas.bind("<Configure>", lambda e: canvas.itemconfig(inner_id, width=e.width))
-    canvas.configure(yscrollcommand=sb.set)
-    canvas.pack(side="left", fill="both", expand=True); sb.pack(side="right", fill="y")
-    win.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units"))
+    canvas, inner = _scrolling_body(win)
     _hist_win[0] = win; _hist_inner[0] = (canvas, inner)
     # NOACTIVATE維持＝アクティブ化で前面を奪わない→ゲームが覆い被さらない（時間で消えない）。
     # クリック/右クリックは受け取れる。スクロールはWin11の「非アクティブ窓もスクロール」既定で可。
@@ -2283,16 +2316,7 @@ def show_sell(root):
              font=("Yu Gothic UI", 13, "bold"), anchor="w").pack(side="left")
     round_pill(hdr, "↻ " + T("sell_refresh"), C_ACCENT, "#0c0c0c",
                lambda: (_set_sell_loading(), _sell_refresh_async()), f_btn).pack(side="right")
-    body = tk.Frame(win, bg=C_CARD); body.pack(fill="both", expand=True, padx=6, pady=(6, 8))
-    canvas = tk.Canvas(body, bg=C_CARD, highlightthickness=0)
-    sb = tk.Scrollbar(body, orient="vertical", command=canvas.yview)
-    inner = tk.Frame(canvas, bg=C_CARD)
-    inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=326)
-    # 窓幅に追従＝リサイズで行も横に伸びる（固定幅で取り残されない）
-    canvas.bind("<Configure>", lambda e: canvas.itemconfig(inner_id, width=e.width))
-    canvas.configure(yscrollcommand=sb.set)
-    canvas.pack(side="left", fill="both", expand=True); sb.pack(side="right", fill="y")
-    win.bind("<MouseWheel>", lambda e: canvas.yview_scroll(int(-e.delta / 120), "units"))
+    canvas, inner = _scrolling_body(win)
     _sell_win[0] = win; _sell_inner[0] = (canvas, inner)
     _keep_on_top(win, pause=lambda: bool(_open))
     _refresh_sell()

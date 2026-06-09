@@ -76,6 +76,7 @@ TR = {
         "fb_contact": "返信がほしい場合の連絡先（任意）", "fb_thanks": "送信しました。ありがとう！", "fb_fail": "送信に失敗しました",
         "disclaimer": "非公式ツール · Nugem Studio / Valve とは無関係",
         "startup": "起動", "autostart_label": "Windowsと一緒に起動", "autostart_hint": "サインイン時にMarketLensを自動で起動します。",
+        "alwaystop_label": "履歴・出品待ちを常に前面", "alwaystop_hint": "オフにすると他のウィンドウの後ろに回せます（レンズの価格ポップは常に前面のまま）。",
         "privacy": "利用統計", "telemetry_label": "匿名の利用統計を送る",
         "telemetry_hint": "改善のため、起動・参照したアイテム・エラーを匿名で送ります。IP・Steam在庫・個人情報は送りません。いつでもオフにできます。",
         "help_main": "アイテムに合わせて発動キーを押すと、そのアイテムの\nSteamマーケット価格（最安値・中央値）が出ます。",
@@ -127,6 +128,7 @@ TR = {
         "fb_contact": "Contact for a reply (optional)", "fb_thanks": "Sent. Thank you!", "fb_fail": "Failed to send",
         "disclaimer": "Unofficial tool · not affiliated with Nugem Studio or Valve",
         "startup": "Startup", "autostart_label": "Start with Windows", "autostart_hint": "Launches MarketLens automatically when you sign in.",
+        "alwaystop_label": "Keep history & sell timer on top", "alwaystop_hint": "Turn off to let other windows cover them (the price popup stays on top).",
         "privacy": "Usage stats", "telemetry_label": "Send anonymous usage stats",
         "telemetry_hint": "To improve the app, anonymous launches, looked-up items and errors are sent. No IP, Steam inventory or personal data is sent. You can turn this off anytime.",
         "help_main": "Point at an item and press your hotkey — its Steam Market\nprice (lowest + median) pops up.",
@@ -178,6 +180,7 @@ TR = {
         "fb_contact": "如需回复请留联系方式（可选）", "fb_thanks": "已发送，谢谢！", "fb_fail": "发送失败",
         "disclaimer": "非官方工具 · 与 Nugem Studio / Valve 无关",
         "startup": "启动", "autostart_label": "随 Windows 启动", "autostart_hint": "登录时自动启动 MarketLens。",
+        "alwaystop_label": "历史与可出售计时始终置顶", "alwaystop_hint": "关闭后可被其他窗口遮挡（价格弹窗仍始终置顶）。",
         "privacy": "使用统计", "telemetry_label": "发送匿名使用统计",
         "telemetry_hint": "为改进应用，会匿名发送启动、查询的物品和错误信息。不会发送IP、Steam库存或个人信息。可随时关闭。",
         "help_main": "将光标对准物品并按下触发键，即可显示该物品的\nSteam 市场价格（最低价·中位价）。",
@@ -247,6 +250,7 @@ def log_fatal(msg):
 # 送らないもの: IP（国はサーバ側でエッジ付与）・Steam在庫/所持品・個人情報。設定でオフにできる(_telemetry)。
 _telemetry = [True]     # オン/オフ（設定で変更・既定オン）
 _cid = [None]           # 匿名クライアントID（初回生成して設定に永続化。IP由来ではない）
+_always_top = [True]    # 履歴/出品待ちウィンドウを常に前面に出すか（設定・既定オン）。レンズのポップは対象外
 
 def _scrub(s):
     """エラー本文から環境依存の個人情報（Windowsユーザー名/ホームパス）を伏字化してから送る。"""
@@ -1020,7 +1024,7 @@ def _save_settings():
                        "hist_geo": _hist_geo[0], "sell_geo": _sell_geo[0],
                        "hist_open": _hist_visible[0], "sell_open": _sell_visible[0],
                        "hist_sort": _hist_sort[0], "hist_sort_desc": _hist_sort_desc[0],
-                       "hist_last_update": _hist_last_update[0],
+                       "hist_last_update": _hist_last_update[0], "always_top": _always_top[0],
                        "cid": _cid[0], "telemetry": _telemetry[0]},
                       f, ensure_ascii=False)
     except Exception: pass
@@ -1041,6 +1045,7 @@ def _load_settings():
         if d.get("hist_sort") in ("date", "sell", "median"): _hist_sort[0] = d["hist_sort"]
         if "hist_sort_desc" in d: _hist_sort_desc[0] = bool(d["hist_sort_desc"])
         if isinstance(d.get("hist_last_update"), str): _hist_last_update[0] = d["hist_last_update"]
+        if "always_top" in d: _always_top[0] = bool(d["always_top"])
         if isinstance(d.get("cid"), str) and d["cid"]: _cid[0] = d["cid"]
         if "telemetry" in d: _telemetry[0] = bool(d["telemetry"])
     except Exception: pass
@@ -1225,33 +1230,46 @@ def _grab_foreground(win):
         if ft and ft != ct: u.AttachThreadInput(ct, ft, False)
     except Exception: pass
 
-def _keep_on_top(win, want_noact=lambda: True, pause=lambda: False):
+def _keep_on_top(win, want_noact=lambda: True, pause=lambda: False, respect_toggle=False):
     """フルスクリーン(ボーダーレス)のゲームの前へ出し続ける。要点は WS_EX_NOACTIVATE:
     これを付けるとポップをクリックしてもアクティブ化が起きない＝ゲームが前面に出てこない。
     ただし編集中(want_noact()=False)は外してキーボード入力を受けられるようにする。
     TOPMOSTは常に維持し、120ms毎に再主張して背後への回り込みを防ぐ。
-    pause()=True の間は再主張を休む（他のポップと最前面を奪い合ってチラつくのを防ぐ）。"""
+    pause()=True の間は再主張を休む（他のポップと最前面を奪い合ってチラつくのを防ぐ）。
+    respect_toggle=True の窓は、設定『常に前面』がオフだと通常窓に戻す（履歴/出品待ち用）。"""
     try: import ctypes
     except Exception: return
     u = ctypes.windll.user32
     GWL_EXSTYLE = -20
     WS_EX_TOPMOST, WS_EX_NOACTIVATE = 0x00000008, 0x08000000
-    HWND_TOPMOST = -1
+    HWND_TOPMOST, HWND_NOTOPMOST = -1, -2
     SWP = 0x0001 | 0x0002 | 0x0010   # NOSIZE | NOMOVE | NOACTIVATE
+    st = {"off": None}
     def tick():
         if not win.winfo_exists(): return
-        if not pause():                          # 休止中は z順を触らない
-            try:
-                h = _top_hwnd(win)
-                ex = u.GetWindowLongW(h, GWL_EXSTYLE)
-                if want_noact():
-                    want = ex | WS_EX_TOPMOST | WS_EX_NOACTIVATE
-                else:
-                    want = (ex | WS_EX_TOPMOST) & ~WS_EX_NOACTIVATE
-                if want != ex:
-                    u.SetWindowLongW(h, GWL_EXSTYLE, want)
-                u.SetWindowPos(h, HWND_TOPMOST, 0, 0, 0, 0, SWP)
-            except Exception: pass
+        if respect_toggle and not _always_top[0]:    # 設定で常に前面オフ→通常窓に戻す（1回だけ・以後触らない）
+            if st["off"] is not True:
+                try:
+                    win.attributes("-topmost", False)
+                    h = _top_hwnd(win)
+                    u.SetWindowLongW(h, GWL_EXSTYLE, u.GetWindowLongW(h, GWL_EXSTYLE) & ~WS_EX_NOACTIVATE)
+                    u.SetWindowPos(h, HWND_NOTOPMOST, 0, 0, 0, 0, SWP)
+                except Exception: pass
+                st["off"] = True
+        else:
+            st["off"] = False
+            if not pause():                          # 休止中は z順を触らない
+                try:
+                    h = _top_hwnd(win)
+                    ex = u.GetWindowLongW(h, GWL_EXSTYLE)
+                    if want_noact():
+                        want = ex | WS_EX_TOPMOST | WS_EX_NOACTIVATE
+                    else:
+                        want = (ex | WS_EX_TOPMOST) & ~WS_EX_NOACTIVATE
+                    if want != ex:
+                        u.SetWindowLongW(h, GWL_EXSTYLE, want)
+                    u.SetWindowPos(h, HWND_TOPMOST, 0, 0, 0, 0, SWP)
+                except Exception: pass
         win.after(120, tick)
     tick()
 
@@ -2053,7 +2071,7 @@ def show_history(root):
     # NOACTIVATE維持＝アクティブ化で前面を奪わない→ゲームが覆い被さらない（時間で消えない）。
     # クリック/右クリックは受け取れる。スクロールはWin11の「非アクティブ窓もスクロール」既定で可。
     # ポップ表示中(_open非空)は最前面の再主張を休む＝価格ポップと奪い合わずチラつかない。
-    _keep_on_top(win, pause=lambda: bool(_open))
+    _keep_on_top(win, pause=lambda: bool(_open), respect_toggle=True)   # 『常に前面』設定に従う
     _refresh_history()
 
 def hide_history():
@@ -2268,6 +2286,21 @@ def show_settings(root):
     as_pill[0] = round_pill(asf, "☑ " + T("autostart_label"), C_ACCENT, "#0c0c0c", toggle_as, fs)
     as_pill[0].pack(side="left"); _as_face()
     tk.Label(cas, text=T("autostart_hint"), bg="#11141a", fg=C_META, font=fs,
+             anchor="w", justify="left", wraplength=300).pack(fill="x", padx=14, pady=(4, 10))
+    # 常に前面（履歴/出品待ち。実行中の窓は120ms毎のループが拾うので即反映）
+    atf = tk.Frame(cas, bg="#11141a"); atf.pack(fill="x", padx=14, pady=(0, 4))
+    at_pill = [None]
+    def _at_face():
+        on = _always_top[0]
+        _pill_set_text(at_pill[0], ("☑ " if on else "☐ ") + T("alwaystop_label"))
+        recolor_pill(at_pill[0], C_ACCENT if on else "#2a2f3a")
+        try: at_pill[0].itemconfig("txt", fill="#0c0c0c" if on else C_NAME)
+        except Exception: pass
+    def toggle_at():
+        _always_top[0] = not _always_top[0]; _save_settings(); _at_face()
+    at_pill[0] = round_pill(atf, "☑ " + T("alwaystop_label"), C_ACCENT, "#0c0c0c", toggle_at, fs)
+    at_pill[0].pack(side="left"); _at_face()
+    tk.Label(cas, text=T("alwaystop_hint"), bg="#11141a", fg=C_META, font=fs,
              anchor="w", justify="left", wraplength=300).pack(fill="x", padx=14, pady=(4, 12))
 
     # ── 利用統計（匿名・オフ可） ──
@@ -2624,7 +2657,7 @@ def show_sell(root):
                lambda: (_set_sell_loading(), _sell_refresh_async()), f_btn).pack(side="right")
     canvas, inner = _scrolling_body(win)
     _sell_win[0] = win; _sell_inner[0] = (canvas, inner)
-    _keep_on_top(win, pause=lambda: bool(_open))
+    _keep_on_top(win, pause=lambda: bool(_open), respect_toggle=True)   # 『常に前面』設定に従う
     _refresh_sell()
     _set_sell_loading(); _sell_refresh_async()    # 開いたら最新を取りに行く
 

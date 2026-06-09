@@ -32,7 +32,7 @@ Price data is refreshed daily by GitHub Actions.
 
 ## 🖥 TBH MarketLens (Windows app)
 
-In‑game, **hover an item and press a key** — a small card shows its Steam Market price (lowest + median). No typing, no Alt‑Tab. UI in 日本語 / English / 中文.
+In‑game, **hover an item and press a key** — a small card shows its Steam Market price (lowest + median). No name‑typing, no searching. UI in 日本語 / English / 中文.
 
 ### ⬇ How to download (for people new to GitHub)
 

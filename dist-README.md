@@ -1,6 +1,6 @@
 # TBH MarketLens
 
-**Point at an item in _TBH: Task Bar Hero_, press a key, and see its Steam Community Market price instantly — no typing, no alt-tab.**
+**Point at an item in _TBH: Task Bar Hero_, press a key, and see its Steam Community Market price instantly — no name‑typing, no searching.**
 
 Made by **Ghost Shark Robotics**.
 
@@ -65,7 +65,7 @@ If it saves you time, you can leave a small tip — entirely optional, no naggin
 
 ### 日本語（概要）
 
-_TBH: Task Bar Hero_ のアイテムにカーソルを当てて**キーを押すと、Steamマーケットの現在価格がその場で表示**されます（タイピング・Alt+Tab不要）。
+_TBH: Task Bar Hero_ のアイテムにカーソルを当てて**キーを押すと、Steamマーケットの現在価格がその場で表示**されます（名前を打って検索する手間なし）。
 
 - **非公式のファンメイドツール**（Nugem Studio / Valve とは無関係）。
 - **ゲームには一切干渉しません**（自分の画面OCR＋ホットキー＋Steamの公開価格APIのみ）。メモリ改変・注入・速度操作なし＝**アンチチート非検出**。
@@ -82,7 +82,7 @@ _TBH: Task Bar Hero_ のアイテムにカーソルを当てて**キーを押す
 
 ### 中文（简介）
 
-在 _TBH: Task Bar Hero_ 中把鼠标光标对准物品并**按下快捷键，即可当场显示该物品的 Steam 市场价格**（无需打字、无需 Alt+Tab）。
+在 _TBH: Task Bar Hero_ 中把鼠标光标对准物品并**按下快捷键，即可当场显示该物品的 Steam 市场价格**（无需输入名称搜索）。
 
 - **非官方粉丝工具**（与 Nugem Studio / Valve 无关）。
 - **完全不干预游戏**（只读取你自己的屏幕 OCR ＋ 快捷键 ＋ Steam 公开价格 API）。不修改内存、不注入、不操作速度＝**不会触发反作弊**。

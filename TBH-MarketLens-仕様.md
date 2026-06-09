@@ -12,7 +12,8 @@
 ## 2. 配備手順（最重要・これを外すと「何も変わらない」が再発）
 Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\monoq\tbh-price-ocr\`)へ。
 **必ずこの順序**：
-1. `ssh tbhwin "taskkill /f /im pythonw.exe"`（**先に殺す**。稼働中はファイルロックでscpが黙って失敗→旧版が動き続ける＝過去最大の消耗源）
+1. `ssh tbhwin "taskkill /f /im pythonw.exe"`（**先に殺す**。稼働中はファイルロックでscpが黙って失敗→旧版が動き続ける＝過去最大の消耗源）。
+   **単一起動ガード(名前付きミューテックス `TBH_MarketLens_singleton`)を`main()`冒頭に入れたので、旧プロセスを完全に殺してから起動しないと新プロセスが自分で終了して旧版が残る**。kill後は`tasklist`でpythonwがゼロになるのを待ってからschtasks。（配布版の自動起動＋手動起動の多重起動防止が本来の目的）
 2. `scp -i ~/.ssh/tbh_win tbh-price-ocr.py tbhwin:tbh-price-ocr/tbh-price-ocr.py`
 3. **ハッシュ照合**：`md5 -q`(ローカル) と `certutil -hashfile ... MD5`(リモート) が一致するまで確認。`>/dev/null`でscpのエラーを握り潰さない
 4. schtasks(`/it`対話デスクトップ)で起動 → `tasklist|findstr pythonw` が**単一PID**・`error.log`無し(NO_ERROR)を確認
@@ -24,6 +25,7 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 - `frame_tpl.png` … 名前枠の左角テンプレート。**TBHのUI倍率「2x」で撮った固定ピクセル＝倍率1.0の基準**。検出は`detect_frames`で**UI倍率1x/1.25x/1.5x/2x/3x（解像度で実ピクセルが変わる）に自動追従**＝再キャリブレーション不要。要点：
   - **倍率f自動検出**：テンプレ側を多倍率にリサイズ(`_SCALE_GRID`)して相関最大の倍率`f`を選ぶ(`_best_template_factor`)。クロップ座標・クラスタ閾値は全て`f`倍。
   - **OCRはカーソル最近枠だけ**：`detect_frames`は枠の位置だけ返し(OCRしない)、ワーカーがカーソルに近い枠から`_ocr_frame`でOCR→確信マッチ(>=0.85)で打ち切り。複数ツールチップが出ていても通常OCR1枠＝高速（デバッグ時のみ全枠OCR）。
+  - **重複排除(dedup)は必ず縮小空間の座標で比較**してから最後に元解像度へ変換する。縮小座標と元解像度座標を混ぜて比較すると、大ウィンドウ(ds<1)＋長い名前のとき重複枠が消えず、部分OCRの低スコア枠がカーソル最近になって**該当なし**になる（実機で確定した過去の不具合・要厳守）。
   - **速度**：探索は`_SEARCH_MAXW`(=1100px)以下へ縮小した画像で実施（3x等の大画像でも軽い）。直近当選倍率は`_SCALE_CACHE`に保持し、まずそれだけ照合→相関`>=_SCALE_STRONG`なら**1回で即確定**（倍率を変えた直後だけ全grid走査）。倍率非依存でほぼ一定速度。
   - **OCRは必ずベース文字サイズへ正規化**：`_ocr`/`_adapt`(BoxBlur半径固定)は2xの文字サイズ前提。crop を `1/f` 倍してからOCRに渡す。**これを外すと小さいUI倍率で枠は当たるのにOCRが空＝該当なしになる**（実機で確定した落とし穴）。
 - `tbh_price_match.py` … OCR文字→既知名の曖昧スナップ（stdlibのみ。`open`は`encoding=utf-8`必須＝Win cp932対策）
@@ -59,6 +61,8 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 - **読み取り中**＝スピナー回転（静止文字にしない）。
 - **マッチ時**＝アイテム名／レア度ドロップダウン（選び直しで再マッチ）／価格（安値・中央）／種別・出品数／🛒Steam市場／🕘履歴。
 - **該当なし時**＝**「該当なし」＋🕘履歴＋✕ だけ**。文字化けの生OCR・レア度・価格・🛒は**一切出さない**（開く先の無いボタンを出さない）。
+
+**履歴/出品待ちの枠**: OS標準タイトルバーは使わず**カスタムchrome**（`_modern_titlebar`＝overrideredirect＋Win11角丸＋ダーク。1行にタイトル＋操作ボタン＋✕、行ドラッグで移動）＋`_add_resize_grip`（右下⤡でリサイズ＝OS枠の代替）。タスクバー/Alt-Tabには出ない（トレイ開閉前提）。
 
 **履歴ウィンドウ**（`show_history`, トレイでオン/オフ, `tbh-price-history.json`永続化, 位置/サイズ記憶）:
 - 行：アイコン（CDN`/96x96`をmd5名でローカルキャッシュ。無い品はレア度色タイル）／名前・レア度／価格／種別／**右下に追加日時**（`rec["ts"]`=`_stamp_str()` 年なし「M/D H:M」）。右クリックで お気に入り・名前変更・レア度変更・削除。上限設定(既定50, お気に入りは対象外)。

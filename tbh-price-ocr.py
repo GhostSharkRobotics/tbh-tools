@@ -698,9 +698,9 @@ def _best_template_factor(arr, arr_e, grid_tf, cached_tf):
             best_s, best_t, best_res = s, t, r
     return best_t, best_s, best_res
 
-def detect_boxes(img):
-    """名前枠テンプレートで枠を位置特定し、各枠の (名前, 等級, 枠左上x, 左上y, 一致度) と検出倍率 f を返す。
-    スケール探索は縮小画像で行い座標は元解像度へ戻す(速度)。OCRは枠を1/f倍してベース文字サイズへ正規化。"""
+def detect_frames(img):
+    """名前枠の位置だけ検出（OCRしない）。戻り: ([(x, y, 一致度) 元解像度], 検出倍率f)。
+    スケール探索は縮小画像で行い座標は元解像度へ戻す（速度）。OCRは呼び出し側がカーソル最近枠だけに絞る。"""
     if _TPL is None:
         return [], 1.0
     full = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
@@ -718,30 +718,28 @@ def detect_boxes(img):
     _DBG_LAST[0] = (f, peak)
     if res is None:
         return [], f
-    Sf = lambda v: int(round(v * f))                  # 元解像度クロップ用（2xベースpx→実px）
     dx, dy = round(420 * tf), round(36 * tf)          # 重複ピーク間引き（縮小空間px＝枠サイズ比例）
     ys, xs = np.where(res >= 0.55)                    # 閾値低め＝取りこぼさない。誤検出はマッチャ確信0.85で除外
     pk = sorted(zip(xs.tolist(), ys.tolist(), res[ys, xs].tolist()), key=lambda p: -p[2])
     picked = []
     for x, y, s in pk:                          # 同じ枠の重複ピークをまとめる（高スコア順なので最良が残る）
         if all(abs(x - px) > dx or abs(y - py) > dy for px, py, _ in picked):
-            picked.append((x, y, s))
+            picked.append((int(round(x / ds)), int(round(y / ds)), s))   # 縮小空間→元解像度
         if len(picked) >= 10:
             break
-    def ocr_norm(crop):
-        # OCR/_adapt は2xベース(f=1.0)の文字サイズ前提（BoxBlur半径も固定）。検出倍率に合わせて
-        # crop を 1/f 倍し常にベース相当の文字サイズでエンジンへ渡す＝小さいUI倍率で読めない問題の対策。
+    return picked, f
+
+def _ocr_frame(img, x, y, f):
+    """1枠ぶんをOCR→(名前, 等級)。OCR/_adapt は2xベース文字サイズ前提なので 1/f 倍で正規化。"""
+    Sf = lambda v: int(round(v * f))
+    def norm(crop):
         if abs(f - 1.0) > 0.02 and crop.width > 0 and crop.height > 0:
             crop = crop.resize((max(1, int(round(crop.width / f))),
                                 max(1, int(round(crop.height / f)))), Image.LANCZOS)
         return _ocr(crop)
-    out = []
-    for sx, sy, s in picked:
-        x, y = int(round(sx / ds)), int(round(sy / ds))   # 縮小空間→元解像度
-        name = ocr_norm(img.crop((max(0, x - Sf(90)), y + Sf(6), x + Sf(560), y + Sf(56))))   # 枠内＝名前（左に広め＝短名対策）
-        rank = ocr_norm(img.crop((max(0, x - Sf(90)), y + Sf(56), x + Sf(560), y + Sf(122)))) # 枠直下＝等級
-        out.append((name, rank, x, y, s))   # 枠の左上座標(元解像度)とテンプレ一致度も返す
-    return out, f
+    name = norm(img.crop((max(0, x - Sf(90)), y + Sf(6), x + Sf(560), y + Sf(56))))    # 枠内＝名前（左に広め＝短名対策）
+    rank = norm(img.crop((max(0, x - Sf(90)), y + Sf(56), x + Sf(560), y + Sf(122))))  # 枠直下＝等級
+    return name, rank
 
 
 def _annotate(img, boxes, cands, chosen, xy, off, scale=1.0):
@@ -835,15 +833,25 @@ def ocr_worker():
             if CALIBRATE:
                 try: img.save(os.path.join(HERE, "cap0.png"))
                 except Exception: pass
-            boxes, scale = detect_boxes(img)     # 枠テンプレートで名前枠を位置特定→各枠OCR（scale=検出UI倍率）
+            frames, scale = detect_frames(img)   # 枠の位置だけ検出（OCRはまだ）。scale=検出UI倍率
+            oS = lambda v: int(round(v * scale))
+            # カーソルに近い枠から処理＝指している枠を最優先。普通は最近1枠で確定しOCRを激減させる。
+            frames.sort(key=lambda fr: (ox + fr[0] + oS(250) - xy[0]) ** 2 + (oy + fr[1] + oS(30) - xy[1]) ** 2)
+            _dbg = CALIBRATE or DEBUG_UI                 # デバッグ時は全枠OCRして注釈に出す
+            boxes = []                                   # OCRした枠（近い順。ヒント/デバッグ用）
             cands = []
-            for name, rank, bx, by, sc_t in boxes:
+            for bx, by, sc_t in frames:
+                name, rank = _ocr_frame(img, bx, by, scale)
+                boxes.append((name, rank, bx, by, sc_t))
                 best_r = matcher.match_item(name, rank)   # 名前で特定＋等級行から正しい等級を補う
-                cx, cy = bx + int(round(250 * scale)), by + int(round(30 * scale))
                 if best_r:
-                    sx, sy = ox + cx, oy + cy
+                    sx, sy = ox + bx + oS(250), oy + by + oS(30)
                     d2 = (sx - xy[0]) ** 2 + (sy - xy[1]) ** 2
                     cands.append((best_r[0]["score"], d2, sx, sy, best_r, bx, by, name, rank))
+                    if best_r[0]["score"] >= 0.85 and not _dbg:
+                        break                            # 最近枠で確信マッチ＝以後はOCRしない（高速）
+                if not _dbg and len(boxes) >= 3:
+                    break                                # 近い3枠で無確信なら打ち切り（暴走防止）
             # 表示言語：設定（PC言語/手動）に従う
             global _ui_lang
             if _lang_mode[0] in LANGS:
@@ -858,8 +866,8 @@ def ocr_worker():
                     found, chosen = best[4], best
             if found:                             # 表示の瞬間に最新USD（叩ければ現地通貨）へ更新
                 apply_live(found[0], native_ok=True)
-                _record_history(found[0])         # 履歴に記録
                 _telemetry_send("lookup", item=found[0].get("en"), rarity=found[0].get("rarity_en"))
+                # 履歴記録(_histの構造変更)はメインスレッド(poll)で行う＝反復中の競合を避ける
             if CALIBRATE:                         # 失敗時の画像とログを残す（私が原因を見る用）
                 try:
                     _f, _peak = _DBG_LAST[0]
@@ -1247,6 +1255,8 @@ def _keep_on_top(win, want_noact=lambda: True, pause=lambda: False, respect_togg
     st = {"off": None}
     def tick():
         if not win.winfo_exists(): return
+        if not win.winfo_viewable():                  # 非表示(withdraw)中は z順を触らない＝無駄なSetWindowPosを止める
+            win.after(200, tick); return
         if respect_toggle and not _always_top[0]:    # 設定で常に前面オフ→通常窓に戻す（1回だけ・以後触らない）
             if st["off"] is not True:
                 try:
@@ -1688,8 +1698,7 @@ def _hist_apply_ent(rec, ent):
 
 def _hist_set_rarity(rec, en):
     """レア度変更は完全一致で実エントリを引く（ファジー一致で別レア度に化けさせない＝Cosmic→Beyond根絶）。"""
-    base = rec.get("en")
-    cands = [e for e in matcher.entries if e.get("en") == base and e.get("rarity_en") == en]
+    cands = list(_item_rarity_index().get(rec.get("en"), {}).get(en, []))
     if not cands: return                           # そのレア度は無い（メニューにも出さないので通常来ない）
     var = rec.get("variant")
     cands.sort(key=lambda e: (e.get("variant") != var, e.get("sell") is None, -(e.get("sell") or 0)))
@@ -1803,11 +1812,21 @@ def _ask_text(title, initial, on_ok):
     try: ent.select_range(0, "end"); ent.icursor("end")
     except Exception: pass
 
+_item_idx = [None]
+def _item_rarity_index():
+    """en名 → {rarity_en: [entry,...]} を一度だけ構築（右クリック毎の全件走査をやめる）。"""
+    if _item_idx[0] is None:
+        idx = {}
+        for e in matcher.entries:
+            en, rar = e.get("en"), e.get("rarity_en")
+            if en and rar: idx.setdefault(en, {}).setdefault(rar, []).append(e)
+        _item_idx[0] = idx
+    return _item_idx[0]
+
 def _rarities_for(rec):
     """このアイテムが実際に持つレア度(en)を Legendary〜Cosmic の順で返す。
     存在しないレア度を選ぶと別レア度に化ける（例 Cosmic→Beyond）ので、無いものはメニューに出さない。"""
-    en = rec.get("en")
-    have = {e.get("rarity_en") for e in matcher.entries if e.get("en") == en} if en else set()
+    have = _item_rarity_index().get(rec.get("en"), {})
     order = [r for r, _ in RARITIES[3:]]         # レジェンダリー〜コズミック
     return [r for r in order if r in have] or order
 
@@ -2390,6 +2409,8 @@ def poll(root):
                 show_debug(xy, root)        # xy にデバッグ画像が入っている
                 continue
             show_popup(results, xy, text, root)
+            if isinstance(results, list) and results:   # マッチ時のみ履歴記録（メインスレッド＝_hist競合回避）
+                _record_history(results[0])
             # レンズ時は最新1件だけ増分反映（全消ししない＝チラつかない）。読み取り中は何もしない。
             if _hist_visible[0] and results != "__processing__":
                 _hist_sync_top()

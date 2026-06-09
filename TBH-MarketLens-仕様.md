@@ -38,7 +38,9 @@ Windows実機(Tailscale `ssh tbhwin`, 鍵`~/.ssh/tbh_win`, 配備先`C:\Users\mo
 - **search/render**（`/market/search/render/`）が**本線**。`_render_price()`が**品名+レア度クエリ**で叩き、その変種の現在USDを**1リクエストで取得**。429になりにくい＝**BANされない**。
   - クエリは**記号除去必須**：`-`はSteam検索の除外演算子で誤爆。`"War Bow (Legendary) A"→"War Bow Legendary"`、`"Soulstone - Torment"→"Soulstone Torment"`
   - **USD固定**（currency/country パラメータ無視）。**10件/ページ固定**（全624種の一括取得は63req必要＝非現実的。だから単品クエリ方式）
-  - 市場未出品の品は**0件→バンドル価格にフォールバック**（「該当なし」ではなく既存USD価格を保持）
+  - **出品なし vs 取得失敗を区別**（`_render_price`は3値：`(usd,listings)`=出品あり／`_RENDER_EMPTY`=クエリ成功で該当変種なし＝**現在出品なし**／`None`=429・通信エラー）。
+    - 出品なし→`apply_live`が`ent["_nolist"]=True`にしUIは**「出品なし」(`nolisting`)を表示**。バンドルの小額(例¥6)を価格として出さない（過去の不具合：未出品でも¥6等の変な値が出た）。
+    - 取得失敗(None)→**バンドル(集計USD)価格を保持**（出品なしと断定しない）。`_nolist`は出品なしキャッシュ`(now,None,0)`に保存し再取得を抑制。`_live`同様に履歴へは永続化しない。
 - **通貨**：`_CURRENCY = {en:1=USD, ja:8=JPY, zh:23=CNY}`（UI言語に連動）。
   - en(USD)＝search/renderの値そのまま＝**Steamと完全一致の正確値**
   - ja/zh(¥)＝Steamが¥を出さないので**USDを為替換算**（`JPY_RATE/CNY_RATE`, `fetch_rate()`がopen.er-api.comで起動時更新）。数円ズレ得る

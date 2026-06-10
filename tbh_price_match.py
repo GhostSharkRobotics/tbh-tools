@@ -25,13 +25,21 @@ RARITIES = [("Common", "コモン"), ("Uncommon", "アンコモン"), ("Rare", "
             ("Beyond", "ビヨンド"), ("Celestial", "セレスティアル"), ("Divine", "ディバイン"),
             ("Cosmic", "コズミック")]
 
+# 中国語の等級名（簡体, 繁体）。出典: localization.json Grade_*。ツールチップ行は「{0}级/級」。
+# これが無いと中国語では等級が常に読めず、価格付き最高値の変種へ誤フォールバックする。
+RARITY_ZH = {"Common": ("普通",), "Uncommon": ("罕见", "罕見"), "Rare": ("稀有",),
+             "Legendary": ("传奇", "傳奇"), "Immortal": ("不朽",), "Arcana": ("至宝", "至寶"),
+             "Beyond": ("超凡",), "Celestial": ("天界",), "Divine": ("神圣", "神聖"),
+             "Cosmic": ("宇宙",)}
+
 def extract_rarity(text):
-    """等級行から等級(en)を抽出。最長一致のカバー率で判定（Immortal→lmmorta等の誤読も拾う）。"""
+    """等級行から等級(en)を抽出。最長一致のカバー率で判定（Immortal→lmmorta等の誤読も拾う）。
+    中国語は2字語なので実質完全一致（1字誤読は枠色の救済に回る）。"""
     nt = norm(text)
     if not nt: return None
     best = (None, 0.0)
     for en, ja in RARITIES:
-        for w in (en, ja):
+        for w in (en, ja) + RARITY_ZH.get(en, ()):
             nw = norm(w)
             if not nw: continue
             mm = difflib.SequenceMatcher(None, nw, nt).find_longest_match(0, len(nw), 0, len(nt))

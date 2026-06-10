@@ -95,7 +95,8 @@ Steam在庫の出品ホールドを追跡し、出品可になったら通知。
 新しい機能・文字列・ボタン・トレイ項目・ダイアログを足したら、**その時点で必ず ja/en/zh の3つを揃える**（後回し・別TODO化しない）。
 
 - 全UI文字列は `TR[lang][key]` ＋ `T(key, **fmt)` 経由。`LANGS=("ja","en","zh")`。日本語直書き禁止。
-- **データ由来のラベルも対象**：レア度(`disp_rarity`)・種別(`disp_type`)等は現状 zh で英語にフォールバックしている＝**未対応の穴**。zh の rarity/type 訳を用意して埋める（lookup側に `rarity_zh`/`type_zh` を持たせ、`disp_*` を zh 対応にする）。`localization.json` に game の zh-hans 名がある。
+- **データ由来のラベルも対象**：レア度・種別は lookup の `rarity_zh`/`type_zh` ＋ `disp_rarity`/`disp_type` で zh 対応済み。
+- **等級の読取りも3言語**：`extract_rarity` は en/ja に加え **zh簡体・繁体の等級名**（`RARITY_ZH`、出典 localization.json `Grade_*`、ツールチップ行は「{0}级/級」）を判定する。これが無いと中国語では等級が常に読めず、`match_item` が**価格付き最高値の変種（例レジェンダリー）へ誤フォールバック**する（実機で確定 2026-06）。zh語は2字＝実質完全一致、1字誤読は枠色救済(`_frame_rarity`)に回る。等級確定後の索引引きは英語キー(`名前+等級`)なので索引はそのままでよい。
 - **デプロイ前に `python3 i18n_lint.py` 必須**（TRカタログ完全＋UIに日本語直書きが無いか）。
   カタログ検査を通っても**データ由来の zh 漏れは別途目視/テストで確認**（lintの死角。将来 lint を拡張してここも落とすこと）。
 - 参照: [[marketlens-i18n]]

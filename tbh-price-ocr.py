@@ -38,7 +38,7 @@ NAME_REGIONS = [
 OCR_LANGS     = ["ja", "en"]
 POPUP_SECONDS = 6
 CALIBRATE     = False              # Trueで撮影画像を保存（調整用）
-DEBUG_UI      = False              # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
+DEBUG_UI      = True               # Trueで押下毎に「撮影＋枠＋読取＋結果」を1枚のウィンドウ表示（クリックで閉じる窓）
 # 配色
 C_CARD, C_ACCENT = "#1a1d24", "#2dd4bf"
 _KEYCLR = "#ff00fe"   # 角丸の外側を透過させる魔法色（どの配色とも被らない）

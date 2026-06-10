@@ -107,10 +107,9 @@ Steam在庫の出品ホールドを追跡し、出品可になったら通知。
 
 ※ 作業の進め方（配備時の確認・公開前の確認・git運用など）はアプリ仕様ではないのでここには書かない。メモリ(feedback)を参照。
 
-## 8. 状態（2026-06時点）
-価格本線=search/render切替・印なし表示・該当なし最小表示まで実装＆実機反映済み。
-匿名テレメトリ(`/ml`+`/mlstats`)をコード実装済み＝ローカル検証(py compile/i18n_lint/node --check)通過。
-出品待ち機能=実装＆Win実機配備済み（新inventory API・公開で200確認）。実ホールド検証はTBH市場再開後（現在 marketable:0）。
-未了：**Worker再デプロイ**（`/feedback`+`/ml`の両方。`cd worker && npx wrangler deploy`＝wrangler未ログイン→Cloudflare認証待ち）／Win機へ scp 反映／Ko-fi最終確認／v1.1ビルド＆公開／.icoアイコン・告知文・中国語レア度/種別訳。
+## 8. 状態（2026-06-11時点）
+**v1.2.0 公開済み**（GitHub Releases `GhostSharkRobotics/tbh-marketlens`）。内容＝検出エンジン全面改修（構造検出・実機34倍速・セレスティアル対応）＋中国語等級読取（简/繁）＋空名前ガード（誤ポップ根絶）。配布zipはスモークテスト時の設定/状態ファイル混入を除去済み（**ビルド後にexeを起動テストしたら、zip前に`tbh-price-settings.json`等の生成物を消すこと**）。
+Worker＝`/ml` 200・`/feedback` 稼働を実測確認済み。出品待ち機能＝配備済み、実ホールド検証はTBH市場再開後（現在 marketable:0）。
+未了：告知文の投稿（`dist-announce.md`、ユーザー作業）／Ko-fi最終確認（CLIからは403=bot遮断で未検証。ブラウザで要目視）。
 
 関連メモリ: [[tbh-price-ocr-tool]] [[marketlens-i18n]] [[tbh-tools-no-cheat-detection]] [[tbh-price-ocr-tool]] [[verify-before-claiming-fixed]] [[tbh-deploy-to-live]]

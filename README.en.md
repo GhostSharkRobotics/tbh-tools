@@ -34,9 +34,13 @@ Price data is refreshed daily by GitHub Actions.
 
 In‑game, **hover an item and press a key** — a small card shows its Steam Market price (lowest + median). No name‑typing, no searching. UI in 日本語 / English / 中文.
 
-<p>
-  <img src="docs/marketlens-lens.png" width="380" alt="price popup">
-  <img src="docs/marketlens-history.png" width="380" alt="price history &amp; sell timer">
+<p align="center">
+  <img src="docs/marketlens-lens.png" width="440" alt="price popup"><br>
+  <sub>Hover an item → press a key → its Steam price (lowest + median) appears</sub>
+</p>
+<p align="center">
+  <img src="docs/marketlens-history.png" width="360" alt="history &amp; sell timer"><br>
+  <sub>Price history (sort by added / lowest / median, update all) &amp; sell-timer alerts</sub>
 </p>
 
 ### ⬇ How to download (for people new to GitHub)

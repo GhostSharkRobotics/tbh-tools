@@ -318,11 +318,20 @@ except Exception:
 matcher = Matcher(os.path.join(RES, "tbh-price-lookup.json"))
 def _edges(bgr):                                            # 色に依存しない枠形状（Cannyエッジ）
     return cv2.Canny(cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY), 60, 160)
+def _hi_variant(tpl):
+    """セレスティアル用テンプレ：枠の内側(通常は暗)を実機実測のシアンに塗替えたもの。
+    明色バーはエッジ版でも小UI倍率で相関が閾値に届かず枠ごと検出落ちする（実機cap0で確定）。"""
+    v = cv2.cvtColor(tpl, cv2.COLOR_BGR2GRAY)
+    m = v < 70                                              # 暗部のうち枠内側だけ（縁・角ドットは残す）
+    m[:13, :] = False; m[52:, :] = False; m[:, :44] = False
+    out = tpl.copy(); out[m] = (230, 175, 15)               # BGR=セレスティアルバーの実測色
+    return out
 try:
     _TPL = cv2.imread(os.path.join(RES, "frame_tpl.png"))   # 名前枠の左角テンプレート（定数ピクセル）
     _TPL_E = _edges(_TPL) if _TPL is not None else None     # 高レア(背景色が変わる)用のエッジ版
+    _TPL_H = _hi_variant(_TPL) if _TPL is not None else None
 except Exception:
-    _TPL = _TPL_E = None
+    _TPL = _TPL_E = _TPL_H = None
 PQ = queue.Queue()          # ポップ要求キュー（別スレッド→メインスレッド）
 
 
@@ -675,42 +684,51 @@ def _ocr_lang_missing():
 _SCALE_CACHE = [1.0]      # 直近に当選した実倍率（探索の初手＝同じ倍率なら相関1回で確定）
 _DBG_LAST    = [(1.0, 0.0)]   # CALIBRATE用：直近検出の (倍率f, テンプレ相関ピーク)
 _SCALE_GRID  = [0.45, 0.5, 0.55, 0.625, 0.7, 0.75, 0.85, 1.0, 1.15, 1.3, 1.5, 1.65]
-_SCALE_STRONG = 0.6       # キャッシュ倍率でこの相関が出れば即確定（倍率不変＝再探索しない高速パス）
+_SCALE_STRONG = 0.6       # キャッシュ倍率でこの相関(通常/エッジ版)が出れば即確定（倍率不変＝再探索しない高速パス）
+_SCALE_STRONG_HI = 0.72   # セレ版だけの相関で即確定する閾値。セレ版は内側単色塗りで誤倍率でも0.6超が出る
+                          # （実機cap0: 誤倍率0.55で0.651、正倍率1.0で0.736）ため通常より高く要求する
 _SEARCH_MAXW = 1100       # スケール探索はこの幅以下へ縮小した画像で行う（3x等の大画像でも相関を軽く）
 
 def _match_at(arr, arr_e, tf):
-    """テンプレを倍率tf(画像上の枠の見かけ倍率)にリサイズして相関マップを返す。入らない倍率はNone。"""
+    """テンプレを倍率tf(画像上の枠の見かけ倍率)にリサイズして相関マップを返す。入らない倍率はNone。
+    通常版＋エッジ版＋セレスティアル版(内側シアン)の3本をmax合成（明色バーは通常/エッジとも落ちるため）。"""
     th, tw = _TPL.shape[:2]
     if abs(tf - 1.0) < 1e-6:
-        tpl, tpl_e = _TPL, _TPL_E
+        tpl, tpl_e, tpl_h = _TPL, _TPL_E, _TPL_H
     else:
         nw, nh = max(8, int(round(tw * tf))), max(8, int(round(th * tf)))
         interp = cv2.INTER_AREA if tf < 1.0 else cv2.INTER_CUBIC
         tpl = cv2.resize(_TPL, (nw, nh), interpolation=interp)
         tpl_e = _edges(tpl) if _TPL_E is not None else None
+        tpl_h = cv2.resize(_TPL_H, (nw, nh), interpolation=interp) if _TPL_H is not None else None
     if tpl.shape[0] >= arr.shape[0] or tpl.shape[1] >= arr.shape[1]:
         return None                                   # テンプレが画像より大きい＝この倍率は不可
     res = cv2.matchTemplate(arr, tpl, cv2.TM_CCOEFF_NORMED)
     if tpl_e is not None:
         res = np.maximum(res, cv2.matchTemplate(arr_e, tpl_e, cv2.TM_CCOEFF_NORMED))
-    return res
+    conf = float(res.max())                           # 倍率確定用＝通常/エッジ版のみのピーク（セレ版は倍率判別力が無い）
+    if tpl_h is not None:
+        res = np.maximum(res, cv2.matchTemplate(arr, tpl_h, cv2.TM_CCOEFF_NORMED))
+    return res, conf
 
 def _best_template_factor(arr, arr_e, grid_tf, cached_tf):
     """画像上の枠倍率(テンプレ倍率)を探す。まずキャッシュ倍率だけ試し、強ければ即確定(=相関1回)。
-    弱い時だけ全gridを走査。戻り: (tf, peak, 相関マップ)。"""
-    res = _match_at(arr, arr_e, cached_tf)
-    if res is not None and float(res.max()) >= _SCALE_STRONG:
-        return cached_tf, float(res.max()), res       # 倍率変わってない＝再探索不要（高速パス）
-    best_t, best_s, best_res = cached_tf, (float(res.max()) if res is not None else -1.0), res
+    弱い時だけ全gridを走査。戻り: (tf, peak, 相関マップ)。
+    即確定は通常/エッジ版conf>=_SCALE_STRONG、またはセレ版込み>=_SCALE_STRONG_HI（誤倍率ロック防止）。"""
+    m = _match_at(arr, arr_e, cached_tf)
+    if m is not None and (m[1] >= _SCALE_STRONG or float(m[0].max()) >= _SCALE_STRONG_HI):
+        return cached_tf, float(m[0].max()), m[0]     # 倍率変わってない＝再探索不要（高速パス）
+    best_t = cached_tf
+    best_s, best_res = (float(m[0].max()), m[0]) if m is not None else (-1.0, None)
     for t in grid_tf:                                 # 倍率が変わった時だけ全候補を走査
         if abs(t - cached_tf) < 1e-6:
             continue
         r = _match_at(arr, arr_e, t)
         if r is None:
             continue
-        s = float(r.max())
+        s = float(r[0].max())
         if s > best_s:
-            best_s, best_t, best_res = s, t, r
+            best_s, best_t, best_res = s, t, r[0]
     return best_t, best_s, best_res
 
 def detect_frames(img):

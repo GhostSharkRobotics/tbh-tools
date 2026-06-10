@@ -34,6 +34,11 @@
 
 游戏中，**把光标对准物品并按一个键**，就会弹出小卡片显示它的 Steam 市场价格（最低价 + 中位价）。无需输入名称搜索。界面支持 日本語 / English / 中文。
 
+<p>
+  <img src="docs/marketlens-lens.png" width="380" alt="价格弹窗">
+  <img src="docs/marketlens-history.png" width="380" alt="价格历史与可出售计时">
+</p>
+
 ### ⬇ 下载方法（面向不熟悉 GitHub 的人）
 
 1. 打开下载页 → **[📥 Releases 页面](https://github.com/GhostSharkRobotics/tbh-marketlens/releases)**

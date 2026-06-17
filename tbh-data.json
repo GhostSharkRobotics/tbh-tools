@@ -8665,7 +8665,7 @@
           "unit": "%"
         }
       ],
-      "icon": "bb5f668649e36194",
+      "icon": "cd3d067674f4db6c",
       "market": true,
       "variant": "A",
       "itemKey": "605041"
@@ -12164,7 +12164,7 @@
           "unit": "%"
         }
       ],
-      "icon": "82e96037703dee9c",
+      "icon": "e421507700523fd2",
       "market": true,
       "variant": "A",
       "itemKey": "504051"
@@ -23573,7 +23573,7 @@
           "unit": "%"
         }
       ],
-      "icon": "cef405415a95c8c7",
+      "icon": "dc2e10933541d46b",
       "market": true,
       "variant": "A",
       "itemKey": "416091"
@@ -49865,7 +49865,7 @@
           "unit": ""
         }
       ],
-      "icon": "4232e4ec277133aa",
+      "icon": "fb8899437e7c1508",
       "market": true,
       "variant": "A",
       "uniqueMod": "CrossbowTurretCooldown",
@@ -124823,7 +124823,7 @@
           "raw": 184
         }
       ],
-      "icon": "4232e4ec277133aa",
+      "icon": "fb8899437e7c1508",
       "market": false,
       "variant": "B",
       "uniqueMod": null,
@@ -150125,7 +150125,7 @@
           "raw": 354
         }
       ],
-      "icon": "cef405415a95c8c7",
+      "icon": "dc2e10933541d46b",
       "market": false,
       "variant": "B",
       "uniqueMod": null,
@@ -186443,7 +186443,7 @@
           "raw": 216
         }
       ],
-      "icon": "82e96037703dee9c",
+      "icon": "e421507700523fd2",
       "market": false,
       "variant": "B",
       "uniqueMod": null,
@@ -215873,7 +215873,7 @@
           "raw": 9
         }
       ],
-      "icon": "bb5f668649e36194",
+      "icon": "cd3d067674f4db6c",
       "market": false,
       "variant": "B",
       "uniqueMod": null,
@@ -242700,7 +242700,7 @@
         "level": 65,
         "uniqueMod": "CrossbowTurretCooldown",
         "uniqueModKey": "50003",
-        "icon": "4232e4ec277133aa"
+        "icon": "fb8899437e7c1508"
       },
       {
         "id": 345171,
@@ -244013,7 +244013,6 @@
     "9aad37270856137d": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsJlaSsJRIk48yUeg0_yCFvGwgSQrvQ",
     "73e1014ae55eabb3": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsJ5CSNVKSU48yUejzqKcHy2-a6KT",
     "cd3d067674f4db6c": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsItAUNxQKSI6yUeg0ObcCPhXZzfazkqRUCSiP025kJBP_Q",
-    "bb5f668649e36194": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsItAUNxQKSI6yUeg0ObcCPhXBZDdh6E",
     "1d7024109a7e6322": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsItfSN9HIkg9yUeg1PyCFvFBvEhIBw",
     "d9c1c9cb724eb311": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsItfSN9HIkg9yUeg1PyCFvEPLnzVzEiVViGlOjmxAobx",
     "095bcd6a5032df15": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsItfV99CIkk9yUeg1PyCFvHJm9yN-w",
@@ -244359,7 +244358,6 @@
     "cf818dd7a5c503eb": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIhCUs8mTE08yEO-kLyVR-ANanHVykqWVCPiMyAZdQ",
     "3609e86144e09803": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIhfRNNQLyI6ykeg0ebcCPhXeU60l4g",
     "fb8899437e7c1508": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIlfSsNGPzJbpkSk0OLDTLhANiYel3xWxw",
-    "4232e4ec277133aa": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIlfSsNGPzJbpkSk0OLDTLhANibYikeRViahPU_J5iJ-Xomd",
     "23a2ecfb35538f32": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsI9MV9lbOiI6yEeg0ebcCPhXqWAXTyY",
     "8c67827671ed9c76": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsI1BSsZQLiI5y0eg0ebcCPhXx04wyoo",
     "49c933f4cb7f9f13": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIJMUdNdOClTzUKg0OPGVuZePy5vzk9s",
@@ -244563,6 +244561,7 @@
     "63b67184a9cb6595": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsJlOQMBBOC9TykSg0OPFVuZeP36RwUiTVCKnOEjMT0P2gxg",
     "fd76d99839c4ba9f": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsJlOQMBBOC9TykSg0OLHVuZeP36RwUiTVCKnOEjMZapvwYA",
     "0cd8582322ca86ac": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIlfSsNGPzJbpkSk0OLCSbhANibYikeRViahPU_J5lLfGKPc",
+    "4232e4ec277133aa": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIlfSsNGPzJbpkSk0OLDTLhANibYikeRViahPU_J5iJ-Xomd",
     "855ffba968366fed": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIlfSsNGPzJbpkSk0OLDT7hANibYikeRViahPU_J5u14O41E",
     "04c4ceba0bf55924": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIlfSsNGPzJbpkSk0OLCQLhANib2WpVC4w",
     "b9a19269f4760a2c": "eBLtYAl6ntbtQ8HLU9Nwq_spna9pYjVMElAg-FGKLvMFaUQ2uz-HsIlfSsNGPzJbpkSk0OLDSrhANib06JSQMA",

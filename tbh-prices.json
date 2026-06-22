@@ -3,88 +3,80 @@
  "sourceUrl": "https://tbh-market.com/",
  "currency": "USD",
  "unit": "cents",
- "marketUpdated": "2026-06-21T10:40:06+00:00",
- "fetchedAt": "2026-06-21 10:55",
+ "marketUpdated": "2026-06-22T16:00:06+00:00",
+ "fetchedAt": "2026-06-22 16:15",
  "prices": {
   "Minor Sapphire": {
    "sell": 4,
    "median": 4,
-   "listings": 111915,
-   "volume": 6808,
+   "listings": 103142,
+   "volume": 7491,
    "name_ja": "マイナーサファイア",
    "type": "Decoration Material"
   },
   "Wood": {
-   "sell": 5,
-   "median": 5,
-   "listings": 68556,
-   "volume": 9573,
+   "sell": 6,
+   "median": 6,
+   "listings": 51901,
+   "volume": 13345,
    "name_ja": "木材",
    "type": "Crafting Material"
   },
   "Skeleton Bone": {
    "sell": 4,
    "median": 4,
-   "listings": 55335,
-   "volume": 2102,
+   "listings": 51364,
+   "volume": 3102,
    "name_ja": "スケルトンボーン",
    "type": "Engraving Material"
   },
   "Slime Jelly": {
    "sell": 4,
-   "median": 4,
-   "listings": 51944,
-   "volume": 5573,
+   "median": 5,
+   "listings": 49460,
+   "volume": 2045,
    "name_ja": "スライムゼリー",
    "type": "Engraving Material"
   },
   "Goblin Hide": {
    "sell": 4,
    "median": 4,
-   "listings": 42099,
-   "volume": 1345,
+   "listings": 39658,
+   "volume": 1678,
    "name_ja": "ゴブリンの皮",
    "type": "Engraving Material"
   },
   "Leather": {
    "sell": 8,
    "median": 8,
-   "listings": 17830,
-   "volume": 3480,
+   "listings": 12455,
+   "volume": 4564,
    "name_ja": "レザー",
    "type": "Crafting Material"
   },
   "Minor Amethyst": {
-   "sell": 8,
-   "median": 8,
-   "listings": 16191,
-   "volume": 7048,
+   "sell": 9,
+   "median": 9,
+   "listings": 8355,
+   "volume": 6121,
    "name_ja": "マイナーアメジスト",
    "type": "Decoration Material"
   },
   "Dimensional Helmet (Arcana) A": {
    "sell": 3,
    "median": null,
-   "listings": 510,
+   "listings": 509,
    "volume": 0,
    "name_ja": "次元のヘルメット（アルカナ） A",
    "type": "Helmet - Lv. 80"
   },
   "Soulstone - Normal": {
    "sell": 9,
-   "median": 7,
-   "listings": 482,
-   "volume": 2743,
+   "median": 5,
+   "listings": 497,
+   "volume": 2899,
    "name_ja": "ソウルストーン - ノーマル",
    "type": "Soulstone"
-  },
-  "Jade Stone": {
-   "sell": 14,
-   "median": 10,
-   "listings": 418,
-   "volume": 4002,
-   "name_ja": "翡翠石",
-   "type": "Decoration Material"
   },
   "Ruby Pendant (Immortal) A": {
    "sell": 4,
@@ -94,13 +86,13 @@
    "name_ja": "ルビーペンダント（イモータル） A",
    "type": "Amulet - Lv. 40"
   },
-  "Limitless Crossbow (Arcana) A": {
-   "sell": 5,
+  "Vengeance Sword (Beyond) A": {
+   "sell": 26,
    "median": null,
-   "listings": 60,
+   "listings": 61,
    "volume": 0,
-   "name_ja": "リミットレスクロスボウ（アルカナ） A",
-   "type": "Crossbow - Lv. 65"
+   "name_ja": "ヴェンジェンスソード（ビヨンド） A",
+   "type": "Sword - Lv. 65"
   },
   "Limitless Bow (Beyond) A": {
    "sell": 508,
@@ -110,45 +102,37 @@
    "name_ja": "リミットレスボウ（ビヨンド） A",
    "type": "Bow - Lv. 65"
   },
-  "Wolf Fang": {
-   "sell": 69,
-   "median": 62,
-   "listings": 55,
-   "volume": 393,
-   "name_ja": "ウルフファング",
-   "type": "Engraving Material"
-  },
   "Amber Ring (Arcana) A": {
    "sell": 76,
    "median": null,
-   "listings": 52,
+   "listings": 54,
    "volume": 0,
    "name_ja": "アンバーリング（アルカナ） A",
    "type": "Ring - Lv. 30"
   },
-  "Mystic Armor (Beyond) A": {
-   "sell": 17,
+  "Jade Stone": {
+   "sell": 124,
+   "median": 5,
+   "listings": 53,
+   "volume": 276,
+   "name_ja": "翡翠石",
+   "type": "Decoration Material"
+  },
+  "Mystic Boots (Beyond) A": {
+   "sell": 179,
    "median": null,
-   "listings": 40,
+   "listings": 48,
    "volume": 0,
-   "name_ja": "ミスティックアーマー（ビヨンド） A",
-   "type": "Armor - Lv. 50"
+   "name_ja": "ミスティックブーツ（ビヨンド） A",
+   "type": "Boots - Lv. 50"
   },
   "Tiger Eye Earring (Arcana) A": {
    "sell": 5,
    "median": null,
-   "listings": 38,
+   "listings": 37,
    "volume": 0,
    "name_ja": "タイガーアイピアス（アルカナ） A",
    "type": "Earing - Lv. 40"
-  },
-  "Ethereal Earring (Legendary) A": {
-   "sell": 5,
-   "median": null,
-   "listings": 33,
-   "volume": 0,
-   "name_ja": "エーテルイヤリング（レジェンダリー） A",
-   "type": "Earing - Lv. 80"
   },
   "Copper Amulet (Immortal) A": {
    "sell": 4,
@@ -166,6 +150,14 @@
    "name_ja": "リミットレスハチェット（アルカナ） A",
    "type": "Hatchet - Lv. 65"
   },
+  "Ruby Pendant (Arcana) A": {
+   "sell": 41,
+   "median": null,
+   "listings": 24,
+   "volume": 0,
+   "name_ja": "ルビーペンダント（アルカナ） A",
+   "type": "Amulet - Lv. 40"
+  },
   "Rune Tome (Beyond) A": {
    "sell": 186,
    "median": null,
@@ -173,22 +165,6 @@
    "volume": 0,
    "name_ja": "ルーントーム（ビヨンド） A",
    "type": "Tome - Lv. 40"
-  },
-  "Ruby Pendant (Arcana) A": {
-   "sell": 41,
-   "median": null,
-   "listings": 23,
-   "volume": 0,
-   "name_ja": "ルビーペンダント（アルカナ） A",
-   "type": "Amulet - Lv. 40"
-  },
-  "Eclipse Bracer (Arcana) A": {
-   "sell": 168,
-   "median": null,
-   "listings": 21,
-   "volume": 0,
-   "name_ja": "エクリプスブレーサー（アルカナ） A",
-   "type": "Bracer - Lv. 65"
   },
   "Celestial Earring (Arcana) A": {
    "sell": 254,
@@ -198,29 +174,29 @@
    "name_ja": "セレスティアルイヤリング（アルカナ） A",
    "type": "Earing - Lv. 65"
   },
-  "Scroll of Beyond Inscription": {
-   "sell": 348,
+  "Celestial Pearl": {
+   "sell": 4320,
    "median": null,
-   "listings": 17,
+   "listings": 18,
    "volume": 0,
-   "name_ja": "超越銘文の巻物",
-   "type": "Inscription Material"
-  },
-  "Emerald Bracer (Arcana) A": {
-   "sell": 237,
-   "median": null,
-   "listings": 16,
-   "volume": 0,
-   "name_ja": "エメラルドブレーサー（アルカナ） A",
-   "type": "Bracer - Lv. 50"
+   "name_ja": "セレスティアルパール",
+   "type": "Decoration Material"
   },
   "Fate Tome (Beyond) A": {
    "sell": 740,
    "median": null,
-   "listings": 15,
+   "listings": 16,
    "volume": 0,
    "name_ja": "フェイトトーム（ビヨンド） A",
    "type": "Tome - Lv. 50"
+  },
+  "Mystic Orb (Beyond) A": {
+   "sell": 379,
+   "median": null,
+   "listings": 14,
+   "volume": 0,
+   "name_ja": "ミスティックオーブ（ビヨンド） A",
+   "type": "Orb - Lv. 50"
   },
   "Beast Bolt (Arcana) A": {
    "sell": 403,
@@ -230,13 +206,21 @@
    "name_ja": "ビーストボルト（アルカナ） A",
    "type": "Bolt - Lv. 20"
   },
-  "Limitless Crossbow (Beyond) A": {
-   "sell": 766,
+  "Eclipse Amulet (Arcana) A": {
+   "sell": 449,
+   "median": null,
+   "listings": 14,
+   "volume": 0,
+   "name_ja": "エクリプスアミュレット（アルカナ） A",
+   "type": "Amulet - Lv. 65"
+  },
+  "War Tome (Beyond) A": {
+   "sell": 162,
    "median": null,
    "listings": 13,
    "volume": 0,
-   "name_ja": "リミットレスクロスボウ（ビヨンド） A",
-   "type": "Crossbow - Lv. 65"
+   "name_ja": "ウォートーム（ビヨンド） A",
+   "type": "Tome - Lv. 30"
   },
   "Moonstone": {
    "sell": 1013,
@@ -246,27 +230,35 @@
    "name_ja": "月長石",
    "type": "Crafting Material"
   },
-  "Opal": {
-   "sell": 4032,
-   "median": 38,
-   "listings": 11,
-   "volume": 19,
-   "name_ja": "オパール",
-   "type": "Decoration Material"
+  "Limitless Crossbow (Beyond) A": {
+   "sell": 766,
+   "median": null,
+   "listings": 12,
+   "volume": 0,
+   "name_ja": "リミットレスクロスボウ（ビヨンド） A",
+   "type": "Crossbow - Lv. 65"
   },
-  "Stone": {
-   "sell": 6,
-   "median": 7,
-   "listings": 10,
-   "volume": 459,
-   "name_ja": "ストーン",
-   "type": "Crafting Material"
+  "Wolf Fang": {
+   "sell": 220,
+   "median": 6,
+   "listings": 12,
+   "volume": 73,
+   "name_ja": "ウルフファング",
+   "type": "Engraving Material"
+  },
+  "Soulstone - Torment": {
+   "sell": 250,
+   "median": 8,
+   "listings": 12,
+   "volume": 40,
+   "name_ja": "ソウルストーン - トーメント",
+   "type": "Soulstone"
   },
   "Obsidian Shard": {
    "sell": 1466,
-   "median": 7,
+   "median": 4,
    "listings": 10,
-   "volume": 50,
+   "volume": 92,
    "name_ja": "黒曜石の破片",
    "type": "Decoration Material"
   },
@@ -278,27 +270,35 @@
    "name_ja": "フィアーボルト（イモータル） A",
    "type": "Bolt - Lv. 5"
   },
-  "Void Opal": {
-   "sell": 1380,
-   "median": 1380,
-   "listings": 8,
-   "volume": 9,
-   "name_ja": "虚空のオパール",
+  "Stone": {
+   "sell": 1003,
+   "median": 7,
+   "listings": 9,
+   "volume": 528,
+   "name_ja": "ストーン",
+   "type": "Crafting Material"
+  },
+  "Opal": {
+   "sell": 4032,
+   "median": 39,
+   "listings": 9,
+   "volume": 41,
+   "name_ja": "オパール",
    "type": "Decoration Material"
   },
-  "Sapphire": {
-   "sell": 972,
-   "median": 9,
+  "Sunstone": {
+   "sell": 1071,
+   "median": 1072,
    "listings": 8,
-   "volume": 14,
-   "name_ja": "サファイア",
-   "type": "Decoration Material"
+   "volume": 0,
+   "name_ja": "サンストーン",
+   "type": "Crafting Material"
   },
   "Silver Ingot": {
    "sell": 2222,
-   "median": 6,
+   "median": 15,
    "listings": 7,
-   "volume": 50,
+   "volume": 115,
    "name_ja": "銀のインゴット",
    "type": "Crafting Material"
   },
@@ -310,28 +310,44 @@
    "name_ja": "エーテルブレーサー（アルカナ） A",
    "type": "Bracer - Lv. 80"
   },
-  "Topaz": {
-   "sell": 732,
-   "median": 6,
+  "Dimensional Tome (Arcana) A": {
+   "sell": 7874,
+   "median": 870,
    "listings": 6,
-   "volume": 16,
-   "name_ja": "トパーズ",
+   "volume": 1,
+   "name_ja": "次元のトーム（アルカナ） A",
+   "type": "Tome - Lv. 80"
+  },
+  "Sapphire": {
+   "sell": 2222,
+   "median": 10,
+   "listings": 6,
+   "volume": 45,
+   "name_ja": "サファイア",
    "type": "Decoration Material"
+  },
+  "Void Opal": {
+   "sell": 1380,
+   "median": 193,
+   "listings": 5,
+   "volume": 7,
+   "name_ja": "虚空のオパール",
+   "type": "Decoration Material"
+  },
+  "Long Bow (Legendary) A": {
+   "sell": 72,
+   "median": 5,
+   "listings": 5,
+   "volume": 205,
+   "name_ja": "ロングボウ（レジェンダリー） A",
+   "type": "Bow - Lv. 10"
   },
   "Copper Nugget": {
    "sell": 7142,
    "median": 4,
    "listings": 5,
-   "volume": 246,
+   "volume": 259,
    "name_ja": "銅の塊",
-   "type": "Crafting Material"
-  },
-  "Bloodstone": {
-   "sell": 920,
-   "median": 778,
-   "listings": 5,
-   "volume": 22,
-   "name_ja": "ブラッドストーン",
    "type": "Crafting Material"
   },
   "Sacred Staff (Celestial) A": {
@@ -342,29 +358,77 @@
    "name_ja": "セイクリッドスタッフ（セレスティアル） A",
    "type": "Staff - Lv. 65"
   },
-  "Healing Herb": {
-   "sell": 300,
-   "median": 13,
+  "Ethereal Earring (Arcana) A": {
+   "sell": 465,
+   "median": null,
    "listings": 4,
-   "volume": 25,
-   "name_ja": "癒しの薬草",
-   "type": "Engraving Material"
+   "volume": 0,
+   "name_ja": "エーテルイヤリング（アルカナ） A",
+   "type": "Earing - Lv. 80"
   },
-  "Long Bow (Legendary) A": {
-   "sell": 7,
+  "Steel Hatchet (Legendary) A": {
+   "sell": 140,
+   "median": 47,
+   "listings": 4,
+   "volume": 0,
+   "name_ja": "スチールハチェット（レジェンダリー） A",
+   "type": "Hatchet - Lv. 15"
+  },
+  "War Hatchet (Immortal) A": {
+   "sell": 543,
+   "median": 538,
+   "listings": 4,
+   "volume": 2,
+   "name_ja": "ウォーハチェット（イモータル） A",
+   "type": "Hatchet - Lv. 20"
+  },
+  "Composite Bow (Legendary) A": {
+   "sell": 6,
    "median": 6,
    "listings": 4,
-   "volume": 166,
-   "name_ja": "ロングボウ（レジェンダリー） A",
-   "type": "Bow - Lv. 10"
+   "volume": 148,
+   "name_ja": "コンポジットボウ（レジェンダリー） A",
+   "type": "Bow - Lv. 15"
   },
   "Steel Scepter (Legendary) A": {
-   "sell": 1150,
-   "median": 7,
+   "sell": 526,
+   "median": 6,
    "listings": 4,
-   "volume": 93,
+   "volume": 150,
    "name_ja": "スチールセプター（レジェンダリー） A",
    "type": "Scepter - Lv. 15"
+  },
+  "Bastard Sword (Legendary) A": {
+   "sell": 5,
+   "median": 4,
+   "listings": 4,
+   "volume": 190,
+   "name_ja": "バスタードソード（レジェンダリー） A",
+   "type": "Sword - Lv. 15"
+  },
+  "Topaz": {
+   "sell": 903,
+   "median": 7,
+   "listings": 4,
+   "volume": 48,
+   "name_ja": "トパーズ",
+   "type": "Decoration Material"
+  },
+  "Bloodstone": {
+   "sell": 970,
+   "median": 14,
+   "listings": 4,
+   "volume": 42,
+   "name_ja": "ブラッドストーン",
+   "type": "Crafting Material"
+  },
+  "Soulstone - Nightmare": {
+   "sell": 621,
+   "median": 6,
+   "listings": 4,
+   "volume": 268,
+   "name_ja": "ソウルストーン - ナイトメア",
+   "type": "Soulstone"
   },
   "Emerald Bracer (Beyond) A": {
    "sell": 2995,
@@ -374,45 +438,93 @@
    "name_ja": "エメラルドブレーサー（ビヨンド） A",
    "type": "Bracer - Lv. 50"
   },
-  "Shine Boots (Celestial) A": {
-   "sell": 8321,
-   "median": null,
+  "Complete Crossbow (Arcana) A": {
+   "sell": 633,
+   "median": 993,
    "listings": 3,
-   "volume": 0,
-   "name_ja": "シャインブーツ（セレスティアル） A",
-   "type": "Boots - Lv. 65"
+   "volume": 4,
+   "name_ja": "コンプリートクロスボウ（アルカナ） A",
+   "type": "Crossbow - Lv. 15"
   },
-  "Bastard Sword (Legendary) A": {
-   "sell": 5272,
-   "median": 4,
+  "War Axe (Arcana) A": {
+   "sell": 269,
+   "median": 187,
    "listings": 3,
-   "volume": 136,
-   "name_ja": "バスタードソード（レジェンダリー） A",
-   "type": "Sword - Lv. 15"
+   "volume": 5,
+   "name_ja": "ウォーアックス（アルカナ） A",
+   "type": "Axe - Lv. 20"
+  },
+  "Blessed Scepter (Legendary) A": {
+   "sell": 6,
+   "median": 6,
+   "listings": 3,
+   "volume": 156,
+   "name_ja": "ブレスドセプター（レジェンダリー） A",
+   "type": "Scepter - Lv. 10"
+  },
+  "Complete Crossbow (Legendary) A": {
+   "sell": 77,
+   "median": 51,
+   "listings": 3,
+   "volume": 33,
+   "name_ja": "コンプリートクロスボウ（レジェンダリー） A",
+   "type": "Crossbow - Lv. 15"
+  },
+  "Complete Crossbow (Immortal) A": {
+   "sell": 179,
+   "median": 170,
+   "listings": 3,
+   "volume": 16,
+   "name_ja": "コンプリートクロスボウ（イモータル） A",
+   "type": "Crossbow - Lv. 15"
+  },
+  "Gold Ingot": {
+   "sell": 1495,
+   "median": 17,
+   "listings": 3,
+   "volume": 153,
+   "name_ja": "金のインゴット",
+   "type": "Crafting Material"
   },
   "Minor Topaz": {
    "sell": 5750,
-   "median": 7,
+   "median": 5,
    "listings": 3,
-   "volume": 144,
+   "volume": 187,
    "name_ja": "マイナートパーズ",
    "type": "Decoration Material"
   },
+  "Stardust Ingot": {
+   "sell": 1380,
+   "median": 14,
+   "listings": 3,
+   "volume": 117,
+   "name_ja": "スターダストインゴット",
+   "type": "Crafting Material"
+  },
+  "Void Iron": {
+   "sell": 1495,
+   "median": 18,
+   "listings": 3,
+   "volume": 113,
+   "name_ja": "ヴォイドアイアン",
+   "type": "Crafting Material"
+  },
   "Minor Ruby": {
    "sell": 4600,
-   "median": 4,
+   "median": 5,
    "listings": 3,
-   "volume": 170,
+   "volume": 218,
    "name_ja": "スモールルビー",
    "type": "Decoration Material"
   },
-  "Dimensional Armor (Divine) A": {
-   "sell": 22121,
+  "Dimensional Gloves (Celestial) A": {
+   "sell": 10121,
    "median": null,
    "listings": 2,
    "volume": 0,
-   "name_ja": "次元のアーマー（ディヴァイン） A",
-   "type": "Armor - Lv. 80"
+   "name_ja": "次元のグローブ（セレスティアル） A",
+   "type": "Gloves - Lv. 80"
   },
   "Dimensional Arrow (Celestial) A": {
    "sell": 11005,
@@ -430,149 +542,149 @@
    "name_ja": "エクリプスブレーサー（ビヨンド） A",
    "type": "Bracer - Lv. 65"
   },
+  "Fate Axe (Immortal) A": {
+   "sell": 248,
+   "median": 36,
+   "listings": 2,
+   "volume": 5,
+   "name_ja": "フェイトアックス（イモータル） A",
+   "type": "Axe - Lv. 50"
+  },
   "Sage Staff (Legendary) A": {
    "sell": 3295,
-   "median": 6,
+   "median": 7,
    "listings": 2,
-   "volume": 39,
+   "volume": 47,
    "name_ja": "セージスタッフ（レジェンダリー） A",
    "type": "Staff - Lv. 30"
   },
-  "Darksteel Ingot": {
-   "sell": 1541,
-   "median": 808,
+  "War Hatchet (Legendary) A": {
+   "sell": 195,
+   "median": 168,
    "listings": 2,
    "volume": 0,
-   "name_ja": "ダークスチールインゴット",
-   "type": "Crafting Material"
+   "name_ja": "ウォーハチェット（レジェンダリー） A",
+   "type": "Hatchet - Lv. 20"
   },
-  "Blessed Scepter (Legendary) A": {
-   "sell": 7469,
-   "median": 7,
+  "Iron Scepter (Legendary) A": {
+   "sell": 537,
+   "median": 16,
    "listings": 2,
-   "volume": 126,
-   "name_ja": "ブレスドセプター（レジェンダリー） A",
-   "type": "Scepter - Lv. 10"
+   "volume": 40,
+   "name_ja": "アイアンセプター（レジェンダリー） A",
+   "type": "Scepter - Lv. 5"
+  },
+  "Healing Herb": {
+   "sell": 880,
+   "median": 5,
+   "listings": 2,
+   "volume": 39,
+   "name_ja": "癒しの薬草",
+   "type": "Engraving Material"
+  },
+  "War Bow (Legendary) A": {
+   "sell": 5,
+   "median": 6,
+   "listings": 2,
+   "volume": 111,
+   "name_ja": "ウォーボウ（レジェンダリー） A",
+   "type": "Bow - Lv. 20"
   },
   "Rapier (Legendary) A": {
    "sell": 4458,
-   "median": 6,
+   "median": 5,
    "listings": 2,
-   "volume": 185,
+   "volume": 225,
    "name_ja": "レイピア（レジェンダリー） A",
    "type": "Sword - Lv. 10"
   },
-  "Composite Bow (Legendary) A": {
-   "sell": 7142,
-   "median": 6,
-   "listings": 2,
-   "volume": 110,
-   "name_ja": "コンポジットボウ（レジェンダリー） A",
-   "type": "Bow - Lv. 15"
-  },
   "Chain Boots (Legendary) A": {
    "sell": 22231,
-   "median": 25,
+   "median": 8,
    "listings": 2,
-   "volume": 42,
+   "volume": 40,
    "name_ja": "チェインブーツ（レジェンダリー） A",
    "type": "Boots - Lv. 20"
   },
   "Knight Boots (Legendary) A": {
    "sell": 19385,
-   "median": 6,
+   "median": 5,
    "listings": 2,
-   "volume": 38,
+   "volume": 46,
    "name_ja": "ナイトブーツ（レジェンダリー） A",
    "type": "Boots - Lv. 15"
   },
-  "Long Staff (Legendary) A": {
-   "sell": 570,
-   "median": 5,
+  "Rune Sword (Legendary) A": {
+   "sell": 6072,
+   "median": 7,
    "listings": 2,
-   "volume": 157,
-   "name_ja": "ロングスタッフ（レジェンダリー） A",
-   "type": "Staff - Lv. 10"
+   "volume": 56,
+   "name_ja": "ルーンソード（レジェンダリー） A",
+   "type": "Sword - Lv. 40"
   },
-  "Iron Gloves (Legendary) A": {
-   "sell": 9,
-   "median": 16,
+  "Long Bow (Immortal) A": {
+   "sell": 24,
+   "median": 19,
    "listings": 2,
-   "volume": 36,
-   "name_ja": "アイアングローブ（レジェンダリー） A",
-   "type": "Gloves - Lv. 10"
-  },
-  "Poisonous Herb": {
-   "sell": 955,
-   "median": 6,
-   "listings": 2,
-   "volume": 10,
-   "name_ja": "毒草",
-   "type": "Engraving Material"
+   "volume": 77,
+   "name_ja": "ロングボウ（イモータル） A",
+   "type": "Bow - Lv. 10"
   },
   "Bastard Sword (Immortal) A": {
    "sell": 11500,
-   "median": 21,
+   "median": 16,
    "listings": 2,
-   "volume": 134,
+   "volume": 154,
    "name_ja": "バスタードソード（イモータル） A",
    "type": "Sword - Lv. 15"
   },
-  "Minor Emerald": {
-   "sell": 1115,
-   "median": 8,
+  "Garnet": {
+   "sell": 1495,
+   "median": 6,
    "listings": 2,
-   "volume": 201,
-   "name_ja": "スモールエメラルド",
+   "volume": 40,
+   "name_ja": "ガーネット",
    "type": "Decoration Material"
   },
-  "Stardust Ingot": {
-   "sell": 1380,
-   "median": 14,
+  "War Bow (Immortal) A": {
+   "sell": 62,
+   "median": 69,
    "listings": 2,
-   "volume": 63,
-   "name_ja": "スターダストインゴット",
-   "type": "Crafting Material"
-  },
-  "Void Iron": {
-   "sell": 16383,
-   "median": 20,
-   "listings": 2,
-   "volume": 82,
-   "name_ja": "ヴォイドアイアン",
-   "type": "Crafting Material"
+   "volume": 144,
+   "name_ja": "ウォーボウ（イモータル） A",
+   "type": "Bow - Lv. 20"
   },
   "Soulstone - Hell": {
    "sell": 7112,
-   "median": 16,
+   "median": 9,
    "listings": 2,
-   "volume": 86,
+   "volume": 68,
    "name_ja": "ソウルストーン - ヘル",
    "type": "Soulstone"
   },
   "Bronze Ingot": {
    "sell": 747,
-   "median": 7,
+   "median": 6,
    "listings": 2,
-   "volume": 147,
+   "volume": 246,
    "name_ja": "ブロンズインゴット",
    "type": "Crafting Material"
   },
-  "Soulstone - Nightmare": {
-   "sell": 7112,
-   "median": 9,
+  "Diamond": {
+   "sell": 42,
+   "median": 77,
    "listings": 2,
-   "volume": 354,
-   "name_ja": "ソウルストーン - ナイトメア",
-   "type": "Soulstone"
+   "volume": 19,
+   "name_ja": "ダイヤモンド",
+   "type": "Decoration Material"
   },
-  "Dimensional Gloves (Celestial) A": {
-   "sell": 11117,
+  "Radiant Shield (Divine) A": {
+   "sell": 22231,
    "median": null,
    "listings": 1,
    "volume": 0,
-   "name_ja": "次元のグローブ（セレスティアル） A",
-   "type": "Gloves - Lv. 80"
+   "name_ja": "レイディアントシールド（ディヴァイン） A",
+   "type": "Shield - Lv. 65"
   },
   "Fighter's Helmet (Cosmic) A": {
    "sell": 11117,
@@ -581,22 +693,6 @@
    "volume": 0,
    "name_ja": "ファイターズヘルメット（コズミック） A",
    "type": "Helmet - Lv. 65"
-  },
-  "Steel Hatchet (Arcana) A": {
-   "sell": 807,
-   "median": 715,
-   "listings": 1,
-   "volume": 1,
-   "name_ja": "スチールハチェット（アルカナ） A",
-   "type": "Hatchet - Lv. 15"
-  },
-  "Dimensional Shield (Celestial) A": {
-   "sell": 2222,
-   "median": null,
-   "listings": 1,
-   "volume": 0,
-   "name_ja": "次元の盾（セレスティアル） A",
-   "type": "Shield - Lv. 80"
   },
   "Dimensional Scepter (Beyond) A": {
    "sell": 0,
@@ -614,13 +710,45 @@
    "name_ja": "次元のアーマー（ビヨンド） A",
    "type": "Armor - Lv. 80"
   },
-  "Silver Ring (Immortal) A": {
-   "sell": 2143,
-   "median": 239,
+  "Emerald Amulet (Arcana) A": {
+   "sell": 3571,
+   "median": 4065,
+   "listings": 1,
+   "volume": 0,
+   "name_ja": "エメラルドアミュレット（アルカナ） A",
+   "type": "Amulet - Lv. 50"
+  },
+  "Barbed Bolt (Immortal) A": {
+   "sell": 715,
+   "median": 1072,
    "listings": 1,
    "volume": 2,
-   "name_ja": "シルバーリング（イモータル） A",
-   "type": "Ring - Lv. 10"
+   "name_ja": "バーブドボルト（イモータル） A",
+   "type": "Bolt - Lv. 15"
+  },
+  "Leather Hatchet (Legendary) A": {
+   "sell": 112,
+   "median": 241,
+   "listings": 1,
+   "volume": 0,
+   "name_ja": "レザーハチェット（レジェンダリー） A",
+   "type": "Hatchet - Lv. 5"
+  },
+  "Exceptional Crossbow (Arcana) A": {
+   "sell": 931,
+   "median": 730,
+   "listings": 1,
+   "volume": 5,
+   "name_ja": "卓越のクロスボウ（アルカナ） A",
+   "type": "Crossbow - Lv. 20"
+  },
+  "Chain Boots (Arcana) A": {
+   "sell": 11500,
+   "median": 117,
+   "listings": 1,
+   "volume": 9,
+   "name_ja": "チェインブーツ（アルカナ） A",
+   "type": "Boots - Lv. 20"
   },
   "Shine Gloves (Beyond) A": {
    "sell": 18508,
@@ -630,323 +758,443 @@
    "name_ja": "シャイングローブ（ビヨンド） A",
    "type": "Gloves - Lv. 65"
   },
-  "Complete Crossbow (Arcana) A": {
-   "sell": 995,
-   "median": 1104,
+  "Hunter's Bolt (Legendary) A": {
+   "sell": 434,
+   "median": 72,
    "listings": 1,
-   "volume": 3,
-   "name_ja": "コンプリートクロスボウ（アルカナ） A",
-   "type": "Crossbow - Lv. 15"
+   "volume": 1,
+   "name_ja": "ハンターボルト（レジェンダリー） A",
+   "type": "Bolt - Lv. 10"
   },
-  "Moonstone Pendant (Arcana) A": {
-   "sell": 1785,
-   "median": 1786,
+  "Emerald Earring (Beyond) A": {
+   "sell": 3178,
+   "median": 1865,
+   "listings": 1,
+   "volume": 1,
+   "name_ja": "エメラルドイヤリング（ビヨンド） A",
+   "type": "Earing - Lv. 30"
+  },
+  "Gold Earring (Arcana) A": {
+   "sell": 559,
+   "median": 896,
+   "listings": 1,
+   "volume": 0,
+   "name_ja": "ゴールドイヤリング（アルカナ） A",
+   "type": "Earing - Lv. 15"
+  },
+  "Amethyst Ring (Arcana) A": {
+   "sell": 694,
+   "median": 3375,
    "listings": 1,
    "volume": 2,
-   "name_ja": "ムーンストーンペンダント（アルカナ） A",
-   "type": "Amulet - Lv. 30"
+   "name_ja": "アメジストリング（アルカナ） A",
+   "type": "Ring - Lv. 40"
   },
   "Short Hatchet (Legendary) A": {
    "sell": 3500,
-   "median": 28,
+   "median": 32,
    "listings": 1,
-   "volume": 1,
+   "volume": 0,
    "name_ja": "ショートハチェット（レジェンダリー） A",
    "type": "Hatchet - Lv. 1"
   },
+  "Long Crossbow (Legendary) A": {
+   "sell": 26,
+   "median": 51,
+   "listings": 1,
+   "volume": 27,
+   "name_ja": "ロングクロスボウ（レジェンダリー） A",
+   "type": "Crossbow - Lv. 10"
+  },
+  "Fighter's Helmet (Immortal) A": {
+   "sell": 37,
+   "median": 42,
+   "listings": 1,
+   "volume": 0,
+   "name_ja": "ファイターズヘルメット（イモータル） A",
+   "type": "Helmet - Lv. 65"
+  },
   "Sage Staff (Immortal) A": {
    "sell": 7803,
-   "median": 25,
+   "median": 21,
    "listings": 1,
-   "volume": 48,
+   "volume": 67,
    "name_ja": "セージスタッフ（イモータル） A",
    "type": "Staff - Lv. 30"
   },
+  "Iron Crossbow (Immortal) A": {
+   "sell": 669,
+   "median": 251,
+   "listings": 1,
+   "volume": 12,
+   "name_ja": "アイアンクロスボウ（イモータル） A",
+   "type": "Crossbow - Lv. 30"
+  },
   "Exceptional Crossbow (Immortal) A": {
-   "sell": 397,
-   "median": 422,
+   "sell": 502,
+   "median": 331,
    "listings": 1,
    "volume": 11,
    "name_ja": "卓越のクロスボウ（イモータル） A",
    "type": "Crossbow - Lv. 20"
   },
-  "War Axe (Arcana) A": {
-   "sell": 17856,
-   "median": 591,
-   "listings": 1,
-   "volume": 2,
-   "name_ja": "ウォーアックス（アルカナ） A",
-   "type": "Axe - Lv. 20"
-  },
-  "Long Crossbow (Immortal) A": {
-   "sell": 172,
-   "median": 211,
+  "Beast Bolt (Legendary) A": {
+   "sell": 621,
+   "median": 335,
    "listings": 1,
    "volume": 5,
-   "name_ja": "ロングクロスボウ（イモータル） A",
-   "type": "Crossbow - Lv. 10"
+   "name_ja": "ビーストボルト（レジェンダリー） A",
+   "type": "Bolt - Lv. 20"
+  },
+  "Barbed Arrow (Immortal) A": {
+   "sell": 715,
+   "median": 65,
+   "listings": 1,
+   "volume": 15,
+   "name_ja": "バーブドアロー（イモータル） A",
+   "type": "Arrow - Lv. 15"
+  },
+  "Long Sword (Legendary) A": {
+   "sell": 2143,
+   "median": 5,
+   "listings": 1,
+   "volume": 20,
+   "name_ja": "ロングソード（レジェンダリー） A",
+   "type": "Sword - Lv. 1"
   },
   "Dice": {
    "sell": 22271,
-   "median": 188,
+   "median": 134,
    "listings": 1,
-   "volume": 31,
+   "volume": 41,
    "name_ja": "ダイス",
    "type": "Engraving Material"
   },
   "Dusk Bow (Legendary) A": {
    "sell": 156876,
-   "median": 5,
+   "median": 9,
    "listings": 1,
-   "volume": 40,
+   "volume": 56,
    "name_ja": "ダスクボウ（レジェンダリー） A",
    "type": "Bow - Lv. 30"
+  },
+  "Heavy Shield (Arcana) A": {
+   "sell": 339,
+   "median": 249,
+   "listings": 1,
+   "volume": 11,
+   "name_ja": "ヘビーシールド（アルカナ） A",
+   "type": "Shield - Lv. 20"
   },
   "Empire Boots (Legendary) A": {
    "sell": 35712,
    "median": 6,
    "listings": 1,
-   "volume": 14,
+   "volume": 13,
    "name_ja": "帝国のブーツ（レジェンダリー） A",
    "type": "Boots - Lv. 5"
   },
-  "Scroll of Common Inscription": {
-   "sell": 2222,
-   "median": 11,
+  "Heater Shield (Legendary) A": {
+   "sell": 9,
+   "median": 6,
    "listings": 1,
-   "volume": 14,
-   "name_ja": "一般刻文の巻物",
-   "type": "Inscription Material"
+   "volume": 0,
+   "name_ja": "ヒータシールド（レジェンダリー） A",
+   "type": "Shield - Lv. 15"
   },
   "War Helmet (Legendary) A": {
    "sell": 2499,
    "median": 7,
    "listings": 1,
-   "volume": 10,
+   "volume": 23,
    "name_ja": "ウォーヘルメット（レジェンダリー） A",
    "type": "Helmet - Lv. 30"
   },
-  "Iron Scepter (Legendary) A": {
-   "sell": 71426,
+  "War Shield (Legendary) A": {
+   "sell": 1046,
    "median": 7,
    "listings": 1,
-   "volume": 33,
-   "name_ja": "アイアンセプター（レジェンダリー） A",
-   "type": "Scepter - Lv. 5"
+   "volume": 19,
+   "name_ja": "ウォーシールド（レジェンダリー） A",
+   "type": "Shield - Lv. 30"
+  },
+  "Long Sword (Immortal) A": {
+   "sell": 54,
+   "median": 25,
+   "listings": 1,
+   "volume": 12,
+   "name_ja": "ロングソード（イモータル） A",
+   "type": "Sword - Lv. 1"
   },
   "Knight Sword (Immortal) A": {
    "sell": 2477,
-   "median": 23,
+   "median": 19,
    "listings": 1,
-   "volume": 50,
+   "volume": 65,
    "name_ja": "ナイトソード（イモータル） A",
    "type": "Sword - Lv. 30"
   },
-  "War Bow (Legendary) A": {
-   "sell": 19385,
+  "Cutlas (Legendary) A": {
+   "sell": 5,
    "median": 5,
    "listings": 1,
-   "volume": 79,
-   "name_ja": "ウォーボウ（レジェンダリー） A",
-   "type": "Bow - Lv. 20"
+   "volume": 52,
+   "name_ja": "カトラス（レジェンダリー） A",
+   "type": "Sword - Lv. 5"
+  },
+  "Bat Wing Membrane": {
+   "sell": 161,
+   "median": 557,
+   "listings": 1,
+   "volume": 7,
+   "name_ja": "コウモリの翼膜",
+   "type": "Engraving Material"
   },
   "Iron Boots (Legendary) A": {
    "sell": 19367,
    "median": 6,
    "listings": 1,
-   "volume": 43,
+   "volume": 58,
    "name_ja": "アイアンブーツ（レジェンダリー） A",
    "type": "Boots - Lv. 10"
   },
   "Devout Scepter (Legendary) A": {
    "sell": 7142,
-   "median": 8,
+   "median": 6,
    "listings": 1,
-   "volume": 17,
+   "volume": 35,
    "name_ja": "ディヴァウトセプター（レジェンダリー） A",
    "type": "Scepter - Lv. 30"
   },
+  "Long Staff (Legendary) A": {
+   "sell": 19385,
+   "median": 4,
+   "listings": 1,
+   "volume": 209,
+   "name_ja": "ロングスタッフ（レジェンダリー） A",
+   "type": "Staff - Lv. 10"
+  },
   "Frozen Orb (Legendary) A": {
    "sell": 19385,
-   "median": 16,
+   "median": 14,
    "listings": 1,
-   "volume": 22,
+   "volume": 27,
    "name_ja": "フローズンオーブ（レジェンダリー） A",
    "type": "Orb - Lv. 15"
   },
-  "Rune Sword (Legendary) A": {
-   "sell": 22231,
-   "median": 7,
+  "Dusk Bow (Immortal) A": {
+   "sell": 6339,
+   "median": 47,
    "listings": 1,
-   "volume": 50,
-   "name_ja": "ルーンソード（レジェンダリー） A",
-   "type": "Sword - Lv. 40"
+   "volume": 63,
+   "name_ja": "ダスクボウ（イモータル） A",
+   "type": "Bow - Lv. 30"
   },
   "Chaos Shard": {
    "sell": 1550,
-   "median": 6,
+   "median": 11,
    "listings": 1,
-   "volume": 9,
+   "volume": 17,
    "name_ja": "カオスシャード",
    "type": "Crafting Material"
   },
   "Iron Plate (Legendary) A": {
    "sell": 62108,
-   "median": 7,
+   "median": 8,
    "listings": 1,
-   "volume": 46,
+   "volume": 55,
    "name_ja": "アイアンプレート（レジェンダリー） A",
    "type": "Armor - Lv. 10"
   },
   "Great Sword (Immortal) A": {
-   "sell": 224,
-   "median": 14,
+   "sell": 255,
+   "median": 18,
    "listings": 1,
-   "volume": 111,
+   "volume": 159,
    "name_ja": "グレートソード（イモータル） A",
    "type": "Sword - Lv. 20"
   },
   "Knight Gloves (Legendary) A": {
    "sell": 10511,
-   "median": 4,
+   "median": 5,
    "listings": 1,
-   "volume": 35,
+   "volume": 64,
    "name_ja": "ナイトグローブ（レジェンダリー） A",
    "type": "Gloves - Lv. 15"
   },
   "Hunter's Arrow (Legendary) A": {
    "sell": 4585,
-   "median": 65,
+   "median": 51,
    "listings": 1,
-   "volume": 25,
+   "volume": 39,
    "name_ja": "ハンターアロー（レジェンダリー） A",
    "type": "Arrow - Lv. 10"
   },
   "Azure Staff (Legendary) A": {
    "sell": 33116,
-   "median": 10,
+   "median": 5,
    "listings": 1,
-   "volume": 83,
+   "volume": 86,
    "name_ja": "アズールスタッフ（レジェンダリー） A",
    "type": "Staff - Lv. 20"
   },
-  "Gold Bracer (Immortal) A": {
-   "sell": 172,
-   "median": 1686,
+  "Poisonous Herb": {
+   "sell": 2300,
+   "median": 5,
    "listings": 1,
-   "volume": 0,
-   "name_ja": "ゴールドブレーサー（イモータル） A",
-   "type": "Bracer - Lv. 15"
+   "volume": 33,
+   "name_ja": "毒草",
+   "type": "Engraving Material"
+  },
+  "Herald Staff (Immortal) A": {
+   "sell": 19,
+   "median": 22,
+   "listings": 1,
+   "volume": 18,
+   "name_ja": "伝令のスタッフ（イモータル） A",
+   "type": "Staff - Lv. 5"
   },
   "Chain Mail (Legendary) A": {
    "sell": 19367,
-   "median": 4,
+   "median": 6,
    "listings": 1,
-   "volume": 33,
+   "volume": 52,
    "name_ja": "チェインメイル（レジェンダリー） A",
    "type": "Armor - Lv. 15"
   },
+  "Knight Sword (Arcana) A": {
+   "sell": 2614,
+   "median": 91,
+   "listings": 1,
+   "volume": 18,
+   "name_ja": "ナイトソード（アルカナ） A",
+   "type": "Sword - Lv. 30"
+  },
   "Amber Gem": {
    "sell": 2222,
-   "median": 3,
+   "median": 6,
    "listings": 1,
-   "volume": 53,
+   "volume": 78,
    "name_ja": "アンバージェム",
    "type": "Decoration Material"
   },
+  "Knight Boots (Immortal) A": {
+   "sell": 21,
+   "median": 19,
+   "listings": 1,
+   "volume": 51,
+   "name_ja": "ナイトブーツ（イモータル） A",
+   "type": "Boots - Lv. 15"
+  },
+  "Blessed Tome (Legendary) A": {
+   "sell": 4356,
+   "median": 44,
+   "listings": 1,
+   "volume": 26,
+   "name_ja": "祝福の魔法書（レジェンダリー） A",
+   "type": "Tome - Lv. 20"
+  },
   "Lapis Lazuli": {
    "sell": 6495,
-   "median": 56,
+   "median": 51,
    "listings": 1,
-   "volume": 47,
+   "volume": 65,
    "name_ja": "ラピスラズリ",
    "type": "Decoration Material"
   },
   "Knight's Tome (Legendary) A": {
    "sell": 19385,
-   "median": 29,
+   "median": 24,
    "listings": 1,
-   "volume": 22,
+   "volume": 33,
    "name_ja": "ナイトのトーム（レジェンダリー） A",
    "type": "Tome - Lv. 15"
   },
-  "Long Bow (Immortal) A": {
-   "sell": 8433,
-   "median": 28,
-   "listings": 1,
-   "volume": 67,
-   "name_ja": "ロングボウ（イモータル） A",
-   "type": "Bow - Lv. 10"
-  },
   "Chain Gloves (Immortal) A": {
    "sell": 19385,
-   "median": 29,
+   "median": 25,
    "listings": 1,
-   "volume": 38,
+   "volume": 67,
    "name_ja": "チェイングローブ（イモータル） A",
    "type": "Gloves - Lv. 20"
   },
   "Great Sword (Legendary) A": {
    "sell": 8000,
-   "median": 6,
+   "median": 7,
    "listings": 1,
-   "volume": 85,
+   "volume": 147,
    "name_ja": "グレートソード（レジェンダリー） A",
    "type": "Sword - Lv. 20"
   },
+  "Long Staff (Immortal) A": {
+   "sell": 18,
+   "median": 21,
+   "listings": 1,
+   "volume": 83,
+   "name_ja": "ロングスタッフ（イモータル） A",
+   "type": "Staff - Lv. 10"
+  },
   "Crystal Quartz": {
    "sell": 7844,
-   "median": 5,
+   "median": 6,
    "listings": 1,
-   "volume": 32,
+   "volume": 44,
    "name_ja": "クリスタルクォーツ",
    "type": "Decoration Material"
   },
-  "Garnet": {
-   "sell": 19367,
+  "Knight's Armor (Immortal) A": {
+   "sell": 34,
+   "median": 45,
+   "listings": 1,
+   "volume": 41,
+   "name_ja": "ナイトアーマー（イモータル） A",
+   "type": "Armor - Lv. 20"
+  },
+  "Composite Bow (Immortal) A": {
+   "sell": 0,
+   "median": 31,
+   "listings": 1,
+   "volume": 73,
+   "name_ja": "コンポジットボウ（イモータル） A",
+   "type": "Bow - Lv. 15"
+  },
+  "Minor Emerald": {
+   "sell": 7142,
    "median": 6,
    "listings": 1,
-   "volume": 24,
-   "name_ja": "ガーネット",
+   "volume": 213,
+   "name_ja": "スモールエメラルド",
    "type": "Decoration Material"
   },
   "Pearl": {
    "sell": 22231,
-   "median": 11,
+   "median": 21,
    "listings": 1,
-   "volume": 40,
+   "volume": 75,
    "name_ja": "真珠",
    "type": "Decoration Material"
   },
-  "Emerald": {
-   "sell": 19367,
-   "median": 26,
+  "Exceptional Crossbow (Legendary) A": {
+   "sell": 124,
+   "median": 151,
    "listings": 1,
-   "volume": 67,
-   "name_ja": "エメラルド",
-   "type": "Decoration Material"
-  },
-  "Turquoise": {
-   "sell": 118,
-   "median": 14,
-   "listings": 1,
-   "volume": 28,
-   "name_ja": "ターコイズ",
-   "type": "Decoration Material"
+   "volume": 20,
+   "name_ja": "卓越のクロスボウ（レジェンダリー） A",
+   "type": "Crossbow - Lv. 20"
   },
   "Chain Helmet (Immortal) A": {
    "sell": 19385,
-   "median": 41,
+   "median": 27,
    "listings": 1,
-   "volume": 32,
+   "volume": 51,
    "name_ja": "チェインヘルム（イモータル） A",
    "type": "Helmet - Lv. 20"
   },
   "Iron Boots (Immortal) A": {
    "sell": 71123,
-   "median": 24,
+   "median": 8,
    "listings": 1,
-   "volume": 20,
+   "volume": 25,
    "name_ja": "アイアンブーツ（イモータル） A",
    "type": "Boots - Lv. 10"
   },
@@ -954,7 +1202,7 @@
    "sell": 71123,
    "median": 7,
    "listings": 1,
-   "volume": 165,
+   "volume": 228,
    "name_ja": "鉄のインゴット",
    "type": "Crafting Material"
   },
@@ -989,14 +1237,6 @@
    "volume": 0,
    "name_ja": "ヘイストアロー（セレスティアル） A",
    "type": "Arrow - Lv. 65"
-  },
-  "Radiant Shield (Divine) A": {
-   "sell": 22231,
-   "median": null,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "レイディアントシールド（ディヴァイン） A",
-   "type": "Shield - Lv. 65"
   },
   "Haste Arrow (Divine) A": {
    "sell": 21521,
@@ -1069,6 +1309,14 @@
    "volume": 0,
    "name_ja": "エクリプスリング（ビヨンド） A",
    "type": "Ring - Lv. 65"
+  },
+  "Dimensional Armor (Divine) A": {
+   "sell": 22121,
+   "median": null,
+   "listings": 0,
+   "volume": 0,
+   "name_ja": "次元のアーマー（ディヴァイン） A",
+   "type": "Armor - Lv. 80"
   },
   "Shine Gloves (Cosmic) A": {
    "sell": 18014,
@@ -1270,6 +1518,14 @@
    "name_ja": "エメラルドリング（アルカナ） A",
    "type": "Ring - Lv. 50"
   },
+  "Shine Boots (Celestial) A": {
+   "sell": 8321,
+   "median": null,
+   "listings": 0,
+   "volume": 0,
+   "name_ja": "シャインブーツ（セレスティアル） A",
+   "type": "Boots - Lv. 65"
+  },
   "Shine Armor (Celestial) A": {
    "sell": 10764,
    "median": 1793,
@@ -1398,6 +1654,14 @@
    "name_ja": "次元のブーツ（セレスティアル） A",
    "type": "Boots - Lv. 80"
   },
+  "Scroll of Beyond Inscription": {
+   "sell": 348,
+   "median": null,
+   "listings": 0,
+   "volume": 0,
+   "name_ja": "超越銘文の巻物",
+   "type": "Inscription Material"
+  },
   "Radiant Shield (Celestial) A": {
    "sell": 11144,
    "median": 1503,
@@ -1439,10 +1703,10 @@
    "type": "Axe - Lv. 65"
   },
   "Iron Bolt (Immortal) A": {
-   "sell": 802,
-   "median": 3437,
+   "sell": 948,
+   "median": 928,
    "listings": 0,
-   "volume": 1,
+   "volume": 3,
    "name_ja": "アイアンボルト（イモータル） A",
    "type": "Bolt - Lv. 30"
   },
@@ -1455,15 +1719,15 @@
    "type": "Engraving Material"
   },
   "Steel Hatchet (Immortal) A": {
-   "sell": 373,
+   "sell": 249,
    "median": 290,
    "listings": 0,
-   "volume": 3,
+   "volume": 0,
    "name_ja": "スチールハチェット（イモータル） A",
    "type": "Hatchet - Lv. 15"
   },
   "Rune Axe (Beyond) A": {
-   "sell": 902,
+   "sell": 886,
    "median": 844,
    "listings": 0,
    "volume": 0,
@@ -1510,6 +1774,14 @@
    "name_ja": "アメジストリング（ビヨンド） A",
    "type": "Ring - Lv. 40"
   },
+  "Steel Hatchet (Arcana) A": {
+   "sell": 807,
+   "median": 715,
+   "listings": 0,
+   "volume": 0,
+   "name_ja": "スチールハチェット（アルカナ） A",
+   "type": "Hatchet - Lv. 15"
+  },
   "Dimensional Hatchet (Arcana) A": {
    "sell": 4141,
    "median": 670,
@@ -1517,6 +1789,14 @@
    "volume": 0,
    "name_ja": "次元のハチェット（アルカナ） A",
    "type": "Hatchet - Lv. 80"
+  },
+  "Dimensional Shield (Celestial) A": {
+   "sell": 2222,
+   "median": null,
+   "listings": 0,
+   "volume": 0,
+   "name_ja": "次元の盾（セレスティアル） A",
+   "type": "Shield - Lv. 80"
   },
   "Ethereal Amulet (Immortal) A": {
    "sell": 1844,
@@ -1566,14 +1846,6 @@
    "name_ja": "バーブドボルト（アルカナ） A",
    "type": "Bolt - Lv. 15"
   },
-  "Mystic Orb (Beyond) A": {
-   "sell": 379,
-   "median": null,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "ミスティックオーブ（ビヨンド） A",
-   "type": "Orb - Lv. 50"
-  },
   "Rune Bolt (Arcana) A": {
    "sell": 1284,
    "median": 2148,
@@ -1599,7 +1871,7 @@
    "type": "Tome - Lv. 65"
   },
   "Mystic Gloves (Beyond) A": {
-   "sell": 1490,
+   "sell": 2143,
    "median": 1530,
    "listings": 0,
    "volume": 0,
@@ -1613,14 +1885,6 @@
    "volume": 4,
    "name_ja": "次元の盾（ビヨンド） A",
    "type": "Shield - Lv. 80"
-  },
-  "Eclipse Amulet (Arcana) A": {
-   "sell": 449,
-   "median": null,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "エクリプスアミュレット（アルカナ） A",
-   "type": "Amulet - Lv. 65"
   },
   "Leather Hatchet (Immortal) A": {
    "sell": 4017,
@@ -1655,7 +1919,7 @@
    "type": "Crossbow - Lv. 50"
   },
   "Ethereal Earring (Immortal) A": {
-   "sell": 3735,
+   "sell": 1990,
    "median": 1847,
    "listings": 0,
    "volume": 0,
@@ -1670,14 +1934,6 @@
    "name_ja": "フェイトセプター（ビヨンド） A",
    "type": "Scepter - Lv. 50"
   },
-  "War Tome (Beyond) A": {
-   "sell": 162,
-   "median": null,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "ウォートーム（ビヨンド） A",
-   "type": "Tome - Lv. 30"
-  },
   "Ancient Orb (Beyond) A": {
    "sell": 2223,
    "median": 1503,
@@ -1686,14 +1942,6 @@
    "name_ja": "エンシェントオーブ（ビヨンド） A",
    "type": "Orb - Lv. 65"
   },
-  "Ethereal Earring (Arcana) A": {
-   "sell": 465,
-   "median": null,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "エーテルイヤリング（アルカナ） A",
-   "type": "Earing - Lv. 80"
-  },
   "Limitless Scepter (Beyond) A": {
    "sell": 3393,
    "median": 1277,
@@ -1701,6 +1949,14 @@
    "volume": 0,
    "name_ja": "リミットレスセプター（ビヨンド） A",
    "type": "Scepter - Lv. 65"
+  },
+  "Eclipse Bracer (Arcana) A": {
+   "sell": 168,
+   "median": null,
+   "listings": 0,
+   "volume": 0,
+   "name_ja": "エクリプスブレーサー（アルカナ） A",
+   "type": "Bracer - Lv. 65"
   },
   "Crimson Bracer (Beyond) A": {
    "sell": 2343,
@@ -1727,7 +1983,7 @@
    "type": "Gloves - Lv. 80"
   },
   "Dimensional Helmet (Beyond) A": {
-   "sell": 1366,
+   "sell": 1466,
    "median": 1646,
    "listings": 0,
    "volume": 0,
@@ -1742,29 +1998,21 @@
    "name_ja": "ヴォイドスタッフ（ビヨンド） A",
    "type": "Staff - Lv. 50"
   },
-  "Vengeance Sword (Beyond) A": {
-   "sell": 26,
-   "median": null,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "ヴェンジェンスソード（ビヨンド） A",
-   "type": "Sword - Lv. 65"
-  },
   "Limitless Bow (Arcana) A": {
-   "sell": 3013,
+   "sell": 1927,
    "median": 1747,
    "listings": 0,
    "volume": 0,
    "name_ja": "リミットレスボウ（アルカナ） A",
    "type": "Bow - Lv. 65"
   },
-  "Emerald Amulet (Arcana) A": {
-   "sell": 4064,
-   "median": 4065,
+  "Mystic Armor (Beyond) A": {
+   "sell": 17,
+   "median": null,
    "listings": 0,
    "volume": 0,
-   "name_ja": "エメラルドアミュレット（アルカナ） A",
-   "type": "Amulet - Lv. 50"
+   "name_ja": "ミスティックアーマー（ビヨンド） A",
+   "type": "Armor - Lv. 50"
   },
   "Ruby Pendant (Beyond) A": {
    "sell": 5015,
@@ -1783,7 +2031,7 @@
    "type": "Crossbow - Lv. 80"
   },
   "Haste Bolt (Arcana) A": {
-   "sell": 1153,
+   "sell": 745,
    "median": 1188,
    "listings": 0,
    "volume": 0,
@@ -1791,7 +2039,7 @@
    "type": "Bolt - Lv. 65"
   },
   "Gale Arrow (Beyond) A": {
-   "sell": 1673,
+   "sell": 1429,
    "median": 2158,
    "listings": 0,
    "volume": 0,
@@ -1799,7 +2047,7 @@
    "type": "Arrow - Lv. 30"
   },
   "Elite Shield (Beyond) A": {
-   "sell": 745,
+   "sell": 555,
    "median": 1243,
    "listings": 0,
    "volume": 2,
@@ -1807,15 +2055,15 @@
    "type": "Shield - Lv. 40"
   },
   "Dusk Bow (Beyond) A": {
-   "sell": 1306,
-   "median": 1233,
+   "sell": 1142,
+   "median": 1308,
    "listings": 0,
-   "volume": 0,
+   "volume": 1,
    "name_ja": "ダスクボウ（ビヨンド） A",
    "type": "Bow - Lv. 30"
   },
   "Fate Tome (Arcana) A": {
-   "sell": 745,
+   "sell": 606,
    "median": 646,
    "listings": 0,
    "volume": 0,
@@ -1823,7 +2071,7 @@
    "type": "Tome - Lv. 50"
   },
   "Elite Bow (Beyond) A": {
-   "sell": 4396,
+   "sell": 1180,
    "median": 2299,
    "listings": 0,
    "volume": 0,
@@ -1855,7 +2103,7 @@
    "type": "Axe - Lv. 40"
   },
   "Gold Bracer (Arcana) A": {
-   "sell": 360,
+   "sell": 588,
    "median": 563,
    "listings": 0,
    "volume": 0,
@@ -1871,7 +2119,7 @@
    "type": "Crossbow - Lv. 40"
   },
   "Gold Ring (Immortal) A": {
-   "sell": 285,
+   "sell": 249,
    "median": 172,
    "listings": 0,
    "volume": 2,
@@ -1879,7 +2127,7 @@
    "type": "Ring - Lv. 15"
   },
   "Bronze Amulet (Immortal) A": {
-   "sell": 1107,
+   "sell": 622,
    "median": 1108,
    "listings": 0,
    "volume": 0,
@@ -1887,15 +2135,15 @@
    "type": "Amulet - Lv. 5"
   },
   "Platinum Bracer (Arcana) A": {
-   "sell": 621,
-   "median": 1488,
+   "sell": 1013,
+   "median": 1001,
    "listings": 0,
-   "volume": 0,
+   "volume": 3,
    "name_ja": "プラチナブレイサー（アルカナ） A",
    "type": "Bracer - Lv. 20"
   },
   "Tiger Eye Earring (Beyond) A": {
-   "sell": 2710,
+   "sell": 3295,
    "median": 2499,
    "listings": 0,
    "volume": 0,
@@ -1911,7 +2159,7 @@
    "type": "Hatchet - Lv. 55"
   },
   "Moonstone Pendant (Immortal) A": {
-   "sell": 485,
+   "sell": 571,
    "median": 937,
    "listings": 0,
    "volume": 0,
@@ -1951,7 +2199,7 @@
    "type": "Earing - Lv. 5"
   },
   "Fate Sword (Beyond) A": {
-   "sell": 641,
+   "sell": 443,
    "median": 444,
    "listings": 0,
    "volume": 0,
@@ -1975,7 +2223,7 @@
    "type": "Axe - Lv. 90"
   },
   "Steel Axe (Arcana) A": {
-   "sell": 214,
+   "sell": 258,
    "median": 244,
    "listings": 0,
    "volume": 0,
@@ -2079,20 +2327,12 @@
    "type": "Arrow - Lv. 65"
   },
   "Elder Orb (Immortal) A": {
-   "sell": 127,
+   "sell": 165,
    "median": 187,
    "listings": 0,
    "volume": 2,
    "name_ja": "エルダーオーブ（イモータル） A",
    "type": "Orb - Lv. 5"
-  },
-  "Barbed Bolt (Immortal) A": {
-   "sell": 396,
-   "median": 1072,
-   "listings": 0,
-   "volume": 2,
-   "name_ja": "バーブドボルト（イモータル） A",
-   "type": "Bolt - Lv. 15"
   },
   "Fighter's Helmet (Beyond) A": {
    "sell": 3252,
@@ -2191,7 +2431,7 @@
    "type": "Amulet - Lv. 35"
   },
   "Empire 50th Anniversary Coin": {
-   "sell": 3571,
+   "sell": 3198,
    "median": 7174,
    "listings": 0,
    "volume": 0,
@@ -2366,14 +2606,6 @@
    "name_ja": "ウォーシールド（ビヨンド） A",
    "type": "Shield - Lv. 30"
   },
-  "Leather Hatchet (Legendary) A": {
-   "sell": 373,
-   "median": 241,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "レザーハチェット（レジェンダリー） A",
-   "type": "Hatchet - Lv. 5"
-  },
   "Storm Bolt (Immortal) A": {
    "sell": 204,
    "median": null,
@@ -2455,7 +2687,7 @@
    "type": "Boots - Lv. 80"
   },
   "Limitless Hatchet (Legendary) A": {
-   "sell": 124,
+   "sell": 18,
    "median": 124,
    "listings": 0,
    "volume": 0,
@@ -2487,7 +2719,7 @@
    "type": "Bolt - Lv. 70"
   },
   "Fate Bolt (Arcana) A": {
-   "sell": 1817,
+   "sell": 1042,
    "median": 2527,
    "listings": 0,
    "volume": 0,
@@ -2591,7 +2823,7 @@
    "type": "Sword - Lv. 35"
   },
   "Platinum Ring (Arcana) A": {
-   "sell": 1023,
+   "sell": 674,
    "median": 978,
    "listings": 0,
    "volume": 0,
@@ -2710,6 +2942,14 @@
    "name_ja": "エンシェントボウ（アルカナ） A",
    "type": "Bow - Lv. 60"
   },
+  "Silver Ring (Immortal) A": {
+   "sell": 254,
+   "median": 186,
+   "listings": 0,
+   "volume": 5,
+   "name_ja": "シルバーリング（イモータル） A",
+   "type": "Ring - Lv. 10"
+  },
   "Eternal Helmet (Arcana) A": {
    "sell": 280,
    "median": null,
@@ -2822,14 +3062,6 @@
    "name_ja": "クリスタルヘルメット（イモータル） A",
    "type": "Helmet - Lv. 75"
   },
-  "Steel Hatchet (Legendary) A": {
-   "sell": 47,
-   "median": 181,
-   "listings": 0,
-   "volume": 2,
-   "name_ja": "スチールハチェット（レジェンダリー） A",
-   "type": "Hatchet - Lv. 15"
-  },
   "Hero Axe (Legendary) A": {
    "sell": 84,
    "median": null,
@@ -2879,7 +3111,7 @@
    "type": "Arrow - Lv. 35"
   },
   "Short Bolt (Legendary) A": {
-   "sell": 157,
+   "sell": 115,
    "median": 215,
    "listings": 0,
    "volume": 2,
@@ -2949,14 +3181,6 @@
    "volume": 0,
    "name_ja": "深淵の杖（イモータル） A",
    "type": "Staff - Lv. 70"
-  },
-  "Exceptional Crossbow (Arcana) A": {
-   "sell": 1320,
-   "median": 715,
-   "listings": 0,
-   "volume": 5,
-   "name_ja": "卓越のクロスボウ（アルカナ） A",
-   "type": "Crossbow - Lv. 20"
   },
   "Dimensional Bolt (Immortal) A": {
    "sell": 750,
@@ -3104,9 +3328,9 @@
   },
   "War Tome (Arcana) A": {
    "sell": 285,
-   "median": 325,
+   "median": 248,
    "listings": 0,
-   "volume": 6,
+   "volume": 3,
    "name_ja": "ウォートーム（アルカナ） A",
    "type": "Tome - Lv. 30"
   },
@@ -3311,7 +3535,7 @@
    "type": "Axe - Lv. 65"
   },
   "War Gloves (Beyond) A": {
-   "sell": 1980,
+   "sell": 496,
    "median": 1980,
    "listings": 0,
    "volume": 0,
@@ -3357,6 +3581,14 @@
    "volume": 0,
    "name_ja": "ミスティックスタッフ（ビヨンド） A",
    "type": "Staff - Lv. 35"
+  },
+  "Emerald Bracer (Arcana) A": {
+   "sell": 237,
+   "median": null,
+   "listings": 0,
+   "volume": 0,
+   "name_ja": "エメラルドブレーサー（アルカナ） A",
+   "type": "Bracer - Lv. 50"
   },
   "Void Boots (Arcana) A": {
    "sell": 276,
@@ -3415,7 +3647,7 @@
    "type": "Amulet - Lv. 35"
   },
   "Silver Bracer (Immortal) A": {
-   "sell": 146,
+   "sell": 163,
    "median": 489,
    "listings": 0,
    "volume": 0,
@@ -3606,14 +3838,6 @@
    "name_ja": "シャドウブーツ（アルカナ） A",
    "type": "Boots - Lv. 85"
   },
-  "Chain Boots (Arcana) A": {
-   "sell": 121,
-   "median": 117,
-   "listings": 0,
-   "volume": 9,
-   "name_ja": "チェインブーツ（アルカナ） A",
-   "type": "Boots - Lv. 20"
-  },
   "Hero Scepter (Arcana) A": {
    "sell": 201,
    "median": null,
@@ -3655,7 +3879,7 @@
    "type": "Arrow - Lv. 55"
   },
   "Composite Bow (Arcana) A": {
-   "sell": 199,
+   "sell": 166,
    "median": 146,
    "listings": 0,
    "volume": 10,
@@ -3735,7 +3959,7 @@
    "type": "Tome - Lv. 35"
   },
   "Rune Axe (Legendary) A": {
-   "sell": 7,
+   "sell": 8,
    "median": 71,
    "listings": 0,
    "volume": 0,
@@ -3767,15 +3991,15 @@
    "type": "Tome - Lv. 85"
   },
   "Phantom Emerald": {
-   "sell": 647,
-   "median": null,
+   "sell": 1483,
+   "median": 808,
    "listings": 0,
-   "volume": 0,
+   "volume": 1,
    "name_ja": "ファントムエメラルド",
    "type": "Decoration Material"
   },
   "Rune Axe (Immortal) A": {
-   "sell": 28,
+   "sell": 187,
    "median": 255,
    "listings": 0,
    "volume": 0,
@@ -3847,10 +4071,10 @@
    "type": "Gloves - Lv. 65"
   },
   "Eclipse Amulet (Legendary) A": {
-   "sell": 1869,
-   "median": 1870,
+   "sell": 357,
+   "median": 73,
    "listings": 0,
-   "volume": 1,
+   "volume": 2,
    "name_ja": "エクリプスアミュレット（レジェンダリー） A",
    "type": "Amulet - Lv. 65"
   },
@@ -3967,7 +4191,7 @@
    "type": "Armor - Lv. 75"
   },
   "War Shield (Immortal) A": {
-   "sell": 21,
+   "sell": 31,
    "median": 28,
    "listings": 0,
    "volume": 20,
@@ -4079,7 +4303,7 @@
    "type": "Scepter - Lv. 65"
   },
   "Steel Scepter (Arcana) A": {
-   "sell": 93,
+   "sell": 99,
    "median": 188,
    "listings": 0,
    "volume": 1,
@@ -4087,7 +4311,7 @@
    "type": "Scepter - Lv. 15"
   },
   "Great Axe (Immortal) A": {
-   "sell": 18,
+   "sell": 88,
    "median": 148,
    "listings": 0,
    "volume": 0,
@@ -4175,10 +4399,10 @@
    "type": "Arrow - Lv. 40"
   },
   "Shine Boots (Legendary) A": {
-   "sell": 1576,
-   "median": 1576,
+   "sell": 20,
+   "median": 12,
    "listings": 0,
-   "volume": 0,
+   "volume": 6,
    "name_ja": "シャインブーツ（レジェンダリー） A",
    "type": "Boots - Lv. 65"
   },
@@ -4199,7 +4423,7 @@
    "type": "Gloves - Lv. 75"
   },
   "Rune Scepter (Arcana) A": {
-   "sell": 134,
+   "sell": 83,
    "median": 396,
    "listings": 0,
    "volume": 0,
@@ -4319,15 +4543,15 @@
    "type": "Gloves - Lv. 65"
   },
   "Knight's Tome (Arcana) A": {
-   "sell": 204,
-   "median": 227,
+   "sell": 674,
+   "median": 298,
    "listings": 0,
-   "volume": 0,
+   "volume": 2,
    "name_ja": "ナイトのトーム（アルカナ） A",
    "type": "Tome - Lv. 15"
   },
   "Celestial Earring (Legendary) A": {
-   "sell": 386,
+   "sell": 945,
    "median": 109,
    "listings": 0,
    "volume": 0,
@@ -4351,10 +4575,10 @@
    "type": "Scepter - Lv. 70"
   },
   "Dusk Bow (Arcana) A": {
-   "sell": 499,
-   "median": 395,
+   "sell": 415,
+   "median": 394,
    "listings": 0,
-   "volume": 0,
+   "volume": 14,
    "name_ja": "ダスクボウ（アルカナ） A",
    "type": "Bow - Lv. 30"
   },
@@ -4455,10 +4679,10 @@
    "type": "Ring - Lv. 55"
   },
   "Rune Bolt (Legendary) A": {
-   "sell": 168,
-   "median": 140,
+   "sell": 123,
+   "median": 130,
    "listings": 0,
-   "volume": 3,
+   "volume": 4,
    "name_ja": "ルーンボルト（レジェンダリー） A",
    "type": "Bolt - Lv. 40"
   },
@@ -4471,7 +4695,7 @@
    "type": "Bracer - Lv. 45"
   },
   "Short Bolt (Immortal) A": {
-   "sell": 269,
+   "sell": 214,
    "median": 195,
    "listings": 0,
    "volume": 0,
@@ -4559,7 +4783,7 @@
    "type": "Staff - Lv. 60"
   },
   "Vengeance Sword (Legendary) A": {
-   "sell": 921,
+   "sell": 14,
    "median": 314,
    "listings": 0,
    "volume": 0,
@@ -4567,7 +4791,7 @@
    "type": "Sword - Lv. 65"
   },
   "Gold Earring (Immortal) A": {
-   "sell": 211,
+   "sell": 184,
    "median": 678,
    "listings": 0,
    "volume": 0,
@@ -4575,7 +4799,7 @@
    "type": "Earing - Lv. 15"
   },
   "Emerald Ring (Legendary) A": {
-   "sell": 129,
+   "sell": 134,
    "median": 207,
    "listings": 0,
    "volume": 0,
@@ -4615,15 +4839,15 @@
    "type": "Armor - Lv. 60"
   },
   "Emerald Earring (Legendary) A": {
-   "sell": 133,
-   "median": 118,
+   "sell": 123,
+   "median": 130,
    "listings": 0,
-   "volume": 7,
+   "volume": 14,
    "name_ja": "エメラルドイヤリング（レジェンダリー） A",
    "type": "Earing - Lv. 30"
   },
   "Limitless Bow (Legendary) A": {
-   "sell": 15,
+   "sell": 938,
    "median": 10,
    "listings": 0,
    "volume": 2,
@@ -4639,7 +4863,7 @@
    "type": "Engraving Material"
   },
   "Rune Sword (Arcana) A": {
-   "sell": 58,
+   "sell": 71,
    "median": 2125,
    "listings": 0,
    "volume": 0,
@@ -4863,7 +5087,7 @@
    "type": "Bow - Lv. 75"
   },
   "Iron Bolt (Legendary) A": {
-   "sell": 879,
+   "sell": 295,
    "median": 879,
    "listings": 0,
    "volume": 0,
@@ -5046,16 +5270,8 @@
    "name_ja": "シャドウブレーサー（アルカナ） A",
    "type": "Bracer - Lv. 35"
   },
-  "War Hatchet (Immortal) A": {
-   "sell": 410,
-   "median": 300,
-   "listings": 0,
-   "volume": 2,
-   "name_ja": "ウォーハチェット（イモータル） A",
-   "type": "Hatchet - Lv. 20"
-  },
   "Dimensional Hatchet (Legendary) A": {
-   "sell": 359,
+   "sell": 27,
    "median": 24,
    "listings": 0,
    "volume": 0,
@@ -5079,7 +5295,7 @@
    "type": "Crossbow - Lv. 85"
   },
   "War Helmet (Beyond) A": {
-   "sell": 1319,
+   "sell": 472,
    "median": 169,
    "listings": 0,
    "volume": 0,
@@ -5095,7 +5311,7 @@
    "type": "Hatchet - Lv. 85"
   },
   "Kraken Ink": {
-   "sell": 732,
+   "sell": 279,
    "median": 586,
    "listings": 0,
    "volume": 0,
@@ -5135,15 +5351,15 @@
    "type": "Axe - Lv. 60"
   },
   "Battle Hatchet (Legendary) A": {
-   "sell": 78,
-   "median": 84,
+   "sell": 107,
+   "median": 110,
    "listings": 0,
-   "volume": 0,
+   "volume": 1,
    "name_ja": "バトルハチェット（レジェンダリー） A",
    "type": "Hatchet - Lv. 30"
   },
   "Mystic Orb (Arcana) A": {
-   "sell": 687,
+   "sell": 260,
    "median": 1303,
    "listings": 0,
    "volume": 0,
@@ -5151,7 +5367,7 @@
    "type": "Orb - Lv. 50"
   },
   "Copper Ring (Legendary) A": {
-   "sell": 292,
+   "sell": 87,
    "median": 294,
    "listings": 0,
    "volume": 0,
@@ -5262,14 +5478,6 @@
    "name_ja": "パワークロスボウ（イモータル） A",
    "type": "Crossbow - Lv. 75"
   },
-  "Hunter's Bolt (Legendary) A": {
-   "sell": 405,
-   "median": 72,
-   "listings": 0,
-   "volume": 1,
-   "name_ja": "ハンターボルト（レジェンダリー） A",
-   "type": "Bolt - Lv. 10"
-  },
   "Shining Orb (Arcana) A": {
    "sell": 402,
    "median": null,
@@ -5287,7 +5495,7 @@
    "type": "Earing - Lv. 65"
   },
   "Steel Axe (Immortal) A": {
-   "sell": 187,
+   "sell": 32,
    "median": 31,
    "listings": 0,
    "volume": 0,
@@ -5295,10 +5503,10 @@
    "type": "Axe - Lv. 15"
   },
   "Iron Axe (Legendary) A": {
-   "sell": 54,
-   "median": 21,
+   "sell": 21,
+   "median": 13,
    "listings": 0,
-   "volume": 0,
+   "volume": 2,
    "name_ja": "アイアンアックス（レジェンダリー） A",
    "type": "Axe - Lv. 5"
   },
@@ -5343,18 +5551,18 @@
    "type": "Arrow - Lv. 90"
   },
   "Long Hatchet (Legendary) A": {
-   "sell": 73,
-   "median": 166,
+   "sell": 162,
+   "median": 200,
    "listings": 0,
-   "volume": 1,
+   "volume": 2,
    "name_ja": "ロングハチェット（レジェンダリー） A",
    "type": "Hatchet - Lv. 10"
   },
   "Leather Crossbow (Legendary) A": {
-   "sell": 52,
-   "median": 29,
+   "sell": 168,
+   "median": 54,
    "listings": 0,
-   "volume": 0,
+   "volume": 2,
    "name_ja": "レザークロスボウ（レジェンダリー） A",
    "type": "Crossbow - Lv. 5"
   },
@@ -5375,7 +5583,7 @@
    "type": "Ring - Lv. 70"
   },
   "Fate Arrow (Legendary) A": {
-   "sell": 732,
+   "sell": 60,
    "median": 733,
    "listings": 0,
    "volume": 0,
@@ -5399,7 +5607,7 @@
    "type": "Earing - Lv. 25"
   },
   "Magic Orb (Legendary) A": {
-   "sell": 14,
+   "sell": 18,
    "median": 16,
    "listings": 0,
    "volume": 0,
@@ -5463,7 +5671,7 @@
    "type": "Earing - Lv. 1"
   },
   "War Tome (Immortal) A": {
-   "sell": 107,
+   "sell": 115,
    "median": 669,
    "listings": 0,
    "volume": 0,
@@ -5503,10 +5711,10 @@
    "type": "Bow - Lv. 35"
   },
   "War Shield (Arcana) A": {
-   "sell": 175,
-   "median": 575,
+   "sell": 107,
+   "median": 143,
    "listings": 0,
-   "volume": 0,
+   "volume": 10,
    "name_ja": "ウォーシールド（アルカナ） A",
    "type": "Shield - Lv. 30"
   },
@@ -5551,7 +5759,7 @@
    "type": "Amulet - Lv. 75"
   },
   "Mystic Boots (Arcana) A": {
-   "sell": 468,
+   "sell": 242,
    "median": 206,
    "listings": 0,
    "volume": 0,
@@ -5623,8 +5831,8 @@
    "type": "Staff - Lv. 30"
   },
   "Great Axe (Arcana) A": {
-   "sell": 357,
-   "median": 383,
+   "sell": 317,
+   "median": 358,
    "listings": 0,
    "volume": 1,
    "name_ja": "グレートアックス（アルカナ） A",
@@ -5694,6 +5902,14 @@
    "name_ja": "ストームアロー（イモータル） A",
    "type": "Arrow - Lv. 55"
   },
+  "Ethereal Earring (Legendary) A": {
+   "sell": 5,
+   "median": null,
+   "listings": 0,
+   "volume": 0,
+   "name_ja": "エーテルイヤリング（レジェンダリー） A",
+   "type": "Earing - Lv. 80"
+  },
   "Sacred Staff (Arcana) A": {
    "sell": 199,
    "median": 720,
@@ -5742,14 +5958,6 @@
    "name_ja": "ストームアックス（アルカナ） A",
    "type": "Axe - Lv. 60"
   },
-  "Dimensional Tome (Arcana) A": {
-   "sell": 7874,
-   "median": 7887,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "次元のトーム（アルカナ） A",
-   "type": "Tome - Lv. 80"
-  },
   "Rune Orb (Beyond) A": {
    "sell": 1071,
    "median": 693,
@@ -5767,10 +5975,10 @@
    "type": "Helmet - Lv. 55"
   },
   "Blessed Tome (Arcana) A": {
-   "sell": 641,
-   "median": null,
+   "sell": 434,
+   "median": 574,
    "listings": 0,
-   "volume": 0,
+   "volume": 3,
    "name_ja": "祝福の魔法書（アルカナ） A",
    "type": "Tome - Lv. 20"
   },
@@ -5791,7 +5999,7 @@
    "type": "Earing - Lv. 50"
   },
   "War Boots (Beyond) A": {
-   "sell": 421,
+   "sell": 509,
    "median": 572,
    "listings": 0,
    "volume": 2,
@@ -5846,14 +6054,6 @@
    "name_ja": "ドラゴナイトクリスタル",
    "type": "Decoration Material"
   },
-  "Celestial Pearl": {
-   "sell": 4320,
-   "median": null,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "セレスティアルパール",
-   "type": "Decoration Material"
-  },
   "Forest Shield (Beyond) A": {
    "sell": 3385,
    "median": null,
@@ -5903,7 +6103,7 @@
    "type": "Sword - Lv. 65"
   },
   "Fate Axe (Arcana) A": {
-   "sell": 244,
+   "sell": 204,
    "median": 189,
    "listings": 0,
    "volume": 0,
@@ -5998,6 +6198,14 @@
    "name_ja": "ヴォイドオーブ（イモータル） A",
    "type": "Orb - Lv. 75"
   },
+  "Limitless Crossbow (Arcana) A": {
+   "sell": 5,
+   "median": null,
+   "listings": 0,
+   "volume": 0,
+   "name_ja": "リミットレスクロスボウ（アルカナ） A",
+   "type": "Crossbow - Lv. 65"
+  },
   "Heavy Blade (Beyond) A": {
    "sell": 1127,
    "median": null,
@@ -6022,14 +6230,6 @@
    "name_ja": "ミスティックハチェット（レジェンダリー） A",
    "type": "Hatchet - Lv. 50"
   },
-  "Emerald Earring (Beyond) A": {
-   "sell": 4739,
-   "median": 1865,
-   "listings": 0,
-   "volume": 1,
-   "name_ja": "エメラルドイヤリング（ビヨンド） A",
-   "type": "Earing - Lv. 30"
-  },
   "Storm Bow (Arcana) A": {
    "sell": 269,
    "median": null,
@@ -6045,14 +6245,6 @@
    "volume": 0,
    "name_ja": "ヴォイドアーマー（アルカナ） A",
    "type": "Armor - Lv. 70"
-  },
-  "Gold Earring (Arcana) A": {
-   "sell": 894,
-   "median": 896,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "ゴールドイヤリング（アルカナ） A",
-   "type": "Earing - Lv. 15"
   },
   "Ancient Crossbow (Arcana) A": {
    "sell": 280,
@@ -6119,7 +6311,7 @@
    "type": "Shield - Lv. 50"
   },
   "Iron Bolt (Arcana) A": {
-   "sell": 891,
+   "sell": 590,
    "median": 1306,
    "listings": 0,
    "volume": 0,
@@ -6175,7 +6367,7 @@
    "type": "Shield - Lv. 45"
   },
   "Devout Scepter (Beyond) A": {
-   "sell": 545,
+   "sell": 653,
    "median": 538,
    "listings": 0,
    "volume": 0,
@@ -6183,7 +6375,7 @@
    "type": "Scepter - Lv. 30"
   },
   "Fate Helmet (Arcana) A": {
-   "sell": 4991,
+   "sell": 282,
    "median": 211,
    "listings": 0,
    "volume": 0,
@@ -6215,7 +6407,7 @@
    "type": "Bolt - Lv. 50"
   },
   "Bronze Amulet (Legendary) A": {
-   "sell": 448,
+   "sell": 180,
    "median": 355,
    "listings": 0,
    "volume": 0,
@@ -6255,7 +6447,7 @@
    "type": "Arrow - Lv. 85"
   },
   "Elite Hatchet (Arcana) A": {
-   "sell": 1432,
+   "sell": 1319,
    "median": 1409,
    "listings": 0,
    "volume": 0,
@@ -6287,7 +6479,7 @@
    "type": "Bow - Lv. 25"
   },
   "Buckler (Legendary) A": {
-   "sell": 12,
+   "sell": 9,
    "median": 10,
    "listings": 0,
    "volume": 5,
@@ -6390,16 +6582,8 @@
    "name_ja": "フェイトアロー（アルカナ） A",
    "type": "Arrow - Lv. 50"
   },
-  "Fate Axe (Immortal) A": {
-   "sell": 3588,
-   "median": 36,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "フェイトアックス（イモータル） A",
-   "type": "Axe - Lv. 50"
-  },
   "Elite Bow (Arcana) A": {
-   "sell": 331,
+   "sell": 249,
    "median": 1233,
    "listings": 0,
    "volume": 0,
@@ -6422,14 +6606,6 @@
    "name_ja": "混沌のハチェット（イモータル） A",
    "type": "Hatchet - Lv. 70"
   },
-  "Mystic Boots (Beyond) A": {
-   "sell": 179,
-   "median": null,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "ミスティックブーツ（ビヨンド） A",
-   "type": "Boots - Lv. 50"
-  },
   "Storm Arrow (Divine) A": {
    "sell": 11284,
    "median": null,
@@ -6447,7 +6623,7 @@
    "type": "Helmet - Lv. 75"
   },
   "Empire Tome (Immortal) A": {
-   "sell": 143,
+   "sell": 93,
    "median": 93,
    "listings": 0,
    "volume": 0,
@@ -6463,7 +6639,7 @@
    "type": "Armor - Lv. 65"
   },
   "Dimensional Arrow (Arcana) A": {
-   "sell": 5498,
+   "sell": 3016,
    "median": 2494,
    "listings": 0,
    "volume": 0,
@@ -6479,7 +6655,7 @@
    "type": "Orb - Lv. 55"
   },
   "Copper Ring (Immortal) A": {
-   "sell": 624,
+   "sell": 315,
    "median": 345,
    "listings": 0,
    "volume": 0,
@@ -6487,7 +6663,7 @@
    "type": "Ring - Lv. 1"
   },
   "Knight Sword (Beyond) A": {
-   "sell": 405,
+   "sell": 285,
    "median": 357,
    "listings": 0,
    "volume": 2,
@@ -6502,19 +6678,11 @@
    "name_ja": "次元のブーツ（ビヨンド） A",
    "type": "Boots - Lv. 80"
   },
-  "Sunstone": {
-   "sell": 1071,
-   "median": 1072,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "サンストーン",
-   "type": "Crafting Material"
-  },
   "Battle Hatchet (Immortal) A": {
-   "sell": 308,
-   "median": 251,
+   "sell": 250,
+   "median": 262,
    "listings": 0,
-   "volume": 1,
+   "volume": 2,
    "name_ja": "バトルハチェット（イモータル） A",
    "type": "Hatchet - Lv. 30"
   },
@@ -6575,7 +6743,7 @@
    "type": "Sword - Lv. 85"
   },
   "Gold Amulet (Arcana) A": {
-   "sell": 2361,
+   "sell": 1519,
    "median": 1616,
    "listings": 0,
    "volume": 0,
@@ -6591,7 +6759,7 @@
    "type": "Ring - Lv. 55"
   },
   "Mystic Hatchet (Arcana) A": {
-   "sell": 936,
+   "sell": 254,
    "median": 752,
    "listings": 0,
    "volume": 0,
@@ -6599,15 +6767,15 @@
    "type": "Hatchet - Lv. 50"
   },
   "Barbed Bolt (Legendary) A": {
-   "sell": 422,
-   "median": 218,
+   "sell": 393,
+   "median": 429,
    "listings": 0,
-   "volume": 1,
+   "volume": 3,
    "name_ja": "バーブドボルト（レジェンダリー） A",
    "type": "Bolt - Lv. 15"
   },
   "Hunter's Bolt (Immortal) A": {
-   "sell": 685,
+   "sell": 807,
    "median": 3331,
    "listings": 0,
    "volume": 0,
@@ -6615,15 +6783,15 @@
    "type": "Bolt - Lv. 10"
   },
   "Shadow Bow (Arcana) A": {
-   "sell": 3123,
-   "median": 3124,
+   "sell": 1143,
+   "median": 1324,
    "listings": 0,
-   "volume": 0,
+   "volume": 5,
    "name_ja": "シャドウボウ（アルカナ） A",
    "type": "Bow - Lv. 80"
   },
   "Rune Scepter (Beyond) A": {
-   "sell": 535,
+   "sell": 496,
    "median": 297,
    "listings": 0,
    "volume": 1,
@@ -6663,7 +6831,7 @@
    "type": "Shield - Lv. 60"
   },
   "Haste Arrow (Arcana) A": {
-   "sell": 2143,
+   "sell": 2053,
    "median": 1902,
    "listings": 0,
    "volume": 0,
@@ -6709,14 +6877,6 @@
    "volume": 1,
    "name_ja": "レイディアントシールド（ビヨンド） A",
    "type": "Shield - Lv. 65"
-  },
-  "Amethyst Ring (Arcana) A": {
-   "sell": 3374,
-   "median": 3375,
-   "listings": 0,
-   "volume": 2,
-   "name_ja": "アメジストリング（アルカナ） A",
-   "type": "Ring - Lv. 40"
   },
   "Power Axe (Arcana) A": {
    "sell": 277,
@@ -6790,6 +6950,14 @@
    "name_ja": "深淵の粘液",
    "type": "Engraving Material"
   },
+  "Moonstone Pendant (Arcana) A": {
+   "sell": 2143,
+   "median": 1786,
+   "listings": 0,
+   "volume": 2,
+   "name_ja": "ムーンストーンペンダント（アルカナ） A",
+   "type": "Amulet - Lv. 30"
+  },
   "Diamond Bracer (Arcana) A": {
    "sell": 280,
    "median": null,
@@ -6799,7 +6967,7 @@
    "type": "Bracer - Lv. 55"
   },
   "Mystic Crossbow (Arcana) A": {
-   "sell": 1438,
+   "sell": 807,
    "median": 812,
    "listings": 0,
    "volume": 0,
@@ -6847,7 +7015,7 @@
    "type": "Scepter - Lv. 45"
   },
   "Amethyst Ring (Legendary) A": {
-   "sell": 131,
+   "sell": 124,
    "median": 85,
    "listings": 0,
    "volume": 6,
@@ -6911,7 +7079,7 @@
    "type": "Scepter - Lv. 85"
   },
   "Mystic Orb (Immortal) A": {
-   "sell": 105,
+   "sell": 72,
    "median": 256,
    "listings": 0,
    "volume": 0,
@@ -7079,7 +7247,7 @@
    "type": "Bow - Lv. 1"
   },
   "Wooden Shield (Immortal) A": {
-   "sell": 42,
+   "sell": 80,
    "median": 181,
    "listings": 0,
    "volume": 0,
@@ -7095,7 +7263,7 @@
    "type": "Earing - Lv. 5"
   },
   "Iron Arrow (Legendary) A": {
-   "sell": 133,
+   "sell": 39,
    "median": 4,
    "listings": 0,
    "volume": 4,
@@ -7103,7 +7271,7 @@
    "type": "Arrow - Lv. 5"
   },
   "Short Crossbow (Legendary) A": {
-   "sell": 15,
+   "sell": 23,
    "median": 25,
    "listings": 0,
    "volume": 0,
@@ -7119,7 +7287,7 @@
    "type": "Boots - Lv. 90"
   },
   "Barbed Arrow (Arcana) A": {
-   "sell": 1453,
+   "sell": 1000,
    "median": 762,
    "listings": 0,
    "volume": 1,
@@ -7151,7 +7319,7 @@
    "type": "Armor - Lv. 60"
   },
   "Bronze Ring (Immortal) A": {
-   "sell": 875,
+   "sell": 418,
    "median": 495,
    "listings": 0,
    "volume": 0,
@@ -7183,7 +7351,7 @@
    "type": "Sword - Lv. 45"
   },
   "Amber Ring (Immortal) A": {
-   "sell": 254,
+   "sell": 337,
    "median": 286,
    "listings": 0,
    "volume": 0,
@@ -7198,14 +7366,6 @@
    "name_ja": "強化クロスボウ（イモータル） A",
    "type": "Crossbow - Lv. 25"
   },
-  "War Hatchet (Legendary) A": {
-   "sell": 167,
-   "median": 168,
-   "listings": 0,
-   "volume": 1,
-   "name_ja": "ウォーハチェット（レジェンダリー） A",
-   "type": "Hatchet - Lv. 20"
-  },
   "Bishop's Scepter (Arcana) A": {
    "sell": 535,
    "median": null,
@@ -7215,7 +7375,7 @@
    "type": "Scepter - Lv. 25"
   },
   "Sacred Scepter (Arcana) A": {
-   "sell": 181,
+   "sell": 151,
    "median": 184,
    "listings": 0,
    "volume": 19,
@@ -7287,7 +7447,7 @@
    "type": "Ring - Lv. 90"
   },
   "Comet Staff (Arcana) A": {
-   "sell": 5602,
+   "sell": 93,
    "median": 89,
    "listings": 0,
    "volume": 0,
@@ -7303,7 +7463,7 @@
    "type": "Gloves - Lv. 50"
   },
   "Mystic Crossbow (Immortal) A": {
-   "sell": 110,
+   "sell": 103,
    "median": 124,
    "listings": 0,
    "volume": 9,
@@ -7327,7 +7487,7 @@
    "type": "Bow - Lv. 75"
   },
   "Azure Arrow (Arcana) A": {
-   "sell": 582,
+   "sell": 732,
    "median": 1000,
    "listings": 0,
    "volume": 4,
@@ -7375,16 +7535,16 @@
    "type": "Arrow - Lv. 45"
   },
   "Platinum Earring (Arcana) A": {
-   "sell": 461,
+   "sell": 699,
    "median": 653,
    "listings": 0,
-   "volume": 3,
+   "volume": 0,
    "name_ja": "プラチナイヤリング（アルカナ） A",
    "type": "Earing - Lv. 20"
   },
   "Rune Orb (Arcana) A": {
-   "sell": 1000,
-   "median": 147,
+   "sell": 214,
+   "median": 187,
    "listings": 0,
    "volume": 4,
    "name_ja": "ルーンオーブ（アルカナ） A",
@@ -7398,11 +7558,19 @@
    "name_ja": "ヘビーグローブ（アルカナ） A",
    "type": "Gloves - Lv. 35"
   },
-  "Novice Scepter (Legendary) A": {
-   "sell": 7,
-   "median": 5,
+  "Darksteel Ingot": {
+   "sell": 1541,
+   "median": 44,
    "listings": 0,
-   "volume": 12,
+   "volume": 2,
+   "name_ja": "ダークスチールインゴット",
+   "type": "Crafting Material"
+  },
+  "Novice Scepter (Legendary) A": {
+   "sell": 6,
+   "median": 7,
+   "listings": 0,
+   "volume": 15,
    "name_ja": "ノービスセプター（レジェンダリー） A",
    "type": "Scepter - Lv. 1"
   },
@@ -7479,7 +7647,7 @@
    "type": "Sword - Lv. 45"
   },
   "Crimson Bracer (Immortal) A": {
-   "sell": 681,
+   "sell": 141,
    "median": 174,
    "listings": 0,
    "volume": 0,
@@ -7494,19 +7662,11 @@
    "name_ja": "フローズンオーブ（アルカナ） A",
    "type": "Orb - Lv. 15"
   },
-  "Long Crossbow (Legendary) A": {
-   "sell": 86,
-   "median": 75,
-   "listings": 0,
-   "volume": 23,
-   "name_ja": "ロングクロスボウ（レジェンダリー） A",
-   "type": "Crossbow - Lv. 10"
-  },
   "Tiger Eye Earring (Immortal) A": {
-   "sell": 269,
-   "median": 777,
+   "sell": 202,
+   "median": 193,
    "listings": 0,
-   "volume": 0,
+   "volume": 4,
    "name_ja": "タイガーアイピアス（イモータル） A",
    "type": "Earing - Lv. 40"
   },
@@ -7615,7 +7775,7 @@
    "type": "Scepter - Lv. 90"
   },
   "War Tome (Legendary) A": {
-   "sell": 29,
+   "sell": 27,
    "median": 412,
    "listings": 0,
    "volume": 0,
@@ -7695,10 +7855,10 @@
    "type": "Gloves - Lv. 85"
   },
   "Heater Shield (Arcana) A": {
-   "sell": 152,
-   "median": 147,
+   "sell": 149,
+   "median": 155,
    "listings": 0,
-   "volume": 4,
+   "volume": 2,
    "name_ja": "ヒータシールド（アルカナ） A",
    "type": "Shield - Lv. 15"
   },
@@ -7717,14 +7877,6 @@
    "volume": 0,
    "name_ja": "ヴォイドアミュレット（イモータル） A",
    "type": "Amulet - Lv. 85"
-  },
-  "Fighter's Helmet (Immortal) A": {
-   "sell": 485,
-   "median": 42,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "ファイターズヘルメット（イモータル） A",
-   "type": "Helmet - Lv. 65"
   },
   "Dimensional Crossbow (Legendary) A": {
    "sell": 624,
@@ -7807,7 +7959,7 @@
    "type": "Bow - Lv. 45"
   },
   "Iron Crossbow (Beyond) A": {
-   "sell": 3097,
+   "sell": 3106,
    "median": 3097,
    "listings": 0,
    "volume": 0,
@@ -7839,15 +7991,15 @@
    "type": "Shield - Lv. 5"
   },
   "Rune Bolt (Immortal) A": {
-   "sell": 307,
-   "median": 625,
+   "sell": 357,
+   "median": 308,
    "listings": 0,
-   "volume": 0,
+   "volume": 1,
    "name_ja": "ルーンボルト（イモータル） A",
    "type": "Bolt - Lv. 40"
   },
   "Emerald Earring (Immortal) A": {
-   "sell": 542,
+   "sell": 176,
    "median": 161,
    "listings": 0,
    "volume": 0,
@@ -7855,7 +8007,7 @@
    "type": "Earing - Lv. 30"
   },
   "Iron Crossbow (Arcana) A": {
-   "sell": 1000,
+   "sell": 732,
    "median": 1243,
    "listings": 0,
    "volume": 1,
@@ -7863,7 +8015,7 @@
    "type": "Crossbow - Lv. 30"
   },
   "Gold Ring (Arcana) A": {
-   "sell": 2235,
+   "sell": 1322,
    "median": 2235,
    "listings": 0,
    "volume": 0,
@@ -7871,7 +8023,7 @@
    "type": "Ring - Lv. 15"
   },
   "Bronze Bracer (Immortal) A": {
-   "sell": 408,
+   "sell": 330,
    "median": 422,
    "listings": 0,
    "volume": 1,
@@ -7879,10 +8031,10 @@
    "type": "Bracer - Lv. 5"
   },
   "Sage Staff (Arcana) A": {
-   "sell": 99,
-   "median": 138,
+   "sell": 84,
+   "median": 121,
    "listings": 0,
-   "volume": 15,
+   "volume": 9,
    "name_ja": "セージスタッフ（アルカナ） A",
    "type": "Staff - Lv. 30"
   },
@@ -7903,7 +8055,7 @@
    "type": "Armor - Lv. 40"
   },
   "Gale Arrow (Arcana) A": {
-   "sell": 570,
+   "sell": 560,
    "median": 558,
    "listings": 0,
    "volume": 0,
@@ -7911,7 +8063,7 @@
    "type": "Arrow - Lv. 30"
   },
   "Devout Scepter (Arcana) A": {
-   "sell": 154,
+   "sell": 128,
    "median": 177,
    "listings": 0,
    "volume": 13,
@@ -7951,10 +8103,10 @@
    "type": "Gloves - Lv. 45"
   },
   "War Axe (Immortal) A": {
-   "sell": 73,
-   "median": 51,
+   "sell": 36,
+   "median": 43,
    "listings": 0,
-   "volume": 8,
+   "volume": 9,
    "name_ja": "ウォーアックス（イモータル） A",
    "type": "Axe - Lv. 20"
   },
@@ -7974,14 +8126,6 @@
    "name_ja": "エターナルブーツ（レジェンダリー） A",
    "type": "Boots - Lv. 90"
   },
-  "Iron Crossbow (Immortal) A": {
-   "sell": 277,
-   "median": 309,
-   "listings": 0,
-   "volume": 6,
-   "name_ja": "アイアンクロスボウ（イモータル） A",
-   "type": "Crossbow - Lv. 30"
-  },
   "Eternal Armor (Legendary) A": {
    "sell": 89,
    "median": null,
@@ -7999,10 +8143,10 @@
    "type": "Ring - Lv. 25"
   },
   "Great Sword (Arcana) A": {
-   "sell": 120,
-   "median": 106,
+   "sell": 62,
+   "median": 66,
    "listings": 0,
-   "volume": 27,
+   "volume": 37,
    "name_ja": "グレートソード（アルカナ） A",
    "type": "Sword - Lv. 20"
   },
@@ -8013,14 +8157,6 @@
    "volume": 0,
    "name_ja": "エメラルドアミュレット（イモータル） A",
    "type": "Amulet - Lv. 50"
-  },
-  "Beast Bolt (Legendary) A": {
-   "sell": 509,
-   "median": 497,
-   "listings": 0,
-   "volume": 2,
-   "name_ja": "ビーストボルト（レジェンダリー） A",
-   "type": "Bolt - Lv. 20"
   },
   "Medium Helmet (Arcana) A": {
    "sell": 495,
@@ -8055,15 +8191,15 @@
    "type": "Hatchet - Lv. 1"
   },
   "Battle Axe (Legendary) A": {
-   "sell": 186,
-   "median": 6,
+   "sell": 9,
+   "median": 4,
    "listings": 0,
-   "volume": 7,
+   "volume": 8,
    "name_ja": "バトルアックス（レジェンダリー） A",
    "type": "Axe - Lv. 10"
   },
   "Dimensional Gloves (Legendary) A": {
-   "sell": 1622,
+   "sell": 25,
    "median": 1620,
    "listings": 0,
    "volume": 0,
@@ -8071,7 +8207,7 @@
    "type": "Gloves - Lv. 80"
   },
   "Iron Tome (Immortal) A": {
-   "sell": 106,
+   "sell": 356,
    "median": 450,
    "listings": 0,
    "volume": 0,
@@ -8087,7 +8223,7 @@
    "type": "Inscription Material"
   },
   "Astral Diamond": {
-   "sell": 357,
+   "sell": 358,
    "median": 1248,
    "listings": 0,
    "volume": 0,
@@ -8095,15 +8231,23 @@
    "type": "Decoration Material"
   },
   "Fate Scepter (Immortal) A": {
-   "sell": 273,
+   "sell": 41,
    "median": 37,
    "listings": 0,
    "volume": 0,
    "name_ja": "フェイトセプター（イモータル） A",
    "type": "Scepter - Lv. 50"
   },
+  "Long Crossbow (Immortal) A": {
+   "sell": 143,
+   "median": 159,
+   "listings": 0,
+   "volume": 12,
+   "name_ja": "ロングクロスボウ（イモータル） A",
+   "type": "Crossbow - Lv. 10"
+  },
   "Platinum Amulet (Immortal) A": {
-   "sell": 467,
+   "sell": 472,
    "median": 535,
    "listings": 0,
    "volume": 5,
@@ -8111,7 +8255,7 @@
    "type": "Amulet - Lv. 20"
   },
   "Gold Bracer (Legendary) A": {
-   "sell": 81,
+   "sell": 83,
    "median": 359,
    "listings": 0,
    "volume": 0,
@@ -8175,7 +8319,7 @@
    "type": "Earing - Lv. 90"
   },
   "Steel Axe (Legendary) A": {
-   "sell": 15,
+   "sell": 9,
    "median": 9,
    "listings": 0,
    "volume": 5,
@@ -8198,14 +8342,6 @@
    "name_ja": "エリートシールド（レジェンダリー） A",
    "type": "Shield - Lv. 40"
   },
-  "Barbed Arrow (Immortal) A": {
-   "sell": 143,
-   "median": 125,
-   "listings": 0,
-   "volume": 14,
-   "name_ja": "バーブドアロー（イモータル） A",
-   "type": "Arrow - Lv. 15"
-  },
   "Crystal Earring (Immortal) A": {
    "sell": 369,
    "median": null,
@@ -8215,10 +8351,10 @@
    "type": "Earing - Lv. 25"
   },
   "Chain Mail (Arcana) A": {
-   "sell": 105,
-   "median": 1349,
+   "sell": 98,
+   "median": 89,
    "listings": 0,
-   "volume": 0,
+   "volume": 5,
    "name_ja": "チェインメイル（アルカナ） A",
    "type": "Armor - Lv. 15"
   },
@@ -8255,26 +8391,18 @@
    "type": "Armor - Lv. 50"
   },
   "Iron Tome (Legendary) A": {
-   "sell": 47,
-   "median": 13,
+   "sell": 42,
+   "median": 34,
    "listings": 0,
-   "volume": 26,
+   "volume": 22,
    "name_ja": "アイアントーム（レジェンダリー） A",
    "type": "Tome - Lv. 10"
   },
-  "Long Sword (Legendary) A": {
-   "sell": 8,
-   "median": 7,
-   "listings": 0,
-   "volume": 14,
-   "name_ja": "ロングソード（レジェンダリー） A",
-   "type": "Sword - Lv. 1"
-  },
   "Leather Crossbow (Immortal) A": {
-   "sell": 249,
-   "median": 89,
+   "sell": 105,
+   "median": 16,
    "listings": 0,
-   "volume": 0,
+   "volume": 1,
    "name_ja": "レザークロスボウ（イモータル） A",
    "type": "Crossbow - Lv. 5"
   },
@@ -8287,7 +8415,7 @@
    "type": "Staff - Lv. 60"
   },
   "Gold Amulet (Legendary) A": {
-   "sell": 782,
+   "sell": 199,
    "median": 210,
    "listings": 0,
    "volume": 0,
@@ -8295,7 +8423,7 @@
    "type": "Amulet - Lv. 15"
   },
   "Wooden Staff (Legendary) A": {
-   "sell": 581,
+   "sell": 8,
    "median": 6,
    "listings": 0,
    "volume": 16,
@@ -8343,7 +8471,7 @@
    "type": "Earing - Lv. 45"
   },
   "Platinum Amulet (Legendary) A": {
-   "sell": 202,
+   "sell": 220,
    "median": 625,
    "listings": 0,
    "volume": 0,
@@ -8351,7 +8479,7 @@
    "type": "Amulet - Lv. 20"
   },
   "Battle Axe (Immortal) A": {
-   "sell": 47,
+   "sell": 72,
    "median": 67,
    "listings": 0,
    "volume": 8,
@@ -8439,7 +8567,7 @@
    "type": "Bow - Lv. 55"
   },
   "Knight's Armor (Arcana) A": {
-   "sell": 211,
+   "sell": 134,
    "median": 143,
    "listings": 0,
    "volume": 6,
@@ -8447,7 +8575,7 @@
    "type": "Armor - Lv. 20"
   },
   "Silver Earring (Legendary) A": {
-   "sell": 93,
+   "sell": 97,
    "median": 502,
    "listings": 0,
    "volume": 0,
@@ -8471,7 +8599,7 @@
    "type": "Crossbow - Lv. 45"
   },
   "Scroll of Legendary Inscription": {
-   "sell": 902,
+   "sell": 130,
    "median": 869,
    "listings": 0,
    "volume": 0,
@@ -8487,10 +8615,10 @@
    "type": "Gloves - Lv. 90"
   },
   "Platinum Earring (Immortal) A": {
-   "sell": 368,
-   "median": 343,
+   "sell": 373,
+   "median": 653,
    "listings": 0,
-   "volume": 2,
+   "volume": 10,
    "name_ja": "プラチナイヤリング（イモータル） A",
    "type": "Earing - Lv. 20"
   },
@@ -8511,7 +8639,7 @@
    "type": "Tome - Lv. 25"
   },
   "Prophecy Orb (Arcana) A": {
-   "sell": 279,
+   "sell": 418,
    "median": 552,
    "listings": 0,
    "volume": 0,
@@ -8519,15 +8647,15 @@
    "type": "Orb - Lv. 20"
   },
   "Knight Boots (Arcana) A": {
-   "sell": 2072,
-   "median": 1644,
+   "sell": 1719,
+   "median": 1468,
    "listings": 0,
-   "volume": 11,
+   "volume": 16,
    "name_ja": "ナイトブーツ（アルカナ） A",
    "type": "Boots - Lv. 15"
   },
   "Gale Arrow (Legendary) A": {
-   "sell": 66,
+   "sell": 58,
    "median": 58,
    "listings": 0,
    "volume": 24,
@@ -8541,14 +8669,6 @@
    "volume": 10,
    "name_ja": "ウォーグローブ（イモータル） A",
    "type": "Gloves - Lv. 30"
-  },
-  "Heavy Shield (Arcana) A": {
-   "sell": 202,
-   "median": 276,
-   "listings": 0,
-   "volume": 7,
-   "name_ja": "ヘビーシールド（アルカナ） A",
-   "type": "Shield - Lv. 20"
   },
   "Fate Boots (Arcana) A": {
    "sell": 386,
@@ -8583,7 +8703,7 @@
    "type": "Shield - Lv. 35"
   },
   "Obsidian Bracer (Legendary) A": {
-   "sell": 59,
+   "sell": 76,
    "median": 2458,
    "listings": 0,
    "volume": 0,
@@ -8623,7 +8743,7 @@
    "type": "Bow - Lv. 85"
   },
   "Amber Ring (Legendary) A": {
-   "sell": 72,
+   "sell": 73,
    "median": 70,
    "listings": 0,
    "volume": 0,
@@ -8639,7 +8759,7 @@
    "type": "Bracer - Lv. 10"
   },
   "Knight's Tome (Immortal) A": {
-   "sell": 97,
+   "sell": 60,
    "median": 93,
    "listings": 0,
    "volume": 0,
@@ -8711,10 +8831,10 @@
    "type": "Armor - Lv. 30"
   },
   "Wooden Helmet (Legendary) A": {
-   "sell": 6,
-   "median": 1028,
+   "sell": 7,
+   "median": 5,
    "listings": 0,
-   "volume": 0,
+   "volume": 13,
    "name_ja": "ウッドヘルメット（レジェンダリー） A",
    "type": "Helmet - Lv. 1"
   },
@@ -8735,10 +8855,10 @@
    "type": "Gloves - Lv. 1"
   },
   "Hunting Bow (Legendary) A": {
-   "sell": 70,
-   "median": 7,
+   "sell": 8,
+   "median": 6,
    "listings": 0,
-   "volume": 39,
+   "volume": 41,
    "name_ja": "ハンティングボウ（レジェンダリー） A",
    "type": "Bow - Lv. 5"
   },
@@ -8775,7 +8895,7 @@
    "type": "Gloves - Lv. 40"
   },
   "Elite Crossbow (Legendary) A": {
-   "sell": 16,
+   "sell": 17,
    "median": 13,
    "listings": 0,
    "volume": 13,
@@ -8791,7 +8911,7 @@
    "type": "Helmet - Lv. 45"
   },
   "Wooden Boots (Legendary) A": {
-   "sell": 11,
+   "sell": 5,
    "median": 5,
    "listings": 0,
    "volume": 0,
@@ -8807,7 +8927,7 @@
    "type": "Bow - Lv. 40"
   },
   "Empire Gloves (Legendary) A": {
-   "sell": 10,
+   "sell": 6,
    "median": 5,
    "listings": 0,
    "volume": 0,
@@ -8815,7 +8935,7 @@
    "type": "Gloves - Lv. 5"
   },
   "Fate Axe (Legendary) A": {
-   "sell": 20,
+   "sell": 43,
    "median": 13,
    "listings": 0,
    "volume": 0,
@@ -8846,24 +8966,24 @@
    "name_ja": "ヘビーアーマー（レジェンダリー） A",
    "type": "Armor - Lv. 35"
   },
-  "Heater Shield (Legendary) A": {
-   "sell": 9,
-   "median": 6,
+  "Scroll of Common Inscription": {
+   "sell": 2222,
+   "median": 8,
    "listings": 0,
-   "volume": 0,
-   "name_ja": "ヒータシールド（レジェンダリー） A",
-   "type": "Shield - Lv. 15"
+   "volume": 14,
+   "name_ja": "一般刻文の巻物",
+   "type": "Inscription Material"
   },
   "Comet Staff (Legendary) A": {
-   "sell": 36,
-   "median": 9,
+   "sell": 248,
+   "median": 8,
    "listings": 0,
-   "volume": 55,
+   "volume": 44,
    "name_ja": "コメットスタッフ（レジェンダリー） A",
    "type": "Staff - Lv. 40"
   },
   "Knight Sword (Legendary) A": {
-   "sell": 36,
+   "sell": 6,
    "median": 6,
    "listings": 0,
    "volume": 0,
@@ -8871,7 +8991,7 @@
    "type": "Sword - Lv. 30"
   },
   "Wooden Armor (Legendary) A": {
-   "sell": 73,
+   "sell": 6,
    "median": 5,
    "listings": 0,
    "volume": 0,
@@ -8911,10 +9031,10 @@
    "type": "Gloves - Lv. 60"
   },
   "Empire Armor (Legendary) A": {
-   "sell": 10,
-   "median": 5,
+   "sell": 4,
+   "median": 9,
    "listings": 0,
-   "volume": 0,
+   "volume": 15,
    "name_ja": "帝国のアーマー（レジェンダリー） A",
    "type": "Armor - Lv. 5"
   },
@@ -8951,20 +9071,12 @@
    "type": "Helmet - Lv. 25"
   },
   "Iron Shield (Legendary) A": {
-   "sell": 20,
-   "median": 7,
+   "sell": 14,
+   "median": 15,
    "listings": 0,
-   "volume": 42,
+   "volume": 31,
    "name_ja": "アイアンシールド（レジェンダリー） A",
    "type": "Shield - Lv. 10"
-  },
-  "War Shield (Legendary) A": {
-   "sell": 9,
-   "median": 230,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "ウォーシールド（レジェンダリー） A",
-   "type": "Shield - Lv. 30"
   },
   "Heavy Scepter (Legendary) A": {
    "sell": 28,
@@ -8975,7 +9087,7 @@
    "type": "Scepter - Lv. 35"
   },
   "Novice Scepter (Immortal) A": {
-   "sell": 25,
+   "sell": 17,
    "median": 112,
    "listings": 0,
    "volume": 0,
@@ -9015,23 +9127,15 @@
    "type": "Bow - Lv. 50"
   },
   "Wooden Boots (Immortal) A": {
-   "sell": 21,
+   "sell": 19,
    "median": 13,
    "listings": 0,
    "volume": 0,
    "name_ja": "ウッドブーツ（イモータル） A",
    "type": "Boots - Lv. 1"
   },
-  "Long Sword (Immortal) A": {
-   "sell": 16,
-   "median": 25,
-   "listings": 0,
-   "volume": 12,
-   "name_ja": "ロングソード（イモータル） A",
-   "type": "Sword - Lv. 1"
-  },
   "Wooden Armor (Immortal) A": {
-   "sell": 25,
+   "sell": 17,
    "median": 7,
    "listings": 0,
    "volume": 0,
@@ -9055,10 +9159,10 @@
    "type": "Boots - Lv. 5"
   },
   "Brilliant Orb (Legendary) A": {
-   "sell": 24,
+   "sell": 27,
    "median": 22,
    "listings": 0,
-   "volume": 36,
+   "volume": 20,
    "name_ja": "ブリリアントオーブ（レジェンダリー） A",
    "type": "Orb - Lv. 10"
   },
@@ -9103,7 +9207,7 @@
    "type": "Arrow - Lv. 45"
   },
   "Fate Scepter (Legendary) A": {
-   "sell": 269,
+   "sell": 25,
    "median": 13,
    "listings": 0,
    "volume": 0,
@@ -9118,14 +9222,6 @@
    "name_ja": "エルダースタッフ（レジェンダリー） A",
    "type": "Staff - Lv. 25"
   },
-  "Cutlas (Legendary) A": {
-   "sell": 6,
-   "median": 6,
-   "listings": 0,
-   "volume": 42,
-   "name_ja": "カトラス（レジェンダリー） A",
-   "type": "Sword - Lv. 5"
-  },
   "Brutal Arrow (Legendary) A": {
    "sell": 188,
    "median": null,
@@ -9134,16 +9230,8 @@
    "name_ja": "ブルータルアロー（レジェンダリー） A",
    "type": "Arrow - Lv. 25"
   },
-  "Bat Wing Membrane": {
-   "sell": 6,
-   "median": 557,
-   "listings": 0,
-   "volume": 7,
-   "name_ja": "コウモリの翼膜",
-   "type": "Engraving Material"
-  },
   "Witch Staff (Legendary) A": {
-   "sell": 5,
+   "sell": 36,
    "median": 9,
    "listings": 0,
    "volume": 182,
@@ -9167,7 +9255,7 @@
    "type": "Sword - Lv. 35"
   },
   "War Boots (Immortal) A": {
-   "sell": 24,
+   "sell": 25,
    "median": 1025,
    "listings": 0,
    "volume": 0,
@@ -9175,7 +9263,7 @@
    "type": "Boots - Lv. 30"
   },
   "War Armor (Immortal) A": {
-   "sell": 37,
+   "sell": 187,
    "median": 34,
    "listings": 0,
    "volume": 0,
@@ -9183,7 +9271,7 @@
    "type": "Armor - Lv. 30"
   },
   "Wooden Axe (Legendary) A": {
-   "sell": 31,
+   "sell": 6,
    "median": 8,
    "listings": 0,
    "volume": 6,
@@ -9191,7 +9279,7 @@
    "type": "Axe - Lv. 1"
   },
   "Rune Helmet (Immortal) A": {
-   "sell": 612,
+   "sell": 23,
    "median": 22,
    "listings": 0,
    "volume": 0,
@@ -9207,10 +9295,10 @@
    "type": "Crossbow - Lv. 25"
   },
   "Cutlas (Immortal) A": {
-   "sell": 25,
-   "median": 16,
+   "sell": 17,
+   "median": 17,
    "listings": 0,
-   "volume": 23,
+   "volume": 19,
    "name_ja": "カトラス（イモータル） A",
    "type": "Sword - Lv. 5"
   },
@@ -9239,7 +9327,7 @@
    "type": "Bow - Lv. 25"
   },
   "War Helmet (Immortal) A": {
-   "sell": 741,
+   "sell": 26,
    "median": 742,
    "listings": 0,
    "volume": 0,
@@ -9247,7 +9335,7 @@
    "type": "Helmet - Lv. 30"
   },
   "Wooden Staff (Immortal) A": {
-   "sell": 63,
+   "sell": 21,
    "median": 22,
    "listings": 0,
    "volume": 21,
@@ -9255,7 +9343,7 @@
    "type": "Staff - Lv. 1"
   },
   "Sacred Scepter (Legendary) A": {
-   "sell": 71,
+   "sell": 6,
    "median": 6,
    "listings": 0,
    "volume": 56,
@@ -9263,7 +9351,7 @@
    "type": "Scepter - Lv. 20"
   },
   "Chain Gloves (Legendary) A": {
-   "sell": 6,
+   "sell": 8,
    "median": 12,
    "listings": 0,
    "volume": 48,
@@ -9295,10 +9383,10 @@
    "type": "Gloves - Lv. 1"
   },
   "Rune Boots (Legendary) A": {
-   "sell": 9,
-   "median": 8,
+   "sell": 8,
+   "median": 7,
    "listings": 0,
-   "volume": 0,
+   "volume": 24,
    "name_ja": "ルーンブーツ（レジェンダリー） A",
    "type": "Boots - Lv. 40"
   },
@@ -9311,7 +9399,7 @@
    "type": "Staff - Lv. 45"
   },
   "Short Bow (Immortal) A": {
-   "sell": 2522,
+   "sell": 16,
    "median": 7,
    "listings": 0,
    "volume": 11,
@@ -9319,10 +9407,10 @@
    "type": "Bow - Lv. 1"
   },
   "Heater Shield (Immortal) A": {
-   "sell": 51,
-   "median": 43,
+   "sell": 31,
+   "median": 109,
    "listings": 0,
-   "volume": 26,
+   "volume": 23,
    "name_ja": "ヒータシールド（イモータル） A",
    "type": "Shield - Lv. 15"
   },
@@ -9335,15 +9423,15 @@
    "type": "Helmet - Lv. 50"
   },
   "Prophecy Orb (Immortal) A": {
-   "sell": 74,
-   "median": 85,
+   "sell": 76,
+   "median": 80,
    "listings": 0,
-   "volume": 14,
+   "volume": 29,
    "name_ja": "予言のオーブ（イモータル） A",
    "type": "Orb - Lv. 20"
   },
   "Rune Gloves (Immortal) A": {
-   "sell": 42,
+   "sell": 24,
    "median": 3992,
    "listings": 0,
    "volume": 1,
@@ -9367,10 +9455,10 @@
    "type": "Boots - Lv. 40"
   },
   "Herald Staff (Legendary) A": {
-   "sell": 9,
-   "median": 1109,
+   "sell": 6,
+   "median": 6,
    "listings": 0,
-   "volume": 0,
+   "volume": 37,
    "name_ja": "伝令のスタッフ（レジェンダリー） A",
    "type": "Staff - Lv. 5"
   },
@@ -9382,16 +9470,8 @@
    "name_ja": "ストームヘルメット（レジェンダリー） A",
    "type": "Helmet - Lv. 60"
   },
-  "Complete Crossbow (Legendary) A": {
-   "sell": 59,
-   "median": 10,
-   "listings": 0,
-   "volume": 12,
-   "name_ja": "コンプリートクロスボウ（レジェンダリー） A",
-   "type": "Crossbow - Lv. 15"
-  },
   "Heavy Shield (Legendary) A": {
-   "sell": 88,
+   "sell": 8,
    "median": 8,
    "listings": 0,
    "volume": 28,
@@ -9431,10 +9511,10 @@
    "type": "Armor - Lv. 25"
   },
   "Empire Armor (Immortal) A": {
-   "sell": 23,
-   "median": 16,
+   "sell": 16,
+   "median": 18,
    "listings": 0,
-   "volume": 0,
+   "volume": 15,
    "name_ja": "帝国のアーマー（イモータル） A",
    "type": "Armor - Lv. 5"
   },
@@ -9447,7 +9527,7 @@
    "type": "Bracer - Lv. 20"
   },
   "Prophecy Orb (Legendary) A": {
-   "sell": 17,
+   "sell": 19,
    "median": 6,
    "listings": 0,
    "volume": 26,
@@ -9463,26 +9543,26 @@
    "type": "Armor - Lv. 40"
   },
   "Iron Helmet (Legendary) A": {
-   "sell": 88,
-   "median": 7,
+   "sell": 7,
+   "median": 31,
    "listings": 0,
-   "volume": 40,
+   "volume": 43,
    "name_ja": "アイアンヘルメット（レジェンダリー） A",
    "type": "Helmet - Lv. 10"
   },
   "Platinum Ring (Legendary) A": {
-   "sell": 152,
-   "median": 681,
+   "sell": 142,
+   "median": 133,
    "listings": 0,
-   "volume": 0,
+   "volume": 10,
    "name_ja": "プラチナリング（レジェンダリー） A",
    "type": "Ring - Lv. 20"
   },
   "Spider Silk": {
-   "sell": 966,
-   "median": 6,
+   "sell": 186,
+   "median": 9,
    "listings": 0,
-   "volume": 8,
+   "volume": 19,
    "name_ja": "スパイダーシルク",
    "type": "Engraving Material"
   },
@@ -9502,19 +9582,11 @@
    "name_ja": "帝国のヘルメット（イモータル） A",
    "type": "Helmet - Lv. 5"
   },
-  "Dusk Bow (Immortal) A": {
-   "sell": 78,
-   "median": 556,
-   "listings": 0,
-   "volume": 0,
-   "name_ja": "ダスクボウ（イモータル） A",
-   "type": "Bow - Lv. 30"
-  },
   "Chain Helmet (Legendary) A": {
-   "sell": 6,
-   "median": 6,
+   "sell": 334,
+   "median": 5,
    "listings": 0,
-   "volume": 37,
+   "volume": 45,
    "name_ja": "チェインヘルム（レジェンダリー） A",
    "type": "Helmet - Lv. 20"
   },
@@ -9543,7 +9615,7 @@
    "type": "Helmet - Lv. 80"
   },
   "Sacred Staff (Legendary) A": {
-   "sell": 544,
+   "sell": 12,
    "median": 11,
    "listings": 0,
    "volume": 0,
@@ -9551,7 +9623,7 @@
    "type": "Staff - Lv. 65"
   },
   "Empire Gloves (Immortal) A": {
-   "sell": 32,
+   "sell": 23,
    "median": 31,
    "listings": 0,
    "volume": 8,
@@ -9567,7 +9639,7 @@
    "type": "Bow - Lv. 35"
   },
   "Iron Crossbow (Legendary) A": {
-   "sell": 86,
+   "sell": 64,
    "median": 74,
    "listings": 0,
    "volume": 13,
@@ -9583,7 +9655,7 @@
    "type": "Inscription Material"
   },
   "Fate Sword (Immortal) A": {
-   "sell": 36,
+   "sell": 124,
    "median": 34,
    "listings": 0,
    "volume": 0,
@@ -9615,7 +9687,7 @@
    "type": "Arrow - Lv. 25"
   },
   "Devout Scepter (Immortal) A": {
-   "sell": 29,
+   "sell": 16,
    "median": 29,
    "listings": 0,
    "volume": 29,
@@ -9623,7 +9695,7 @@
    "type": "Scepter - Lv. 30"
   },
   "Frozen Orb (Immortal) A": {
-   "sell": 60,
+   "sell": 34,
    "median": 62,
    "listings": 0,
    "volume": 12,
@@ -9631,15 +9703,15 @@
    "type": "Orb - Lv. 15"
   },
   "Knight Helmet (Legendary) A": {
-   "sell": 5,
-   "median": 6,
+   "sell": 4,
+   "median": 5,
    "listings": 0,
-   "volume": 0,
+   "volume": 63,
    "name_ja": "ナイトヘルメット（レジェンダリー） A",
    "type": "Helmet - Lv. 15"
   },
   "Platinum Earring (Legendary) A": {
-   "sell": 155,
+   "sell": 153,
    "median": 805,
    "listings": 0,
    "volume": 0,
@@ -9647,10 +9719,10 @@
    "type": "Earing - Lv. 20"
   },
   "Heavy Shield (Immortal) A": {
-   "sell": 34,
-   "median": 38,
+   "sell": 72,
+   "median": 48,
    "listings": 0,
-   "volume": 32,
+   "volume": 29,
    "name_ja": "ヘビーシールド（イモータル） A",
    "type": "Shield - Lv. 20"
   },
@@ -9671,7 +9743,7 @@
    "type": "Staff - Lv. 25"
   },
   "Brilliant Orb (Immortal) A": {
-   "sell": 57,
+   "sell": 69,
    "median": 68,
    "listings": 0,
    "volume": 22,
@@ -9679,18 +9751,18 @@
    "type": "Orb - Lv. 10"
   },
   "Tempest Staff (Legendary) A": {
-   "sell": 392,
-   "median": 392,
+   "sell": 14,
+   "median": 17,
    "listings": 0,
-   "volume": 0,
+   "volume": 3,
    "name_ja": "テンペストスタッフ（レジェンダリー） A",
    "type": "Staff - Lv. 80"
   },
   "Chain Boots (Immortal) A": {
-   "sell": 31,
-   "median": 25,
+   "sell": 26,
+   "median": 23,
    "listings": 0,
-   "volume": 0,
+   "volume": 51,
    "name_ja": "チェインブーツ（イモータル） A",
    "type": "Boots - Lv. 20"
   },
@@ -9727,7 +9799,7 @@
    "type": "Scepter - Lv. 45"
   },
   "Elite Crossbow (Immortal) A": {
-   "sell": 134,
+   "sell": 86,
    "median": 1021,
    "listings": 0,
    "volume": 0,
@@ -9735,12 +9807,20 @@
    "type": "Crossbow - Lv. 40"
   },
   "Gale Arrow (Immortal) A": {
-   "sell": 144,
-   "median": 155,
+   "sell": 139,
+   "median": 132,
    "listings": 0,
    "volume": 10,
    "name_ja": "ゲイルアロー（イモータル） A",
    "type": "Arrow - Lv. 30"
+  },
+  "Iron Gloves (Legendary) A": {
+   "sell": 5,
+   "median": 6,
+   "listings": 0,
+   "volume": 40,
+   "name_ja": "アイアングローブ（レジェンダリー） A",
+   "type": "Gloves - Lv. 10"
   },
   "Dimensional Sword (Legendary) A": {
    "sell": 315,
@@ -9751,10 +9831,10 @@
    "type": "Sword - Lv. 80"
   },
   "Rapier (Immortal) A": {
-   "sell": 575,
-   "median": 22,
+   "sell": 21,
+   "median": 18,
    "listings": 0,
-   "volume": 93,
+   "volume": 104,
    "name_ja": "レイピア（イモータル） A",
    "type": "Sword - Lv. 10"
   },
@@ -9767,7 +9847,7 @@
    "type": "Engraving Material"
   },
   "Witch Staff (Arcana) A": {
-   "sell": 128,
+   "sell": 64,
    "median": 116,
    "listings": 0,
    "volume": 19,
@@ -9783,7 +9863,7 @@
    "type": "Armor - Lv. 35"
   },
   "Rune Scepter (Immortal) A": {
-   "sell": 27,
+   "sell": 18,
    "median": 1246,
    "listings": 0,
    "volume": 0,
@@ -9799,7 +9879,7 @@
    "type": "Bow - Lv. 45"
   },
   "Hunting Bow (Immortal) A": {
-   "sell": 38,
+   "sell": 36,
    "median": 30,
    "listings": 0,
    "volume": 0,
@@ -9823,7 +9903,7 @@
    "type": "Scepter - Lv. 35"
   },
   "Wooden Helmet (Immortal) A": {
-   "sell": 201,
+   "sell": 14,
    "median": 21,
    "listings": 0,
    "volume": 8,
@@ -9831,7 +9911,7 @@
    "type": "Helmet - Lv. 1"
   },
   "Knight Gloves (Immortal) A": {
-   "sell": 24,
+   "sell": 16,
    "median": 24,
    "listings": 0,
    "volume": 28,
@@ -9839,15 +9919,23 @@
    "type": "Gloves - Lv. 15"
   },
   "Knight Helmet (Arcana) A": {
-   "sell": 105,
+   "sell": 84,
    "median": 60,
    "listings": 0,
    "volume": 0,
    "name_ja": "ナイトヘルメット（アルカナ） A",
    "type": "Helmet - Lv. 15"
   },
+  "Gold Bracer (Immortal) A": {
+   "sell": 172,
+   "median": 1686,
+   "listings": 0,
+   "volume": 0,
+   "name_ja": "ゴールドブレーサー（イモータル） A",
+   "type": "Bracer - Lv. 15"
+  },
   "Knight Helmet (Immortal) A": {
-   "sell": 24,
+   "sell": 19,
    "median": 21,
    "listings": 0,
    "volume": 30,
@@ -9855,28 +9943,20 @@
    "type": "Helmet - Lv. 15"
   },
   "Azure Arrow (Legendary) A": {
-   "sell": 61,
-   "median": 66,
+   "sell": 57,
+   "median": 68,
    "listings": 0,
-   "volume": 28,
+   "volume": 26,
    "name_ja": "アズールアロー（レジェンダリー） A",
    "type": "Arrow - Lv. 20"
   },
   "Iron Shield (Immortal) A": {
-   "sell": 57,
-   "median": 50,
+   "sell": 65,
+   "median": 29,
    "listings": 0,
-   "volume": 11,
+   "volume": 19,
    "name_ja": "アイアンシールド（イモータル） A",
    "type": "Shield - Lv. 10"
-  },
-  "Herald Staff (Immortal) A": {
-   "sell": 26,
-   "median": 22,
-   "listings": 0,
-   "volume": 18,
-   "name_ja": "伝令のスタッフ（イモータル） A",
-   "type": "Staff - Lv. 5"
   },
   "Kingdom 1st Anniversary Coin": {
    "sell": 12,
@@ -9927,10 +10007,10 @@
    "type": "Scepter - Lv. 25"
   },
   "Silver Amulet (Immortal) A": {
-   "sell": 524,
-   "median": 685,
+   "sell": 293,
+   "median": 526,
    "listings": 0,
-   "volume": 0,
+   "volume": 1,
    "name_ja": "シルバーアミュレット（イモータル） A",
    "type": "Amulet - Lv. 10"
   },
@@ -9941,14 +10021,6 @@
    "volume": 0,
    "name_ja": "サンダーストーン",
    "type": "Crafting Material"
-  },
-  "Knight Sword (Arcana) A": {
-   "sell": 87,
-   "median": 84,
-   "listings": 0,
-   "volume": 18,
-   "name_ja": "ナイトソード（アルカナ） A",
-   "type": "Sword - Lv. 30"
   },
   "Scroll of Rare Inscription": {
    "sell": 300,
@@ -9975,7 +10047,7 @@
    "type": "Sword - Lv. 25"
   },
   "Witch Staff (Immortal) A": {
-   "sell": 18,
+   "sell": 17,
    "median": 21,
    "listings": 0,
    "volume": 89,
@@ -9983,7 +10055,7 @@
    "type": "Staff - Lv. 15"
   },
   "Mandrake Root": {
-   "sell": 16,
+   "sell": 8,
    "median": 622,
    "listings": 0,
    "volume": 0,
@@ -10007,23 +10079,15 @@
    "type": "Scepter - Lv. 85"
   },
   "Iron Helmet (Immortal) A": {
-   "sell": 21,
+   "sell": 168,
    "median": 17,
    "listings": 0,
    "volume": 0,
    "name_ja": "アイアンヘルメット（イモータル） A",
    "type": "Helmet - Lv. 10"
   },
-  "Knight Boots (Immortal) A": {
-   "sell": 21,
-   "median": 23,
-   "listings": 0,
-   "volume": 34,
-   "name_ja": "ナイトブーツ（イモータル） A",
-   "type": "Boots - Lv. 15"
-  },
   "Iron Scepter (Immortal) A": {
-   "sell": 42,
+   "sell": 16,
    "median": 17,
    "listings": 0,
    "volume": 0,
@@ -10038,14 +10102,6 @@
    "name_ja": "次元のアーマー（イモータル） A",
    "type": "Armor - Lv. 80"
   },
-  "Complete Crossbow (Immortal) A": {
-   "sell": 219,
-   "median": 217,
-   "listings": 0,
-   "volume": 16,
-   "name_ja": "コンプリートクロスボウ（イモータル） A",
-   "type": "Crossbow - Lv. 15"
-  },
   "Mystic Topaz": {
    "sell": 717,
    "median": 717,
@@ -10055,7 +10111,7 @@
    "type": "Decoration Material"
   },
   "Silver Amulet (Legendary) A": {
-   "sell": 169,
+   "sell": 152,
    "median": 169,
    "listings": 0,
    "volume": 4,
@@ -10063,7 +10119,7 @@
    "type": "Amulet - Lv. 10"
   },
   "Iron Gloves (Immortal) A": {
-   "sell": 23,
+   "sell": 19,
    "median": 23,
    "listings": 0,
    "volume": 14,
@@ -10079,34 +10135,26 @@
    "type": "Ring - Lv. 10"
   },
   "Blessed Tome (Immortal) A": {
-   "sell": 124,
-   "median": 110,
+   "sell": 103,
+   "median": 52,
    "listings": 0,
    "volume": 20,
    "name_ja": "祝福の魔法書（イモータル） A",
    "type": "Tome - Lv. 20"
   },
-  "Blessed Tome (Legendary) A": {
-   "sell": 42,
-   "median": 53,
-   "listings": 0,
-   "volume": 19,
-   "name_ja": "祝福の魔法書（レジェンダリー） A",
-   "type": "Tome - Lv. 20"
-  },
   "Platinum Bracer (Immortal) A": {
-   "sell": 168,
-   "median": 581,
+   "sell": 178,
+   "median": 182,
    "listings": 0,
-   "volume": 0,
+   "volume": 2,
    "name_ja": "プラチナブレイサー（イモータル） A",
    "type": "Bracer - Lv. 20"
   },
   "Azure Staff (Immortal) A": {
-   "sell": 145,
-   "median": 24,
+   "sell": 19,
+   "median": 19,
    "listings": 0,
-   "volume": 84,
+   "volume": 130,
    "name_ja": "アズールスタッフ（イモータル） A",
    "type": "Staff - Lv. 20"
   },
@@ -10119,7 +10167,7 @@
    "type": "Boots - Lv. 25"
   },
   "Hunter's Arrow (Immortal) A": {
-   "sell": 134,
+   "sell": 143,
    "median": 72,
    "listings": 0,
    "volume": 9,
@@ -10127,20 +10175,12 @@
    "type": "Arrow - Lv. 10"
   },
   "War Bow (Arcana) A": {
-   "sell": 357,
-   "median": 333,
+   "sell": 345,
+   "median": 331,
    "listings": 0,
-   "volume": 20,
+   "volume": 32,
    "name_ja": "ウォーボウ（アルカナ） A",
    "type": "Bow - Lv. 20"
-  },
-  "Long Staff (Immortal) A": {
-   "sell": 19,
-   "median": 21,
-   "listings": 0,
-   "volume": 83,
-   "name_ja": "ロングスタッフ（イモータル） A",
-   "type": "Staff - Lv. 10"
   },
   "Empire 1st Anniversary Coin": {
    "sell": 72,
@@ -10151,7 +10191,7 @@
    "type": "Offering Material"
   },
   "Platinum Ring (Immortal) A": {
-   "sell": 357,
+   "sell": 257,
    "median": 612,
    "listings": 0,
    "volume": 0,
@@ -10159,23 +10199,23 @@
    "type": "Ring - Lv. 20"
   },
   "Nightshade Extract": {
-   "sell": 11,
-   "median": 1102,
+   "sell": 1495,
+   "median": 10,
    "listings": 0,
-   "volume": 5,
+   "volume": 20,
    "name_ja": "ナイトシェードエキス",
    "type": "Engraving Material"
   },
   "Iron Plate (Immortal) A": {
-   "sell": 66,
-   "median": 28,
+   "sell": 12,
+   "median": 19,
    "listings": 0,
-   "volume": 25,
+   "volume": 16,
    "name_ja": "アイアンプレート（イモータル） A",
    "type": "Armor - Lv. 10"
   },
   "Moonstone Pendant (Legendary) A": {
-   "sell": 176,
+   "sell": 167,
    "median": 174,
    "listings": 0,
    "volume": 4,
@@ -10183,10 +10223,10 @@
    "type": "Amulet - Lv. 30"
   },
   "Steel Scepter (Immortal) A": {
-   "sell": 17,
-   "median": 21,
+   "sell": 21,
+   "median": 17,
    "listings": 0,
-   "volume": 80,
+   "volume": 114,
    "name_ja": "スチールセプター（イモータル） A",
    "type": "Scepter - Lv. 15"
   },
@@ -10207,10 +10247,10 @@
    "type": "Gloves - Lv. 25"
   },
   "Black Pearl": {
-   "sell": 1948,
-   "median": 9,
+   "sell": 3734,
+   "median": 67,
    "listings": 0,
-   "volume": 9,
+   "volume": 22,
    "name_ja": "ブラックパール",
    "type": "Decoration Material"
   },
@@ -10223,23 +10263,23 @@
    "type": "Decoration Material"
   },
   "Chain Gloves (Arcana) A": {
-   "sell": 150,
-   "median": 119,
+   "sell": 124,
+   "median": 124,
    "listings": 0,
-   "volume": 0,
+   "volume": 10,
    "name_ja": "チェイングローブ（アルカナ） A",
    "type": "Gloves - Lv. 20"
   },
   "Phoenix Ash": {
-   "sell": 98,
-   "median": 994,
+   "sell": 104,
+   "median": 97,
    "listings": 0,
-   "volume": 0,
+   "volume": 10,
    "name_ja": "フェニックスの灰",
    "type": "Engraving Material"
   },
   "Chain Mail (Immortal) A": {
-   "sell": 28,
+   "sell": 17,
    "median": 32,
    "listings": 0,
    "volume": 0,
@@ -10247,18 +10287,18 @@
    "type": "Armor - Lv. 15"
   },
   "Bastard Sword (Arcana) A": {
-   "sell": 66,
-   "median": 97,
+   "sell": 73,
+   "median": 71,
    "listings": 0,
-   "volume": 26,
+   "volume": 24,
    "name_ja": "バスタードソード（アルカナ） A",
    "type": "Sword - Lv. 15"
   },
   "Blessed Scepter (Immortal) A": {
-   "sell": 141,
-   "median": 17,
+   "sell": 21,
+   "median": 19,
    "listings": 0,
-   "volume": 41,
+   "volume": 47,
    "name_ja": "ブレスドセプター（イモータル） A",
    "type": "Scepter - Lv. 10"
   },
@@ -10278,30 +10318,6 @@
    "name_ja": "王国10周年記念コイン",
    "type": "Offering Material"
   },
-  "Knight's Armor (Immortal) A": {
-   "sell": 49,
-   "median": 45,
-   "listings": 0,
-   "volume": 41,
-   "name_ja": "ナイトアーマー（イモータル） A",
-   "type": "Armor - Lv. 20"
-  },
-  "Composite Bow (Immortal) A": {
-   "sell": 31,
-   "median": 31,
-   "listings": 0,
-   "volume": 73,
-   "name_ja": "コンポジットボウ（イモータル） A",
-   "type": "Bow - Lv. 15"
-  },
-  "Soulstone - Torment": {
-   "sell": 5497,
-   "median": 25,
-   "listings": 0,
-   "volume": 25,
-   "name_ja": "ソウルストーン - トーメント",
-   "type": "Soulstone"
-  },
   "Fate Armor (Immortal) A": {
    "sell": 119,
    "median": null,
@@ -10319,15 +10335,15 @@
    "type": "Bow - Lv. 25"
   },
   "Sacred Scepter (Immortal) A": {
-   "sell": 34,
-   "median": 31,
+   "sell": 23,
+   "median": 26,
    "listings": 0,
-   "volume": 87,
+   "volume": 93,
    "name_ja": "聖なる笏（イモータル） A",
    "type": "Scepter - Lv. 20"
   },
   "Skull": {
-   "sell": 19,
+   "sell": 16,
    "median": 21,
    "listings": 0,
    "volume": 28,
@@ -10335,47 +10351,31 @@
    "type": "Engraving Material"
   },
   "Basilisk Scale": {
-   "sell": 9170,
-   "median": 83,
+   "sell": 310,
+   "median": 70,
    "listings": 0,
-   "volume": 20,
+   "volume": 23,
    "name_ja": "バジリスクの鱗",
    "type": "Engraving Material"
   },
   "Twilight Amethyst": {
-   "sell": 2213,
+   "sell": 1156,
    "median": 3437,
    "listings": 0,
    "volume": 0,
    "name_ja": "トワイライトアメジスト",
    "type": "Decoration Material"
   },
-  "Gold Ingot": {
-   "sell": 2222,
-   "median": 6,
-   "listings": 0,
-   "volume": 39,
-   "name_ja": "金のインゴット",
-   "type": "Crafting Material"
-  },
   "Azure Arrow (Immortal) A": {
-   "sell": 249,
-   "median": 253,
+   "sell": 221,
+   "median": 223,
    "listings": 0,
    "volume": 29,
    "name_ja": "アズールアロー（イモータル） A",
    "type": "Arrow - Lv. 20"
   },
-  "War Bow (Immortal) A": {
-   "sell": 72,
-   "median": 68,
-   "listings": 0,
-   "volume": 113,
-   "name_ja": "ウォーボウ（イモータル） A",
-   "type": "Bow - Lv. 20"
-  },
   "Coral Piece": {
-   "sell": 7,
+   "sell": 9,
    "median": 13,
    "listings": 0,
    "volume": 131,
@@ -10383,7 +10383,7 @@
    "type": "Decoration Material"
   },
   "Harpy Feather": {
-   "sell": 109,
+   "sell": 143,
    "median": 532,
    "listings": 0,
    "volume": 0,
@@ -10398,16 +10398,24 @@
    "name_ja": "アーケインクリスタル",
    "type": "Decoration Material"
   },
-  "Exceptional Crossbow (Legendary) A": {
-   "sell": 130,
-   "median": 142,
+  "Emerald": {
+   "sell": 187,
+   "median": 22,
    "listings": 0,
-   "volume": 16,
-   "name_ja": "卓越のクロスボウ（レジェンダリー） A",
-   "type": "Crossbow - Lv. 20"
+   "volume": 70,
+   "name_ja": "エメラルド",
+   "type": "Decoration Material"
+  },
+  "Turquoise": {
+   "sell": 1495,
+   "median": 9,
+   "listings": 0,
+   "volume": 46,
+   "name_ja": "ターコイズ",
+   "type": "Decoration Material"
   },
   "Elite Shield (Immortal) A": {
-   "sell": 30,
+   "sell": 36,
    "median": 1006,
    "listings": 0,
    "volume": 0,
@@ -10431,7 +10439,7 @@
    "type": "Sword - Lv. 35"
   },
   "Rune Sword (Immortal) A": {
-   "sell": 115,
+   "sell": 19,
    "median": 29,
    "listings": 0,
    "volume": 65,
@@ -10439,23 +10447,23 @@
    "type": "Sword - Lv. 40"
   },
   "Rune Scepter (Legendary) A": {
-   "sell": 9,
-   "median": 8,
+   "sell": 8,
+   "median": 7,
    "listings": 0,
-   "volume": 29,
+   "volume": 38,
    "name_ja": "ルーンセプター（レジェンダリー） A",
    "type": "Scepter - Lv. 40"
   },
   "Barbed Arrow (Legendary) A": {
-   "sell": 28,
-   "median": 31,
+   "sell": 30,
+   "median": 41,
    "listings": 0,
-   "volume": 0,
+   "volume": 40,
    "name_ja": "バーブドアロー（レジェンダリー） A",
    "type": "Arrow - Lv. 15"
   },
   "Wyvern Claw": {
-   "sell": 6,
+   "sell": 71,
    "median": 719,
    "listings": 0,
    "volume": 1,
@@ -10463,15 +10471,15 @@
    "type": "Engraving Material"
   },
   "Azure Staff (Arcana) A": {
-   "sell": 175,
-   "median": 154,
+   "sell": 165,
+   "median": 184,
    "listings": 0,
-   "volume": 20,
+   "volume": 23,
    "name_ja": "アズールスタッフ（アルカナ） A",
    "type": "Staff - Lv. 20"
   },
   "Comet Staff (Immortal) A": {
-   "sell": 21,
+   "sell": 23,
    "median": 23,
    "listings": 0,
    "volume": 42,
@@ -10479,7 +10487,7 @@
    "type": "Staff - Lv. 40"
   },
   "Amethyst": {
-   "sell": 2752,
+   "sell": 0,
    "median": 29,
    "listings": 0,
    "volume": 35,
@@ -10487,7 +10495,7 @@
    "type": "Decoration Material"
   },
   "Enchanted Ruby": {
-   "sell": 73,
+   "sell": 41,
    "median": 123,
    "listings": 0,
    "volume": 0,
@@ -10500,14 +10508,6 @@
    "listings": 0,
    "volume": 71,
    "name_ja": "ルビー",
-   "type": "Decoration Material"
-  },
-  "Diamond": {
-   "sell": 3589,
-   "median": 77,
-   "listings": 0,
-   "volume": 19,
-   "name_ja": "ダイヤモンド",
    "type": "Decoration Material"
   }
  }

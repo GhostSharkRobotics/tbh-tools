@@ -5,14 +5,16 @@ TBH ローカルAIサーバ（このデバイス専用）
 公開している tbh-build-simulator.html から呼ばれ、`claude -p` を使って
 自然言語の指示からビルド（盛りステータス）を提案する。
 
-- localhost:8765 のみで待ち受け（外部公開しない）
+- localhost:8767 のみで待ち受け（外部公開しない）
 - `claude -p` はこのMacのClaude契約で動く＝API従量課金なし
 - 起動していない他デバイス/一般訪問者からは到達しないので、AI機能は出ない
 
-使い方:
-    python3 tbh-ai-server.py
+起動:
+    LaunchAgent ~/Library/LaunchAgents/com.monocro.tbh-ai-server.plist で
+    ログイン時に自動起動・落ちたら自動復帰。手動で立ち上げる必要はない。
+    （手動で動かす場合は: python3 tbh-ai-server.py）
 そのうえで:
-    - このデバイスで http://localhost:8765/ を開く（確実に同一オリジンで動く）
+    - このデバイスで http://localhost:8767/ を開く（確実に同一オリジンで動く）
     - もしくは公開ページ(github.io)を開けば、自動でローカルサーバを検出してAIパネルが出る
       （Chrome系。Safariはmixed-content制限で出ない場合あり→localhost直開きで確実）
 """
@@ -27,7 +29,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-PORT = 8765
+PORT = 8767
 APPID = "3678970"  # Task Bar Hero on Steam
 
 # 1件だけライブ価格を取りに行く用の軽いキャッシュ（同じhashの連打でSteamを叩かない）

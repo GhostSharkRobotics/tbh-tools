@@ -468,7 +468,7 @@ $('reset').onclick=()=>{ if(!confirm('現在の入力を初期化しますか？
 $('warn').innerHTML='⚠ 「現在のステータス」はキャラシート値（装備込み）です。部位ごとの盛りステータスは<b>その上に追加で乗る差分</b>として計算されます（基礎にすでに含まれている装備分を二重に入れないよう注意）。本ツールはビルド比較が目的で、各装飾の正確な数値は宝石名から引かず手入力します。レンジャー以外のDPS式は共通式の流用で未検証です。';
 
 // ---- local AI assist (このデバイスのみ・tbh-ai-server.py 経由) ----
-const AI_BASE = (location.port==='8765') ? '' : 'http://localhost:8765';
+const AI_BASE = (location.port==='8767') ? '' : 'http://localhost:8767';
 async function aiHealth(){
   try{
     const c=new AbortController(); const t=setTimeout(()=>c.abort(),1500);
@@ -554,7 +554,7 @@ async function aiGo(){
     clearInterval(aiTimer); aiTimer=null;
     if(!obj){ note.innerHTML='<span class="down">応答がありませんでした</span>'; }
     else { applyAIResult(obj); note.textContent=(obj.note||'反映しました')+'（続けて「もっとクリ寄りで」等の指示もできます）'; picks.innerHTML=aiMd(obj.picks); }
-  }catch(e){ clearInterval(aiTimer); aiTimer=null; note.innerHTML='<span class="down">'+(String(e.message).includes('fetch')?'接続できませんでした（tbh-ai-server.py 未起動？）':aiEsc(e.message))+'</span>'; }
+  }catch(e){ clearInterval(aiTimer); aiTimer=null; note.innerHTML='<span class="down">'+(String(e.message).includes('fetch')?'接続できませんでした（http://localhost:8767 未応答。LaunchAgent: com.monocro.tbh-ai-server）':aiEsc(e.message))+'</span>'; }
   finally{ btn.disabled=false; btn.textContent=old; }
 }
 $('aiGo').onclick=aiGo;

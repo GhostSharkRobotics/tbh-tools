@@ -760,7 +760,7 @@ function render(){
 buildChips();applyLangText();render();
 
 // ---- local AI consult (このデバイスのみ・tbh-ai-server.py 経由) ----
-const AI_BASE=(location.port==='8765')?'':'http://localhost:8765';
+const AI_BASE=(location.port==='8767')?'':'http://localhost:8767';
 let AI_OK=false;   // ローカルサーバ到達可否。価格ライブ更新ボタンの表示条件にも使う。
 (async()=>{ try{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),1500);
   const r=await fetch(AI_BASE+'/health',{signal:c.signal}); clearTimeout(t);
@@ -848,7 +848,7 @@ async function aiAsk(){
     const {result,sid}=await aiStreamPost(AI_BASE+'/chat',{question:q,session_id:aiSession||undefined},m=>{last=m;tick();});
     if(sid) aiSession=sid;
     md.innerHTML=aiMd((result&&result.answer)||'(空の回答)');
-  }catch(e){ md.innerHTML='<span style="color:var(--warn)">'+(String(e.message).includes('fetch')?'接続できませんでした（tbh-ai-server.py 未起動？）':aiEsc(e.message))+'</span>'; }
+  }catch(e){ md.innerHTML='<span style="color:var(--warn)">'+(String(e.message).includes('fetch')?'接続できませんでした（http://localhost:8767 未応答。LaunchAgent: com.monocro.tbh-ai-server）':aiEsc(e.message))+'</span>'; }
   finally{ clearInterval(aiTimer); aiTimer=null; st.textContent=''; btn.disabled=false; btn.textContent=old; el('aiReq').focus(); }
 }
 el('aiGo').onclick=aiAsk;

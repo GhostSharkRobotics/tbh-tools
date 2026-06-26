@@ -74,7 +74,7 @@
 </div>
 
 <script>
-const AI_BASE=(location.port==='8765')?'':'http://localhost:8765';
+const AI_BASE=(location.port==='8767')?'':'http://localhost:8767';
 const el=id=>document.getElementById(id);
 const LSK='tbh_aichat_v2';
 
@@ -206,7 +206,7 @@ async function ask(){
     C.msgs.push({role:'a',text:(result&&result.answer)||'(空の回答)'}); C.updated=Date.now(); saveDB(); renderThread();
   }catch(e){
     const down=String(e.message).includes('fetch');
-    C.msgs.push({role:'a',text:down?'⚠ ローカルAIサーバに接続できませんでした。ターミナルで `python3 tbh-ai-server.py` を起動し、`http://localhost:8765/tbh-ai-chat.html` を開いてください。':'⚠ エラー: '+e.message});
+    C.msgs.push({role:'a',text:down?'⚠ ローカルAIサーバに接続できませんでした（http://localhost:8767）。通常はLaunchAgentで自動起動しています。`launchctl kickstart -k gui/$(id -u)/com.monocro.tbh-ai-server` で再起動できます。':'⚠ エラー: '+e.message});
     C.updated=Date.now(); saveDB(); renderThread();
   }finally{
     clearInterval(timer); timer=null; st.textContent=''; busy=false; el('send').disabled=false; el('q').focus();
@@ -222,8 +222,8 @@ async function health(){
     throw 0;
   }catch(e){
     el('banner').style.display='';
-    el('banner').innerHTML='⚠ ローカルAIサーバが見つかりません（このチャットは <b>tbh-ai-server.py</b> を起動した端末でのみ動きます）。<br>'+
-      'ターミナルで <code>python3 tbh-ai-server.py</code> を実行 → <code>http://localhost:8765/tbh-ai-chat.html</code> を開いてください。';
+    el('banner').innerHTML='⚠ ローカルAIサーバ（<code>http://localhost:8767</code>）に接続できません。このチャットは <b>tbh-ai-server.py</b> を動かしている端末でのみ動きます。<br>'+
+      '通常はLaunchAgentで自動起動しています。再起動: <code>launchctl kickstart -k gui/$(id -u)/com.monocro.tbh-ai-server</code>';
   }
 }
 
